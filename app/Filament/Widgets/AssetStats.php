@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Filament\Widgets;
+
+use App\Models\MstAsset;
+use App\Models\TrxServiceAsset;
+use App\Models\TrxRetireAsset;
+
+use Filament\Widgets\StatsOverviewWidget;
+use Filament\Widgets\StatsOverviewWidget\Stat;
+
+
+class AssetStats extends StatsOverviewWidget
+{
+    protected function getStats(): array
+    {
+        return [
+
+            Stat::make(
+                'Total Asset',
+                MstAsset::count()
+            )
+            ->description('Total asset terdaftar')
+            ->color('primary'),
+
+
+            Stat::make(
+                'Asset Used',
+                MstAsset::where(
+                    'StatusAsset',
+                    'Used'
+                )->count()
+            )
+            ->description('Asset sedang digunakan')
+            ->color('success'),
+
+
+            Stat::make(
+                'Asset Service',
+                TrxServiceAsset::where(
+                    'StatusService',
+                    'Proses'
+                )->count()
+            )
+            ->description('Asset sedang diperbaiki')
+            ->color('warning'),
+
+
+            Stat::make(
+                'Asset Retired',
+                TrxRetireAsset::count()
+            )
+            ->description('Asset sudah tidak digunakan')
+            ->color('danger'),
+
+        ];
+    }
+}
