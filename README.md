@@ -99,4 +99,8 @@ Minimal PHP 8.2
 Cek:
 
 ```bash
+<<<<<<< HEAD
 php -v
+=======
+php -v
+>>>>>>> 9fd4a44 (Menambahkan fitur baru)

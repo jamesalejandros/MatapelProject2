@@ -102,11 +102,20 @@ class MstAsset extends Model
 
 
 
+
     public function softwareAssignment()
     {
         return $this->hasMany(
             TrxSoftwareAssignment::class,
             'IDAsset'
+        );
+    }
+
+        public function assignment()
+    {
+        return $this->hasMany(
+            TrxSoftwareAssignment::class,
+            'IDLicense'
         );
     }
 

@@ -17,6 +17,7 @@ use Filament\Tables\Table;
 use App\Filament\Resources\MstAssets\RelationManagers\MutasiAssetRelationManager;
 use App\Filament\Resources\MstAssets\RelationManagers\ServiceRelationManager;
 use App\Filament\Resources\MstAssets\RelationManagers\RetireRelationManager;
+use App\Filament\Resources\MstAssets\RelationManagers\AssignmentRelationManager;
 
 class MstAssetResource extends Resource
 {
@@ -47,6 +48,7 @@ class MstAssetResource extends Resource
             MutasiAssetRelationManager::class,
             ServiceRelationManager::class,
             RetireRelationManager::class,
+            AssignmentRelationManager::class,
         ];
     }
 
