@@ -39,21 +39,23 @@ class MstAssetsTable
                 TextColumn::make('StatusBeli')
                     ->searchable(),
                 TextColumn::make('TanggalBeli')
-                    ->dateTime()
+                    ->date()
                     ->sortable(),
                 TextColumn::make('Harga')
-                    ->numeric()
+                    ->money('IDR')
                     ->sortable(),
-                TextColumn::make('IDVendor')
-                    ->numeric()
+                TextColumn::make('vendor.NamaVendor')
+                    ->label('Vendor')
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('Garansi')
                     ->searchable(),
                 TextColumn::make('DateWarranty')
-                    ->dateTime()
+                    ->date()
                     ->sortable(),
-                TextColumn::make('IDPerusahaan')
-                    ->numeric()
+                TextColumn::make('perusahaan.NamaPerusahaan')
+                    ->label('Perusahaan')
+                    ->searchable()
                     ->sortable(),
                 TextColumn::make('StatusAsset')
                     ->searchable(),

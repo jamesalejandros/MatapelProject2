@@ -2,120 +2,143 @@
 
 namespace App\Filament\Resources\MstAssets\Schemas;
 
-
 use Filament\Schemas\Schema;
 
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\DatePicker;
-
-
-use App\Models\MstPerusahaan;
-use App\Models\MstVendor;
-
-
+use Filament\Forms\Components\Textarea;
+use Filament\Schemas\Components\Section;
 
 class MstAssetForm
 {
-
     public static function configure(Schema $schema): Schema
     {
-
         return $schema
             ->components([
 
+                Section::make('Informasi Asset')
+                    ->columns(2)
+                    ->schema([
 
-                TextInput::make('NoAssetIT')
-                    ->label('No Asset IT')
-                    ->required()
-                    ->unique(ignoreRecord: true),
+                        TextInput::make('NoAssetIT')
+                            ->label('No Asset IT')
+                            ->required()
+                            ->unique(ignoreRecord: true),
 
+                        TextInput::make('NoAssetSAP')
+                            ->label('No Asset SAP'),
 
+                        TextInput::make('Jenis')
+                            ->label('Jenis Asset')
+                            ->required(),
 
-                TextInput::make('NoAssetSAP')
-                    ->label('No Asset SAP'),
+                        TextInput::make('Nama')
+                            ->label('Nama Asset')
+                            ->required(),
 
+                        TextInput::make('PN')
+                            ->label('Part Number'),
 
+                        TextInput::make('SN')
+                            ->label('Serial Number'),
 
-                TextInput::make('Jenis')
-                    ->label('Jenis Asset'),
+                        TextInput::make('PN_LCD')
+                            ->label('Part Number LCD'),
 
+                        TextInput::make('SN_LCD')
+                            ->label('Serial Number LCD'),
 
+                        TextInput::make('RAM')
+                            ->label('RAM'),
 
-                TextInput::make('Nama')
-                    ->label('Nama Asset'),
+                        Select::make('JenisOS')
+                            ->label('Operating System')
+                            ->options([
+                                'Windows 11' => 'Windows 11',
+                                'Windows 10' => 'Windows 10',
+                                'Windows Server' => 'Windows Server',
+                                'Linux' => 'Linux',
+                                'Ubuntu' => 'Ubuntu',
+                                'MacOS' => 'MacOS',
+                                'Lainnya' => 'Lainnya',
+                            ])
+                            ->searchable(),
 
+                        TextInput::make('ComputerName')
+                            ->label('Computer Name'),
 
+                        TextInput::make('IPAddress')
+                            ->label('IP Address')
+                            ->ip(),
 
-                TextInput::make('PN')
-                    ->label('Part Number'),
+                    ]),
 
+                Section::make('Pembelian')
+                    ->columns(2)
+                    ->schema([
 
+                        Select::make('StatusBeli')
+                            ->label('Status Pembelian')
+                            ->options([
+                                'Baru' => 'Baru',
+                                'Second' => 'Second',
+                            ]),
 
-                TextInput::make('SN')
-                    ->label('Serial Number'),
+                        DatePicker::make('TanggalBeli')
+                            ->label('Tanggal Beli'),
 
+                        TextInput::make('Harga')
+                            ->label('Harga')
+                            ->numeric()
+                            ->prefix('Rp'),
 
+                        Select::make('IDVendor')
+                            ->label('Vendor')
+                            ->relationship(
+                                'vendor',
+                                'NamaVendor'
+                            )
+                            ->searchable()
+                            ->preload(),
 
-                Select::make('IDPerusahaan')
+                        Select::make('Garansi')
+                            ->label('Garansi')
+                            ->options([
+                                'Ya' => 'Ya',
+                                'Tidak' => 'Tidak',
+                            ]),
 
-                    ->label('Perusahaan')
+                        DatePicker::make('DateWarranty')
+                            ->label('Tanggal Berakhir Garansi'),
 
-                    ->relationship(
-                        'perusahaan',
-                        'NamaPerusahaan'
-                    )
+                    ]),
 
-                    ->searchable()
-                    ->preload()
-                    ->required(),
+                Section::make('Perusahaan')
+                    ->columns(2)
+                    ->schema([
 
+                        Select::make('IDPerusahaan')
+                            ->label('Perusahaan')
+                            ->relationship(
+                                'perusahaan',
+                                'NamaPerusahaan'
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->required(),
 
+                        Select::make('StatusAsset')
+                            ->label('Status Asset')
+                            ->options([
+                                'Available' => 'Available',
+                                'In Service' => 'In Service',
+                                'Retired' => 'Retired',
+                            ])
+                            ->default('Available')
+                            ->required(),
 
-                Select::make('IDVendor')
-
-                    ->label('Vendor')
-
-                    ->relationship(
-                        'vendor',
-                        'NamaVendor'
-                    )
-
-                    ->searchable()
-                    ->preload(),
-
-
-
-                DatePicker::make('TanggalBeli')
-                    ->label('Tanggal Beli'),
-
-
-
-                TextInput::make('Harga')
-                    ->numeric()
-                    ->prefix('Rp'),
-
-
-
-                Select::make('StatusAsset')
-
-                    ->options([
-
-                        'Available' => 'Available',
-
-                        'Used' => 'Used',
-
-                        'In Service' => 'In Service',
-
-                        'Retired' => 'Retired',
-
-                    ])
-
-                    ->default('Available'),
-
-
+                    ]),
             ]);
-
     }
-
 }

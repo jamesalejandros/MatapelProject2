@@ -19,30 +19,21 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-
 class RetireRelationManager extends RelationManager
 {
-
     protected static string $relationship = 'retire';
-
-
 
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
 
-
                 TextInput::make('NoRetireSAP')
                     ->label('No Retire SAP'),
-
-
 
                 DateTimePicker::make('TanggalRetire')
                     ->default(now())
                     ->required(),
-
-
 
                 Select::make('AlasanRetire')
                     ->options([
@@ -53,17 +44,11 @@ class RetireRelationManager extends RelationManager
                     ])
                     ->required(),
 
-
-
                 Textarea::make('KeteranganDetail')
                     ->columnSpanFull(),
 
-
-
                 TextInput::make('EksekutorIT')
                     ->label('Eksekutor IT'),
-
-
 
                 TextInput::make('NilaiSisa')
                     ->label('Nilai Sisa')
@@ -74,70 +59,67 @@ class RetireRelationManager extends RelationManager
             ]);
     }
 
-
-
-
-
     public function table(Table $table): Table
     {
         return $table
-
             ->recordTitleAttribute('AlasanRetire')
 
-
             ->columns([
-
 
                 TextColumn::make('NoRetireSAP')
                     ->label('No Retire SAP')
                     ->searchable(),
 
-
-
                 TextColumn::make('TanggalRetire')
                     ->dateTime()
                     ->sortable(),
 
-
-
                 TextColumn::make('AlasanRetire')
                     ->badge(),
 
-
-
                 TextColumn::make('EksekutorIT')
                     ->label('Eksekutor IT'),
-
-
 
                 TextColumn::make('NilaiSisa')
                     ->money('IDR')
                     ->sortable(),
 
-
             ])
-
-
 
             ->headerActions([
-                CreateAction::make(),
+
+                CreateAction::make()
+                    ->after(function ($record, RelationManager $livewire) {
+
+                        $livewire->getOwnerRecord()->update([
+                            'StatusAsset' => 'Retired',
+                        ]);
+
+                    }),
+
             ])
-
-
 
             ->recordActions([
-                EditAction::make(),
+
+                EditAction::make()
+                    ->after(function ($record, RelationManager $livewire) {
+
+                        $livewire->getOwnerRecord()->update([
+                            'StatusAsset' => 'Retired',
+                        ]);
+
+                    }),
+
                 DeleteAction::make(),
+
             ])
 
-
-
             ->toolbarActions([
+
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),
+
             ]);
-
     }
-
 }
