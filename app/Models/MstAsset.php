@@ -8,18 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class MstAsset extends Model
 {
+    protected $table = 'mstasset';
 
-    protected $table='mstasset';
+    protected $primaryKey = 'NoAssetIT';
 
+    public $incrementing = false;
 
-    protected $primaryKey='IDAsset';
+    protected $keyType = 'string';
 
+    public $timestamps = false;
 
-    public $timestamps=false;
-
-
-
-    protected $fillable=[
+    protected $fillable = [
         'NoAssetIT',
         'NoAssetSAP',
         'Jenis',
@@ -42,15 +41,11 @@ class MstAsset extends Model
         'StatusAsset'
     ];
 
-
-
-    protected $casts=[
-        'TanggalBeli'=>'datetime',
-        'DateWarranty'=>'datetime',
-        'Harga'=>'decimal:2'
+    protected $casts = [
+        'TanggalBeli' => 'datetime',
+        'DateWarranty' => 'datetime',
+        'Harga' => 'decimal:2'
     ];
-
-
 
     public function perusahaan()
     {
@@ -60,8 +55,6 @@ class MstAsset extends Model
         );
     }
 
-
-
     public function vendor()
     {
         return $this->belongsTo(
@@ -70,53 +63,47 @@ class MstAsset extends Model
         );
     }
 
-
-
     public function mutasiAsset()
     {
         return $this->hasMany(
             TrxMutasiAsset::class,
-            'IDAsset'
+            'NoAssetIT',
+            'NoAssetIT'
         );
     }
-
-
 
     public function service()
     {
         return $this->hasMany(
             TrxServiceAsset::class,
-            'IDAsset'
+            'NoAssetIT',
+            'NoAssetIT'
         );
     }
-
-
 
     public function retire()
     {
         return $this->hasMany(
             TrxRetireAsset::class,
-            'IDAsset'
+            'NoAssetIT',
+            'NoAssetIT'
         );
     }
-
-
-
 
     public function softwareAssignment()
     {
         return $this->hasMany(
             TrxSoftwareAssignment::class,
-            'IDAsset'
+            'NoAssetIT',
+            'NoAssetIT'
         );
     }
 
-        public function assignment()
+    public function assignment()
     {
         return $this->hasMany(
             TrxSoftwareAssignment::class,
             'IDLicense'
         );
     }
-
 }

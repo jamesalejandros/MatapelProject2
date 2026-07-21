@@ -95,6 +95,8 @@ class RetireRelationManager extends RelationManager
                             'StatusAsset' => 'Retired',
                         ]);
 
+                        $livewire->dispatch('refreshAssetForm');
+
                     }),
 
             ])
@@ -107,6 +109,7 @@ class RetireRelationManager extends RelationManager
                         $livewire->getOwnerRecord()->update([
                             'StatusAsset' => 'Retired',
                         ]);
+                        $livewire->dispatch('refreshAssetForm');
 
                     }),
 

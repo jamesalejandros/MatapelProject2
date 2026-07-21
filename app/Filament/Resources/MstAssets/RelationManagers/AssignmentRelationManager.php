@@ -29,7 +29,7 @@ class AssignmentRelationManager extends RelationManager
         return $schema
             ->components([
 
-                Select::make('IDAsset')
+                Select::make('NoAssetIT')
                     ->label('Asset')
                     ->relationship('asset', 'NoAssetIT')
                     ->searchable()
@@ -58,7 +58,7 @@ class AssignmentRelationManager extends RelationManager
     {
         return $table
 
-            ->recordTitleAttribute('IDAsset')
+            ->recordTitleAttribute('NoAssetIT')
 
             ->columns([
 

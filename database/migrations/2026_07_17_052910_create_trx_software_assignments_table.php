@@ -21,7 +21,7 @@ return new class extends Migration
 
 
 
-            $table->unsignedBigInteger('IDAsset');
+            $table->string('NoAssetIT',255);
 
 
 
@@ -53,10 +53,10 @@ return new class extends Migration
 
             // FK Asset
 
-            $table->foreign('IDAsset')
-                ->references('IDAsset')
-                ->on('mstasset')
-                ->cascadeOnDelete();
+            $table->foreign('NoAssetIT')
+    ->references('NoAssetIT')
+    ->on('mstasset')
+    ->cascadeOnDelete();
 
         });
 

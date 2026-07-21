@@ -107,13 +107,14 @@ class ServiceRelationManager extends RelationManager
             ->headerActions([
 
                 CreateAction::make()
-                    ->after(function ($record, RelationManager $livewire) {
+    ->after(function ($record, RelationManager $livewire) {
 
-                        $livewire->getOwnerRecord()->update([
-                            'StatusAsset' => 'In Service',
-                        ]);
+        $livewire->getOwnerRecord()->update([
+            'StatusAsset' => 'In Service',
+        ]);
 
-                    }),
+        $livewire->dispatch('refreshAssetForm');
+    }),
 
             ])
 
@@ -137,8 +138,10 @@ class ServiceRelationManager extends RelationManager
                         }
 
                         $livewire->getOwnerRecord()->update([
-                            'StatusAsset' => $status,
-                        ]);
+    'StatusAsset' => $status,
+]);
+
+$livewire->dispatch('refreshAssetForm');
 
                     }),
 

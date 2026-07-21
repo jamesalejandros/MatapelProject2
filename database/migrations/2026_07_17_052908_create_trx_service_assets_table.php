@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id('IDService');
 
 
-            $table->unsignedBigInteger('IDAsset');
+            $table->string('NoAssetIT',255);
 
 
             $table->dateTime('TanggalMasuk')
@@ -56,9 +56,9 @@ return new class extends Migration
 
 
 
-            $table->foreign('IDAsset')
-                ->references('IDAsset')
-                ->on('mstasset');
+            $table->foreign('NoAssetIT')
+    ->references('NoAssetIT')
+    ->on('mstasset');
 
 
 

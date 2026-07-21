@@ -18,15 +18,15 @@ class TrxRetireAsset extends Model
 
 
 
-    protected $fillable=[
-        'IDAsset',
-        'NoRetireSAP',
-        'TanggalRetire',
-        'AlasanRetire',
-        'KeteranganDetail',
-        'EksekutorIT',
-        'NilaiSisa'
-    ];
+    protected $fillable = [
+    'NoAssetIT',
+    'NoRetireSAP',
+    'TanggalRetire',
+    'AlasanRetire',
+    'KeteranganDetail',
+    'EksekutorIT',
+    'NilaiSisa'
+];
 
 
 
@@ -38,11 +38,12 @@ class TrxRetireAsset extends Model
 
 
     public function asset()
-    {
-        return $this->belongsTo(
-            MstAsset::class,
-            'IDAsset'
-        );
-    }
+{
+    return $this->belongsTo(
+        MstAsset::class,
+        'NoAssetIT',
+        'NoAssetIT'
+    );
+}
 
 }

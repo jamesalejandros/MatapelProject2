@@ -18,13 +18,14 @@ class TrxSoftwareAssignment extends Model
 
 
 
-    protected $fillable=[
-        'IDLicense',
-        'IDAsset',
-        'TanggalAssign',
-        'TanggalRevoke',
-        'StatusAssignment'
-    ];
+    protected $fillable = [
+    'IDLicense',
+    'NoAssetIT',
+    'TanggalAssign',
+    'TanggalRevoke',
+    'StatusAssignment'
+];
+
 
 
 
@@ -46,11 +47,12 @@ class TrxSoftwareAssignment extends Model
 
 
     public function asset()
-    {
-        return $this->belongsTo(
-            MstAsset::class,
-            'IDAsset'
-        );
-    }
+{
+    return $this->belongsTo(
+        MstAsset::class,
+        'NoAssetIT',
+        'NoAssetIT'
+    );
+}
 
 }

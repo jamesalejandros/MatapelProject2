@@ -18,18 +18,18 @@ class TrxMutasiAsset extends Model
 
 
 
-    protected $fillable=[
-        'IDAsset',
-        'NoTransferSAP',
-        'TanggalMutasi',
-        'NIK',
-        'IDLokasi',
-        'AksesWebsite',
-        'AksesEmail',
-        'Lapor',
-        'Keterangan',
-        'IsActive'
-    ];
+    protected $fillable = [
+    'NoAssetIT',
+    'NoTransferSAP',
+    'TanggalMutasi',
+    'NIK',
+    'IDLokasi',
+    'AksesWebsite',
+    'AksesEmail',
+    'Lapor',
+    'Keterangan',
+    'IsActive'
+];
 
 
 
@@ -41,12 +41,13 @@ class TrxMutasiAsset extends Model
 
 
     public function asset()
-    {
-        return $this->belongsTo(
-            MstAsset::class,
-            'IDAsset'
-        );
-    }
+{
+    return $this->belongsTo(
+        MstAsset::class,
+        'NoAssetIT',
+        'NoAssetIT'
+    );
+}
 
 
 

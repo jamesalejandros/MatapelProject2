@@ -18,18 +18,18 @@ class TrxServiceAsset extends Model
 
 
 
-    protected $fillable=[
-        'IDAsset',
-        'TanggalMasuk',
-        'TanggalSelesai',
-        'JenisService',
-        'Kerusakan',
-        'Tindakan',
-        'Biaya',
-        'IDVendor',
-        'StatusService',
-        'Oleh'
-    ];
+    protected $fillable = [
+    'NoAssetIT',
+    'TanggalMasuk',
+    'TanggalSelesai',
+    'JenisService',
+    'Kerusakan',
+    'Tindakan',
+    'Biaya',
+    'IDVendor',
+    'StatusService',
+    'Oleh'
+];
 
 
 
@@ -42,13 +42,13 @@ class TrxServiceAsset extends Model
 
 
     public function asset()
-    {
-        return $this->belongsTo(
-            MstAsset::class,
-            'IDAsset'
-        );
-    }
-
+{
+    return $this->belongsTo(
+        MstAsset::class,
+        'NoAssetIT',
+        'NoAssetIT'
+    );
+}
 
 
     public function vendor()

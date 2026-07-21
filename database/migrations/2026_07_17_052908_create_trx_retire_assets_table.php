@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id('IDRetire');
 
 
-            $table->unsignedBigInteger('IDAsset');
+            $table->string('NoAssetIT',255);
 
 
             $table->string('NoRetireSAP',255)
@@ -47,9 +47,9 @@ return new class extends Migration
 
 
 
-            $table->foreign('IDAsset')
-                ->references('IDAsset')
-                ->on('mstasset');
+            $table->foreign('NoAssetIT')
+    ->references('NoAssetIT')
+    ->on('mstasset');
 
         });
 
