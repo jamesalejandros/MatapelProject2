@@ -11,14 +11,16 @@ use App\Models\MstPerusahaan;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use BackedEnum;
 
 
 class MstPerusahaanResource extends Resource
 {
     protected static ?string $model = MstPerusahaan::class;
 
-
     protected static ?string $navigationLabel = 'Perusahaan';
+
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-library';
 
 
     protected static ?string $modelLabel = 'Perusahaan';

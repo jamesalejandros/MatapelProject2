@@ -17,6 +17,7 @@ use Filament\Tables\Table;
 class MstKaryawanResource extends Resource
 {
     protected static ?string $model = MstKaryawan::class;
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';
 
 protected static ?string $navigationLabel = 'Karyawan';
 

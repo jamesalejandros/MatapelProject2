@@ -25,6 +25,9 @@ class MstAssetResource extends Resource
 
     protected static ?string $navigationLabel = 'Asset';
 
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-computer-desktop';
+
+
     protected static ?string $modelLabel = 'Asset';
 
     protected static ?string $pluralModelLabel = 'Asset';

@@ -21,6 +21,8 @@ class MstSoftwareResource extends Resource
 
    protected static ?string $navigationLabel = 'Software';
 
+   protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-code-bracket';
+
 protected static ?string $modelLabel = 'Software';
 
 protected static ?string $pluralModelLabel = 'Software';
