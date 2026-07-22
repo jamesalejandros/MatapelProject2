@@ -22,7 +22,7 @@ class TrxMutasiAssetForm
 
 
 
-            Select::make('IDAsset')
+            Select::make('NoAssetIT')
 
                 ->label('Asset')
 
@@ -93,8 +93,6 @@ class TrxMutasiAssetForm
             TextInput::make('AksesEmail'),
 
 
-
-            TextInput::make('Lapor'),
 
 
 

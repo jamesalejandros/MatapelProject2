@@ -26,7 +26,6 @@ class TrxMutasiAsset extends Model
     'IDLokasi',
     'AksesWebsite',
     'AksesEmail',
-    'Lapor',
     'Keterangan',
     'IsActive'
 ];

@@ -49,9 +49,6 @@ return new class extends Migration
 
 
 
-            $table->string('Lapor',50)
-                  ->nullable();
-
 
             $table->string('Keterangan',255)
                   ->nullable();

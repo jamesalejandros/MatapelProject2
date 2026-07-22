@@ -73,9 +73,6 @@ class MutasiAssetRelationManager extends RelationManager
                 TextInput::make('AksesEmail'),
 
 
-                TextInput::make('Lapor'),
-
-
                 TextInput::make('Keterangan'),
 
             ]);

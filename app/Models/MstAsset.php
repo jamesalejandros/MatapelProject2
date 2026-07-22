@@ -31,6 +31,7 @@ class MstAsset extends Model
         'JenisOS',
         'ComputerName',
         'IPAddress',
+        'Lapor',
         'StatusBeli',
         'TanggalBeli',
         'Harga',
@@ -99,11 +100,11 @@ class MstAsset extends Model
         );
     }
 
-    public function assignment()
-    {
-        return $this->hasMany(
-            TrxSoftwareAssignment::class,
-            'IDLicense'
-        );
-    }
+    // public function assignment()
+    // {
+    //     return $this->hasMany(
+    //         TrxSoftwareAssignment::class,
+    //         'IDLicense'
+    //     );
+    // }
 }

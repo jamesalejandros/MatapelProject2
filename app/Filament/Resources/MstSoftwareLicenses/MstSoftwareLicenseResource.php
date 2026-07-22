@@ -19,6 +19,7 @@ use App\Filament\Resources\MstSoftwareLicenses\RelationManagers\AssignmentRelati
 class MstSoftwareLicenseResource extends Resource
 {
     protected static ?string $model = MstSoftwareLicense::class;
+    protected static bool $shouldRegisterNavigation = false;
 
 protected static ?string $navigationLabel = 'Software License';
 

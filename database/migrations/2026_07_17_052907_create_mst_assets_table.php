@@ -37,6 +37,9 @@ return new class extends Migration
 
     $table->string('IPAddress',50)->nullable();
 
+    $table->string('Lapor',255)->nullable();
+
+
     $table->string('StatusBeli',50)
           ->default('Baru')
           ->nullable();

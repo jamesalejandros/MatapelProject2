@@ -18,6 +18,7 @@ use App\Filament\Resources\MstAssets\RelationManagers;
 class TrxMutasiAssetResource extends Resource
 {
     protected static ?string $model = TrxMutasiAsset::class;
+    protected static bool $shouldRegisterNavigation = false;
 
 protected static ?string $navigationLabel = 'Mutasi Asset';
 

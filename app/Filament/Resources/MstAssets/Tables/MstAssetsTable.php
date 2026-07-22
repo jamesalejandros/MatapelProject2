@@ -14,51 +14,127 @@ class MstAssetsTable
     {
         return $table
             ->columns([
+
                 TextColumn::make('NoAssetIT')
-                    ->searchable(),
+                    ->label('NO ASSET IT')
+                    ->weight('bold')
+                    ->copyable()
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('NoAssetSAP')
-                    ->searchable(),
+                    ->label('NO ASSET SAP')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('Jenis')
-                    ->searchable(),
+                    ->label('JENIS ASSET')
+                    ->badge()
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('Nama')
-                    ->searchable(),
+                    ->label('NAMA ASSET')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('PN')
+                    ->label('PART NUMBER')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
+
                 TextColumn::make('SN')
+                    ->label('SERIAL NUMBER')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->searchable(),
+
                 TextColumn::make('PN_LCD')
-                    ->searchable(),
+                    ->label('PN LCD')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('SN_LCD')
-                    ->searchable(),
+                    ->label('SN LCD')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 TextColumn::make('RAM')
-                    ->searchable(),
+                    ->label('RAM')
+                    ->badge(),
+
+                TextColumn::make('JenisOS')
+                    ->label('OPERATING SYSTEM')
+                    ->badge()
+                    ->toggleable(),
+
                 TextColumn::make('ComputerName')
-                    ->searchable(),
+                    ->label('COMPUTER NAME')
+                    ->searchable()
+                    ->toggleable(),
+
                 TextColumn::make('IPAddress')
-                    ->searchable(),
+                    ->label('IP ADDRESS')
+                    ->toggleable(),
+
+                TextColumn::make('Lapor')
+                    ->label('LAPOR')
+                    ->placeholder('-')
+                    ->toggleable(),
+
                 TextColumn::make('StatusBeli')
-                    ->searchable(),
+                    ->label('STATUS PEMBELIAN')
+                    ->badge()
+                    ->color(fn (string $state) => match ($state) {
+                        'Baru' => 'success',
+                        'Second' => 'warning',
+                        default => 'gray',
+                    }),
+
                 TextColumn::make('TanggalBeli')
-                    ->date()
+                    ->label('TANGGAL BELI')
+                    ->date('d M Y')
                     ->sortable(),
+
                 TextColumn::make('Harga')
-                    ->money('IDR')
+                    ->label('HARGA')
+                    ->money('IDR', locale: 'id')
                     ->sortable(),
+
                 TextColumn::make('vendor.NamaVendor')
-                    ->label('Vendor')
+                    ->label('VENDOR')
                     ->searchable()
                     ->sortable(),
+
                 TextColumn::make('Garansi')
-                    ->searchable(),
+                    ->label('GARANSI')
+                    ->formatStateUsing(function ($state) {
+                        return ($state && $state > 0)
+                            ? $state . ' Tahun'
+                            : 'Tidak Ada';
+                    })
+                    ->badge()
+                    ->color(fn ($state) => ($state && $state > 0) ? 'success' : 'danger'),
+
                 TextColumn::make('DateWarranty')
-                    ->date()
+                    ->label('BERAKHIR GARANSI')
+                    ->date('d M Y')
+                    ->placeholder('-')
                     ->sortable(),
+
                 TextColumn::make('perusahaan.NamaPerusahaan')
-                    ->label('Perusahaan')
+                    ->label('PERUSAHAAN')
                     ->searchable()
                     ->sortable(),
+
                 TextColumn::make('StatusAsset')
-                    ->searchable(),
+                    ->label('STATUS ASSET')
+                    ->badge()
+                    ->color(fn (string $state) => match ($state) {
+                        'Available' => 'success',
+                        'In Service' => 'warning',
+                        'Retired' => 'danger',
+                        default => 'gray',
+                    }),
+
             ])
             ->filters([
                 //
