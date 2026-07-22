@@ -37,12 +37,12 @@ class AssignmentRelationManager extends RelationManager
                             ->mapWithKeys(function ($license) {
 
                                 $software = $license->software?->NamaSoftware ?? '-';
-                                $type = $license->TipeLisensi ?: '-';
+                                $kode = $license->software?->KodeSoftwareCustom ?? '-';
                                 $key = $license->ProductKey ?: '-';
 
                                 return [
                                     $license->IDLicense =>
-                                        "{$software} | {$type} | {$key}"
+                                        "{$software} | {$kode} | {$key}"
                                 ];
                             })
                     )

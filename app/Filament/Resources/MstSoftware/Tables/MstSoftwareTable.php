@@ -23,11 +23,15 @@ class MstSoftwareTable
 
             ->columns([
 
-                TextColumn::make('KodeSoftwareCustom')
-                    ->label('KODE')
-                    ->weight('bold')
-                    ->sortable()
-                    ->searchable(),
+                // TextColumn::make('KodeSoftwareCustom')
+                //     ->label('KODE')
+                //     ->weight('bold')
+                //     ->sortable()
+                //     ->searchable(),
+                TextColumn::make('No')
+    ->label('NO')
+    ->rowIndex()
+    ->weight('bold'),
 
                 TextColumn::make('NamaSoftware')
                     ->label('NAMA SOFTWARE')
