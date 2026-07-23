@@ -91,9 +91,78 @@
 
 
     {{-- PRODUCT KEY BOX --}}
-    <div style="
+<div
+    x-data="{ show: false }"
+    style="
         background:#111827;
         color:white;
+        padding:18px;
+        border-radius:10px;
+        margin-bottom:25px;
+    "
+>
+
+    <div style="
+        font-size:11px;
+        color:#9ca3af;
+        margin-bottom:8px;
+    ">
+        PRODUCT KEY
+    </div>
+
+
+    <div style="
+        font-family:monospace;
+        font-size:18px;
+        letter-spacing:2px;
+        word-break:break-all;
+    ">
+
+        <span x-show="!show">
+            ••••••••••••••••••••••••••••••••••
+        </span>
+
+        <span x-show="show" x-cloak>
+            {{ $license->ProductKey ?: '-' }}
+        </span>
+
+    </div>
+
+
+    <button
+        type="button"
+        x-on:click="show = !show"
+        style="
+            margin-top:15px;
+            background:#2563eb;
+            color:white;
+            padding:8px 16px;
+            border:none;
+            border-radius:8px;
+            cursor:pointer;
+            font-size:13px;
+            font-weight:600;
+        "
+    >
+
+        <span x-show="!show">
+            👁 Show Product Key
+        </span>
+
+        <span x-show="show" x-cloak>
+            🙈 Hide Product Key
+        </span>
+
+    </button>
+
+</div>
+
+
+    {{-- KETERANGAN --}}
+    @if($license->Keterangan)
+    <div style="
+        background:#f9fafb;
+        border:1px solid #e5e7eb;
         padding:18px;
         border-radius:10px;
         margin-bottom:25px;
@@ -101,23 +170,26 @@
 
         <div style="
             font-size:11px;
-            color:#9ca3af;
+            color:#6b7280;
             margin-bottom:8px;
+            font-weight:600;
+            letter-spacing:.5px;
         ">
-            PRODUCT KEY
+            KETERANGAN
         </div>
 
-
         <div style="
-            font-family:monospace;
-            font-size:18px;
-            letter-spacing:2px;
-            word-break:break-all;
+            color:#374151;
+            line-height:1.7;
+            white-space:pre-wrap;
+            word-break:break-word;
         ">
-            {{ $license->ProductKey ?: '-' }}
+            {{ $license->Keterangan }}
         </div>
 
     </div>
+    @endif
+
 
 
 

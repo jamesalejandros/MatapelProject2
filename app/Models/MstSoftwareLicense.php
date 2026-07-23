@@ -44,6 +44,7 @@ class MstSoftwareLicense extends Model
         'Barcode',
         'LokasiSimpan',
         'TempatSimpan',
+        'Keterangan', // Tambahkan ini
         'StatusLisensi'
 
     ];

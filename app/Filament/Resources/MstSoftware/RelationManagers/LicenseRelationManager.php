@@ -72,6 +72,11 @@ class LicenseRelationManager extends RelationManager
 
                 TextInput::make('TempatSimpan'),
 
+                Textarea::make('Keterangan')
+                    ->label('Keterangan')
+                    ->rows(3)
+                    ->columnSpanFull(),
+
                 Select::make('StatusLisensi')
                     ->options([
                         'Active' => 'Active',
@@ -146,6 +151,13 @@ class LicenseRelationManager extends RelationManager
                 TextColumn::make('TempatSimpan')
                     ->label('TEMPAT')
                     ->placeholder('-')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('Keterangan')
+                    ->label('KETERANGAN')
+                    ->limit(40)
+                    ->tooltip(fn($record) => $record->Keterangan)
+                    ->wrap()
                     ->toggleable(isToggledHiddenByDefault: true),
 
                 BadgeColumn::make('StatusLisensi')

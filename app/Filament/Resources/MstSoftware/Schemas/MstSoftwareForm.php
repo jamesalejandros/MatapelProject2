@@ -133,6 +133,11 @@ class MstSoftwareForm
                         TextInput::make('TempatSimpan')
                             ->label('Tempat Simpan'),
 
+                        Textarea::make('Keterangan')
+                            ->label('Keterangan')
+                            ->rows(3)
+                            ->columnSpanFull(),
+
 
                         Select::make('StatusLisensi')
                             ->label('Status')
