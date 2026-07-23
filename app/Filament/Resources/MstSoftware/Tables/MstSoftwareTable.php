@@ -4,11 +4,9 @@ namespace App\Filament\Resources\MstSoftware\Tables;
 
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Infolists\Components\Grid;
-use Filament\Infolists\Components\Section;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -23,15 +21,10 @@ class MstSoftwareTable
 
             ->columns([
 
-                // TextColumn::make('KodeSoftwareCustom')
-                //     ->label('KODE')
-                //     ->weight('bold')
-                //     ->sortable()
-                //     ->searchable(),
                 TextColumn::make('No')
-    ->label('NO')
-    ->rowIndex()
-    ->weight('bold'),
+                    ->label('NO')
+                    ->rowIndex()
+                    ->weight('bold'),
 
                 TextColumn::make('NamaSoftware')
                     ->label('NAMA SOFTWARE')
@@ -68,25 +61,27 @@ class MstSoftwareTable
 
             ->recordActions([
 
-    Action::make('licenses')
-        ->label('Product Keys')
-        ->icon('heroicon-o-key')
-        ->color('warning')
-        ->slideOver()
-        ->modalWidth('4xl')
-        ->modalHeading(fn ($record) => 'Product Keys - ' . $record->NamaSoftware)
-        ->modalSubmitAction(false)
-        ->modalCancelActionLabel('Close')
-        ->modalContent(fn ($record) => view(
-            'filament.tables.columns.software-product-keys',
-            [
-                'licenses' => $record->license,
-            ]
-        )),
+                Action::make('licenses')
+                    ->label('Product Keys')
+                    ->icon('heroicon-o-key')
+                    ->color('warning')
+                    ->slideOver()
+                    ->modalWidth('4xl')
+                    ->modalHeading(fn ($record) => 'Product Keys - ' . $record->NamaSoftware)
+                    ->modalSubmitAction(false)
+                    ->modalCancelActionLabel('Close')
+                    ->modalContent(fn ($record) => view(
+                        'filament.tables.columns.software-product-keys',
+                        [
+                            'licenses' => $record->license,
+                        ]
+                    )),
 
-    EditAction::make(),
+                EditAction::make(),
 
-])
+                DeleteAction::make(),
+
+            ])
 
             ->toolbarActions([
 

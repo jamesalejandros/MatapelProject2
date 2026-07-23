@@ -19,7 +19,6 @@ class MstSoftware extends Model
 
 
     protected $fillable=[
-        'KodeSoftwareCustom',
         'NamaSoftware',
         'SoftCategory',
         'Jenis',

@@ -9,7 +9,6 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 
-
 class MstSoftwareForm
 {
     public static function configure(Schema $schema): Schema
@@ -17,19 +16,10 @@ class MstSoftwareForm
         return $schema
             ->components([
 
-
-                TextInput::make('KodeSoftwareCustom')
-                    ->label('Kode Software')
-                    ->required()
-                    ->unique(ignoreRecord: true),
-
-
-
                 TextInput::make('NamaSoftware')
                     ->label('Nama Software')
                     ->required()
                     ->maxLength(255),
-
 
 
                 TextInput::make('SoftCategory')
@@ -47,7 +37,6 @@ class MstSoftwareForm
                     ->autocomplete('off'),
 
 
-
                 Select::make('Jenis')
                     ->label('Jenis Lisensi')
                     ->options([
@@ -57,10 +46,8 @@ class MstSoftwareForm
                     ]),
 
 
-
                 TextInput::make('Version')
                     ->label('Version'),
-
 
 
                 Toggle::make('Is32Bit')
@@ -68,11 +55,9 @@ class MstSoftwareForm
                     ->default(false),
 
 
-
                 Toggle::make('Is64Bit')
                     ->label('64 Bit')
                     ->default(false),
-
 
 
                 Textarea::make('Keterangan')
@@ -81,13 +66,18 @@ class MstSoftwareForm
 
 
 
-
                 Repeater::make('license')
                     ->label('PRODUCT KEY / LICENSE')
-
                     ->relationship()
-
                     ->schema([
+
+
+                        TextInput::make('IDLicense')
+                            ->label('ID License')
+                            ->placeholder('Contoh: HOASDA1234')
+                            ->required()
+                            ->maxLength(100)
+                            ->unique(ignoreRecord: true),
 
 
                         Select::make('IDPerusahaan')
@@ -101,13 +91,11 @@ class MstSoftwareForm
                             ->required(),
 
 
-
                         Textarea::make('ProductKey')
                             ->label('Product Key')
                             ->rows(2)
                             ->required()
                             ->columnSpanFull(),
-
 
 
                         Select::make('TipeLisensi')
@@ -122,7 +110,6 @@ class MstSoftwareForm
                             ->required(),
 
 
-
                         TextInput::make('JumlahLisensi')
                             ->label('Jumlah License')
                             ->numeric()
@@ -130,26 +117,21 @@ class MstSoftwareForm
                             ->required(),
 
 
-
                         Toggle::make('HasDVD')
                             ->label('DVD Installer')
                             ->default(false),
-
 
 
                         TextInput::make('Barcode')
                             ->label('Barcode'),
 
 
-
                         TextInput::make('LokasiSimpan')
                             ->label('Lokasi Simpan'),
 
 
-
                         TextInput::make('TempatSimpan')
                             ->label('Tempat Simpan'),
-
 
 
                         Select::make('StatusLisensi')
@@ -164,15 +146,10 @@ class MstSoftwareForm
 
 
                     ])
-
                     ->columns(2)
-
                     ->collapsed()
-
                     ->defaultItems(1)
-
                     ->addActionLabel('Tambah Product Key')
-
                     ->columnSpanFull(),
 
 

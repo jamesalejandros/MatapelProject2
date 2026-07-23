@@ -3,22 +3,38 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\MstSoftware;
+use App\Models\MstPerusahaan;
+use App\Models\TrxSoftwareAssignment;
 
 
 class MstSoftwareLicense extends Model
 {
 
-    protected $table='mstsoftwarelicense';
+    protected $table = 'mstsoftwarelicense';
 
 
-    protected $primaryKey='IDLicense';
+    protected $primaryKey = 'IDLicense';
 
 
-    public $timestamps=false;
+    /*
+    |--------------------------------------------------------------------------
+    | IDLicense sekarang VARCHAR PRIMARY KEY
+    |--------------------------------------------------------------------------
+    */
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+
+    public $timestamps = false;
 
 
 
-    protected $fillable=[
+    protected $fillable = [
+
+        'IDLicense',
         'IDSoftware',
         'IDPerusahaan',
         'ProductKey',
@@ -29,12 +45,15 @@ class MstSoftwareLicense extends Model
         'LokasiSimpan',
         'TempatSimpan',
         'StatusLisensi'
+
     ];
 
 
 
-    protected $casts=[
-        'HasDVD'=>'boolean'
+    protected $casts = [
+
+        'HasDVD' => 'boolean'
+
     ];
 
 

@@ -42,7 +42,7 @@ class AssignmentRelationManager extends RelationManager
 
                                 return [
                                     $license->IDLicense =>
-                                        "{$software} | {$kode} | {$key}"
+                                        "{$software} | {$license->IDLicense} | {$key}"
                                 ];
                             })
                     )

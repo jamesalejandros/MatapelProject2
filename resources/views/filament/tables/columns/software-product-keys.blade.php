@@ -1,6 +1,6 @@
 <div style="display:flex; flex-direction:column; gap:24px;">
 
-@forelse($licenses as $license)
+@forelse($licenses->sortByDesc('IDLicense') as $license)
 
 <div style="
     border:1px solid #e5e7eb;
@@ -54,6 +54,40 @@
 
 
     </div>
+
+
+    {{-- ID LICENSE BOX --}}
+    <div style="
+        background:#eff6ff;
+        border:1px solid #bfdbfe;
+        padding:18px;
+        border-radius:10px;
+        margin-bottom:20px;
+    ">
+
+        <div style="
+            font-size:11px;
+            color:#2563eb;
+            margin-bottom:8px;
+            font-weight:600;
+        ">
+            ID LICENSE
+        </div>
+
+
+        <div style="
+            font-family:monospace;
+            font-size:18px;
+            font-weight:700;
+            letter-spacing:2px;
+            word-break:break-all;
+            color:#1e3a8a;
+        ">
+            {{ $license->IDLicense ?: '-' }}
+        </div>
+
+    </div>
+
 
 
     {{-- PRODUCT KEY BOX --}}
