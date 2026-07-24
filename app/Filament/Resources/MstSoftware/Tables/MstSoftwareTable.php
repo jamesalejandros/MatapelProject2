@@ -31,24 +31,35 @@ class MstSoftwareTable
 
         return $table
 
+    ->recordUrl(null)
 
-            ->recordUrl(null)
+    ->paginated([
+        10,
+        25,
+        50,
+        100,
+        250,
+        'all',
+    ])
 
+    ->paginationPageOptions([
+        10,
+        25,
+        50,
+        100,
+        250,
+        'all',
+    ])
 
+    ->defaultPaginationPageOption('all')
 
+    ->modifyQueryUsing(function ($query) {
 
+        $query->with([
+            'license.perusahaan',
+        ]);
 
-            ->modifyQueryUsing(function ($query) {
-
-
-                $query->with([
-
-                    'license.perusahaan'
-
-                ]);
-
-
-            })
+    })
 
 
 
