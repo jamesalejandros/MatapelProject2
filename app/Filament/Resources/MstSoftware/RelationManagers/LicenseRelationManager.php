@@ -21,14 +21,52 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
+
 class LicenseRelationManager extends RelationManager
 {
+
+
     protected static string $relationship = 'license';
+
+
+
+    protected static ?string $title = 'PRODUCT KEY / LICENSE';
+
+
+
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Collapse / Expand Relation Manager
+    |--------------------------------------------------------------------------
+    */
+
+    public static function isCollapsible(): bool
+    {
+        return true;
+    }
+
+
+
+    public static function isCollapsed(): bool
+    {
+        return false;
+    }
+
+
+
+
+
+
+
+
 
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
+
 
                 TextInput::make('IDLicense')
                     ->label('ID License')
@@ -38,6 +76,8 @@ class LicenseRelationManager extends RelationManager
                     ->unique(ignoreRecord: true),
 
 
+
+
                 Select::make('IDPerusahaan')
                     ->label('Perusahaan')
                     ->relationship('perusahaan', 'NamaPerusahaan')
@@ -45,61 +85,111 @@ class LicenseRelationManager extends RelationManager
                     ->preload()
                     ->required(),
 
+
+
+
                 Textarea::make('ProductKey')
                     ->label('Product Key')
                     ->columnSpanFull(),
 
+
+
+
                 Select::make('TipeLisensi')
+                    ->label('Tipe License')
                     ->options([
+
                         'OEM' => 'OEM',
                         'Retail' => 'Retail',
                         'OLP' => 'OLP',
                         'Volume' => 'Volume',
                         'Subscription' => 'Subscription',
+
                     ]),
 
+
+
+
                 TextInput::make('JumlahLisensi')
+                    ->label('Jumlah License')
                     ->numeric()
                     ->default(1)
                     ->required(),
 
+
+
+
                 Toggle::make('HasDVD')
                     ->label('DVD Installer'),
 
+
+
+
                 TextInput::make('Barcode'),
+
+
+
 
                 TextInput::make('LokasiSimpan'),
 
+
+
+
                 TextInput::make('TempatSimpan'),
+
+
+
 
                 Textarea::make('Keterangan')
                     ->label('Keterangan')
                     ->rows(3)
                     ->columnSpanFull(),
 
+
+
+
                 Select::make('StatusLisensi')
+                    ->label('Status License')
                     ->options([
+
                         'Active' => 'Active',
                         'Expired' => 'Expired',
                         'Inactive' => 'Inactive',
+
                     ])
                     ->default('Active')
                     ->required(),
 
+
             ]);
     }
+
+
+
+
+
+
+
+
 
     public function table(Table $table): Table
     {
         return $table
+
             ->recordTitleAttribute('ProductKey')
 
+
             ->columns([
+
+
 
                 TextColumn::make('IDLicense')
                     ->label('ID LICENSE')
                     ->sortable()
                     ->searchable(),
+
+
+
 
                 TextColumn::make('perusahaan.NamaPerusahaan')
                     ->label('PERUSAHAAN')
@@ -108,24 +198,39 @@ class LicenseRelationManager extends RelationManager
                     ->searchable()
                     ->sortable(),
 
+
+
+
                 TextColumn::make('ProductKey')
                     ->label('PRODUCT KEY')
                     ->copyable()
-                    ->copyMessage('Product Key berhasil disalin')
+                    ->copyMessage(
+                        'Product Key berhasil disalin'
+                    )
                     ->searchable()
                     ->limit(35)
-                    ->tooltip(fn($record) => $record->ProductKey)
+                    ->tooltip(
+                        fn($record) => $record->ProductKey
+                    )
                     ->wrap(),
+
+
+
 
                 BadgeColumn::make('TipeLisensi')
                     ->label('TIPE')
                     ->colors([
+
                         'primary' => 'OEM',
                         'success' => 'Retail',
                         'warning' => 'OLP',
                         'danger' => 'Volume',
                         'gray' => 'Subscription',
+
                     ]),
+
+
+
 
                 TextColumn::make('JumlahLisensi')
                     ->label('JUMLAH')
@@ -133,9 +238,15 @@ class LicenseRelationManager extends RelationManager
                     ->alignCenter()
                     ->sortable(),
 
+
+
+
                 IconColumn::make('HasDVD')
                     ->label('DVD')
                     ->boolean(),
+
+
+
 
                 TextColumn::make('Barcode')
                     ->label('BARCODE')
@@ -143,50 +254,94 @@ class LicenseRelationManager extends RelationManager
                     ->copyable()
                     ->toggleable(),
 
+
+
+
                 TextColumn::make('LokasiSimpan')
                     ->label('LOKASI')
                     ->placeholder('-')
                     ->toggleable(),
 
+
+
+
                 TextColumn::make('TempatSimpan')
                     ->label('TEMPAT')
                     ->placeholder('-')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(
+                        isToggledHiddenByDefault: true
+                    ),
+
+
+
 
                 TextColumn::make('Keterangan')
                     ->label('KETERANGAN')
                     ->limit(40)
-                    ->tooltip(fn($record) => $record->Keterangan)
+                    ->tooltip(
+                        fn($record) => $record->Keterangan
+                    )
                     ->wrap()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(
+                        isToggledHiddenByDefault: true
+                    ),
+
+
+
 
                 BadgeColumn::make('StatusLisensi')
                     ->label('STATUS')
                     ->colors([
+
                         'success' => 'Active',
                         'warning' => 'Expired',
                         'danger' => 'Inactive',
+
                     ]),
 
-            ])
-
-            ->filters([
 
             ])
+
+
+
+
+            ->filters([])
+
+
 
             ->headerActions([
-                CreateAction::make(),
+
+                CreateAction::make()
+                    ->label('Tambah Product Key'),
+
             ])
+
+
+
 
             ->recordActions([
+
                 EditAction::make(),
+
                 DeleteAction::make(),
+
             ])
 
+
+
+
             ->toolbarActions([
+
                 BulkActionGroup::make([
+
                     DeleteBulkAction::make(),
+
                 ]),
+
             ]);
+
+
     }
+
+
 }

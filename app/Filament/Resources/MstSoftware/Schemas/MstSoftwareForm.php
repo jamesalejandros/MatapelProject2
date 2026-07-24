@@ -7,7 +7,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+
 
 class MstSoftwareForm
 {
@@ -16,10 +18,12 @@ class MstSoftwareForm
         return $schema
             ->components([
 
+
                 TextInput::make('NamaSoftware')
                     ->label('Nama Software')
                     ->required()
                     ->maxLength(255),
+
 
 
                 TextInput::make('SoftCategory')
@@ -37,6 +41,7 @@ class MstSoftwareForm
                     ->autocomplete('off'),
 
 
+
                 Select::make('Jenis')
                     ->label('Jenis Lisensi')
                     ->options([
@@ -46,8 +51,10 @@ class MstSoftwareForm
                     ]),
 
 
+
                 TextInput::make('Version')
                     ->label('Version'),
+
 
 
                 Toggle::make('Is32Bit')
@@ -55,9 +62,11 @@ class MstSoftwareForm
                     ->default(false),
 
 
+
                 Toggle::make('Is64Bit')
                     ->label('64 Bit')
                     ->default(false),
+
 
 
                 Textarea::make('Keterangan')
@@ -66,96 +75,146 @@ class MstSoftwareForm
 
 
 
-                Repeater::make('license')
-                    ->label('PRODUCT KEY / LICENSE')
-                    ->relationship()
+
+
+                Section::make('PRODUCT KEY / LICENSE')
+
+                    ->collapsible()
+
                     ->schema([
 
 
-                        TextInput::make('IDLicense')
-                            ->label('ID License')
-                            ->placeholder('Contoh: HOASDA1234')
-                            ->required()
-                            ->maxLength(100)
-                            ->unique(ignoreRecord: true),
+                        Repeater::make('license')
+
+                            ->relationship()
+
+                            ->schema([
 
 
-                        Select::make('IDPerusahaan')
-                            ->label('Perusahaan')
-                            ->relationship(
-                                'perusahaan',
-                                'NamaPerusahaan'
-                            )
-                            ->searchable()
-                            ->preload()
-                            ->required(),
+
+                                TextInput::make('IDLicense')
+                                    ->label('ID License')
+                                    ->placeholder('Contoh: HOASDA1234')
+                                    ->required()
+                                    ->maxLength(100)
+                                    ->unique(ignoreRecord: true),
 
 
-                        Textarea::make('ProductKey')
-                            ->label('Product Key')
-                            ->rows(2)
-                            ->required()
-                            ->columnSpanFull(),
 
 
-                        Select::make('TipeLisensi')
-                            ->label('Tipe Lisensi')
-                            ->options([
-                                'OEM' => 'OEM',
-                                'Retail' => 'Retail',
-                                'OLP' => 'OLP',
-                                'Volume' => 'Volume',
-                                'Subscription' => 'Subscription',
+                                Select::make('IDPerusahaan')
+                                    ->label('Perusahaan')
+                                    ->relationship(
+                                        'perusahaan',
+                                        'NamaPerusahaan'
+                                    )
+                                    ->searchable()
+                                    ->preload()
+                                    ->required(),
+
+
+
+
+                                Textarea::make('ProductKey')
+                                    ->label('Product Key')
+                                    ->rows(2)
+                                    ->required()
+                                    ->columnSpanFull(),
+
+
+
+
+                                Select::make('TipeLisensi')
+                                    ->label('Tipe Lisensi')
+                                    ->options([
+                                        'OEM' => 'OEM',
+                                        'Retail' => 'Retail',
+                                        'OLP' => 'OLP',
+                                        'Volume' => 'Volume',
+                                        'Subscription' => 'Subscription',
+                                    ])
+                                    ->required(),
+
+
+
+
+                                TextInput::make('JumlahLisensi')
+                                    ->label('Jumlah License')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->required(),
+
+
+
+
+                                Toggle::make('HasDVD')
+                                    ->label('DVD Installer')
+                                    ->default(false),
+
+
+
+
+                                TextInput::make('Barcode')
+                                    ->label('Barcode'),
+
+
+
+
+                                TextInput::make('LokasiSimpan')
+                                    ->label('Lokasi Simpan'),
+
+
+
+
+                                TextInput::make('TempatSimpan')
+                                    ->label('Tempat Simpan'),
+
+
+
+
+                                Textarea::make('Keterangan')
+                                    ->label('Keterangan')
+                                    ->rows(3)
+                                    ->columnSpanFull(),
+
+
+
+
+                                Select::make('StatusLisensi')
+                                    ->label('Status')
+                                    ->options([
+                                        'Active' => 'Active',
+                                        'Expired' => 'Expired',
+                                        'Inactive' => 'Inactive',
+                                    ])
+                                    ->default('Active')
+                                    ->required(),
+
+
+
                             ])
-                            ->required(),
 
 
-                        TextInput::make('JumlahLisensi')
-                            ->label('Jumlah License')
-                            ->numeric()
-                            ->default(1)
-                            ->required(),
+                            ->columns(2)
 
 
-                        Toggle::make('HasDVD')
-                            ->label('DVD Installer')
-                            ->default(false),
+                            // Tetap mempertahankan Collapse all / Expand all
+                            ->collapsible()
+
+                            ->collapsed()
 
 
-                        TextInput::make('Barcode')
-                            ->label('Barcode'),
+                            ->defaultItems(1)
 
 
-                        TextInput::make('LokasiSimpan')
-                            ->label('Lokasi Simpan'),
+                            ->addActionLabel('Tambah Product Key')
 
-
-                        TextInput::make('TempatSimpan')
-                            ->label('Tempat Simpan'),
-
-                        Textarea::make('Keterangan')
-                            ->label('Keterangan')
-                            ->rows(3)
-                            ->columnSpanFull(),
-
-
-                        Select::make('StatusLisensi')
-                            ->label('Status')
-                            ->options([
-                                'Active' => 'Active',
-                                'Expired' => 'Expired',
-                                'Inactive' => 'Inactive',
-                            ])
-                            ->default('Active')
-                            ->required(),
 
 
                     ])
-                    ->columns(2)
-                    ->collapsed()
-                    ->defaultItems(1)
-                    ->addActionLabel('Tambah Product Key')
+
                     ->columnSpanFull(),
+
 
 
             ]);
