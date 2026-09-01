@@ -237,6 +237,32 @@
                     @endforeach
 
                 </select>
+                <button
+    type="button"
+    wire:click="exportExcel"
+    wire:loading.attr="disabled"
+    style="
+        padding:9px 18px;
+        background:#16A34A;
+        color:white;
+        border:none;
+        border-radius:8px;
+        font-weight:600;
+        cursor:pointer;
+        display:flex;
+        align-items:center;
+        gap:8px;
+    "
+>
+    <span wire:loading.remove wire:target="exportExcel">
+        📊 Export Excel
+    </span>
+
+    <span wire:loading wire:target="exportExcel">
+        ⏳ Membuat Excel...
+    </span>
+</button>
+
 
             </div>
 
@@ -261,115 +287,216 @@
 
                 <thead>
 
-                    <tr
-                        style="
-                            background:#f3f4f6;
-                        "
-                    >
+    <tr
+        style="
+            background:#f3f4f6;
+        "
+    >
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            No.
-                        </th>
+        {{-- NO --}}
+        <th
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+            "
+        >
+            No.
+        </th>
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            No Asset
-                        </th>
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            NoAssetSAP
-                        </th>
+        {{-- NO ASSET --}}
+        <th
+            wire:click="sortBy('NoAssetIT')"
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+                cursor:pointer;
+                user-select:none;
+            "
+        >
+            No Asset
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            Nama Asset
-                        </th>
+            @if($sortColumn === 'NoAssetIT')
+                {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+            @else
+                ↕
+            @endif
+        </th>
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            Jenis
-                        </th>
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            Department
-                        </th>
+        {{-- NO ASSET SAP --}}
+        <th
+            wire:click="sortBy('NoAssetSAP')"
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+                cursor:pointer;
+                user-select:none;
+            "
+        >
+            NoAssetSAP
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            Pemegang
-                        </th>
+            @if($sortColumn === 'NoAssetSAP')
+                {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+            @else
+                ↕
+            @endif
+        </th>
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            Perusahaan
-                        </th>
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            Lokasi
-                        </th>
+        {{-- NAMA ASSET --}}
+        <th
+            wire:click="sortBy('Nama')"
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+                cursor:pointer;
+                user-select:none;
+            "
+        >
+            Nama Asset
 
-                        <th
-                            style="
-                                padding:12px;
-                                text-align:left;
-                                white-space:nowrap;
-                            "
-                        >
-                            Status Asset
-                        </th>
+            @if($sortColumn === 'Nama')
+                {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+            @else
+                ↕
+            @endif
+        </th>
 
-                    </tr>
 
-                </thead>
+        {{-- JENIS --}}
+        <th
+            wire:click="sortBy('Jenis')"
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+                cursor:pointer;
+                user-select:none;
+            "
+        >
+            Jenis
+
+            @if($sortColumn === 'Jenis')
+                {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+            @else
+                ↕
+            @endif
+        </th>
+
+
+        {{-- DEPARTMENT --}}
+        <th
+            wire:click="sortBy('Department')"
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+                cursor:pointer;
+                user-select:none;
+            "
+        >
+            Department
+
+            @if($sortColumn === 'Department')
+                {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+            @else
+                ↕
+            @endif
+        </th>
+
+
+        {{-- PEMEGANG --}}
+        <th
+            wire:click="sortBy('Pemegang')"
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+                cursor:pointer;
+                user-select:none;
+            "
+        >
+            Pemegang
+
+            @if($sortColumn === 'Pemegang')
+                {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+            @else
+                ↕
+            @endif
+        </th>
+
+
+        {{-- PERUSAHAAN --}}
+        <th
+            wire:click="sortBy('Perusahaan')"
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+                cursor:pointer;
+                user-select:none;
+            "
+        >
+            Perusahaan
+
+            @if($sortColumn === 'Perusahaan')
+                {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+            @else
+                ↕
+            @endif
+        </th>
+
+
+        {{-- LOKASI --}}
+        <th
+            wire:click="sortBy('Lokasi')"
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+                cursor:pointer;
+                user-select:none;
+            "
+        >
+            Lokasi
+
+            @if($sortColumn === 'Lokasi')
+                {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+            @else
+                ↕
+            @endif
+        </th>
+
+
+        {{-- STATUS --}}
+        <th
+            wire:click="sortBy('StatusAsset')"
+            style="
+                padding:12px;
+                text-align:left;
+                white-space:nowrap;
+                cursor:pointer;
+                user-select:none;
+            "
+        >
+            Status Asset
+
+            @if($sortColumn === 'StatusAsset')
+                {{ $sortDirection === 'asc' ? '↑' : '↓' }}
+            @else
+                ↕
+            @endif
+        </th>
+
+    </tr>
+
+</thead>
+
 
 
                 <tbody>
