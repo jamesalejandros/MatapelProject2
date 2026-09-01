@@ -22,13 +22,13 @@ class TrxPabxAssignmentsTable
 
 
             ->recordUrl(
-                fn ($record) =>
-                    TrxPabxAssignmentResource::getUrl(
-                        'edit',
-                        [
-                            'record' => $record,
-                        ]
-                    )
+                fn($record) =>
+                TrxPabxAssignmentResource::getUrl(
+                    'edit',
+                    [
+                        'record' => $record,
+                    ]
+                )
             )
 
 
@@ -130,10 +130,7 @@ class TrxPabxAssignmentsTable
 
                     ->searchable(
                         query:
-                        function (
-                            $query,
-                            string $search
-                        ): void {
+                        function ($query, string $search): void {
 
                             $query->whereHas(
                                 'asset',
@@ -148,17 +145,17 @@ class TrxPabxAssignmentsTable
                                                 "%{$search}%"
                                             )
 
-                                            ->orWhere(
-                                                'NoAssetSAP',
-                                                'like',
-                                                "%{$search}%"
-                                            )
+                                                ->orWhere(
+                                                    'NoAssetSAP',
+                                                    'like',
+                                                    "%{$search}%"
+                                                )
 
-                                            ->orWhere(
-                                                'Nama',
-                                                'like',
-                                                "%{$search}%"
-                                            );
+                                                ->orWhere(
+                                                    'Nama',
+                                                    'like',
+                                                    "%{$search}%"
+                                                );
 
                                         }
                                     );
@@ -232,6 +229,39 @@ class TrxPabxAssignmentsTable
                     ->toggleable(),
 
 
+                /*
+|--------------------------------------------------------------------------
+| DEPARTMENT
+|--------------------------------------------------------------------------
+|
+| Sumber:
+|
+| trxpabxassignment.NIK
+|       ↓
+| mstkaryawan
+|       ↓
+| mstdepartemen
+|
+*/
+
+                TextColumn::make('karyawan.departemen.NamaDept')
+
+                    ->label('DEPARTMENT')
+
+                    ->placeholder('-')
+
+                    ->badge()
+
+                    ->color('primary')
+
+                    ->searchable()
+
+                    ->sortable()
+
+                    ->toggleable(),
+
+
+
 
                 /*
                 |--------------------------------------------------------------------------
@@ -271,14 +301,14 @@ class TrxPabxAssignmentsTable
                                 $record
                                     ->karyawan
                                     ?->lokasi
-                                    ?->NamaLokasi
+                                        ?->NamaLokasi
 
                                 ??
 
                                 $record
                                     ->ruangan
                                     ?->lokasi
-                                    ?->NamaLokasi
+                                        ?->NamaLokasi
 
                                 ??
 
@@ -290,10 +320,10 @@ class TrxPabxAssignmentsTable
                     ->badge()
 
                     ->color(
-                        fn ($state) =>
-                            $state !== '-'
-                                ? 'info'
-                                : 'gray'
+                        fn($state) =>
+                        $state !== '-'
+                        ? 'info'
+                        : 'gray'
                     )
 
                     ->sortable(false),
@@ -331,22 +361,22 @@ class TrxPabxAssignmentsTable
                     ->badge()
 
                     ->color(
-                        fn (?string $state): string =>
-                            match ($state) {
+                        fn(?string $state): string =>
+                        match ($state) {
 
-                                'Digital' =>
-                                    'info',
+                            'Digital' =>
+                            'info',
 
-                                'Analog' =>
-                                    'warning',
+                            'Analog' =>
+                            'warning',
 
-                                'IP' =>
-                                    'success',
+                            'IP' =>
+                            'success',
 
-                                default =>
-                                    'gray',
+                            default =>
+                            'gray',
 
-                            }
+                        }
                     )
 
                     ->sortable(),
