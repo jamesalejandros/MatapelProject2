@@ -38,21 +38,18 @@ class AssetLocationStatusChart extends ChartWidget
      * Label  : Lokasi
      * Data   : Jumlah Asset
      * Filter : Status
+     *
+     * Urutan :
+     * Jumlah asset terbesar → terkecil
      */
     protected function getData(): array
     {
         /**
-         * Ambil semua lokasi
-         */
-        $locations = MstLokasi::query()
-            ->orderBy('NamaLokasi')
-            ->get([
-                'IDLokasi',
-                'NamaLokasi',
-            ]);
-
-        /**
-         * Query Asset
+         * ==========================================================
+         * QUERY ASSET
+         * ==========================================================
+         *
+         * Hitung jumlah asset berdasarkan lokasi.
          */
         $query = MstAsset::query();
 
@@ -70,7 +67,9 @@ class AssetLocationStatusChart extends ChartWidget
         }
 
         /**
-         * Hitung asset berdasarkan lokasi
+         * ==========================================================
+         * HITUNG ASSET PER LOKASI
+         * ==========================================================
          */
         $result = $query
             ->selectRaw(
@@ -83,14 +82,76 @@ class AssetLocationStatusChart extends ChartWidget
             );
 
         /**
-         * ID Lokasi
+         * ==========================================================
+         * AMBIL SEMUA LOKASI
+         * ==========================================================
+         *
+         * Tetap mengambil semua lokasi agar lokasi dengan
+         * 0 asset tetap muncul di chart.
+         */
+        $locations = MstLokasi::query()
+            ->get([
+                'IDLokasi',
+                'NamaLokasi',
+            ]);
+
+        /**
+         * ==========================================================
+         * GABUNGKAN LOKASI + JUMLAH ASSET
+         * ==========================================================
+         *
+         * Setiap lokasi diberi nilai total asset.
+         */
+        $locations = $locations
+            ->map(function ($location) use ($result) {
+
+                $location->totalAsset = (int) (
+                    $result[$location->IDLokasi] ?? 0
+                );
+
+                return $location;
+            })
+
+            /**
+             * ======================================================
+             * SORTING BERDASARKAN JUMLAH ASSET
+             * ======================================================
+             *
+             * Terbesar → terkecil.
+             *
+             * Jika jumlah sama, baru diurutkan berdasarkan
+             * nama lokasi agar hasil tetap konsisten.
+             */
+            ->sort(function ($a, $b) {
+
+                if (
+                    $a->totalAsset ===
+                    $b->totalAsset
+                ) {
+                    return strcasecmp(
+                        $a->NamaLokasi ?? '',
+                        $b->NamaLokasi ?? ''
+                    );
+                }
+
+                return $b->totalAsset
+                    <=> $a->totalAsset;
+            })
+            ->values();
+
+        /**
+         * ==========================================================
+         * LOCATION IDS
+         * ==========================================================
          */
         $locationIds = $locations
             ->pluck('IDLokasi')
             ->toArray();
 
         /**
-         * Nama Lokasi
+         * ==========================================================
+         * LABELS
+         * ==========================================================
          */
         $labels = $locations
             ->map(
@@ -100,19 +161,22 @@ class AssetLocationStatusChart extends ChartWidget
             ->toArray();
 
         /**
-         * Jumlah Asset
+         * ==========================================================
+         * DATA
+         * ==========================================================
          */
         $data = $locations
+            ->pluck('totalAsset')
             ->map(
-                fn ($location) =>
-                    (int) (
-                        $result[$location->IDLokasi] ?? 0
-                    )
+                fn ($total) =>
+                    (int) $total
             )
             ->toArray();
 
         /**
-         * Warna Bar
+         * ==========================================================
+         * WARNA BAR
+         * ==========================================================
          */
         $colors = [
             '#3B82F6',
@@ -141,44 +205,66 @@ class AssetLocationStatusChart extends ChartWidget
             )
             ->toArray();
 
+        /**
+         * ==========================================================
+         * RETURN DATA
+         * ==========================================================
+         */
         return [
+
             /**
              * Custom property untuk JavaScript.
+             *
+             * Index-nya tetap mengikuti labels dan data
+             * sehingga ketika chart diklik, ID lokasi tetap benar.
              */
             'locationIds' => $locationIds,
 
             'datasets' => [
+
                 [
+
                     'label' => $this->filter === 'all'
                         ? 'Jumlah Asset'
                         : 'Jumlah Asset - ' . $this->filter,
 
                     'data' => $data,
 
-                    'backgroundColor' => $backgroundColors,
+                    'backgroundColor' =>
+                        $backgroundColors,
 
-                    'borderColor' => '#FFFFFF',
+                    'borderColor' =>
+                        '#FFFFFF',
 
-                    'borderWidth' => 2,
+                    'borderWidth' =>
+                        2,
 
-                    'borderRadius' => 6,
+                    'borderRadius' =>
+                        6,
 
-                    'hoverOffset' => 8,
+                    'hoverOffset' =>
+                        8,
+
                 ],
+
             ],
 
-            'labels' => $labels,
+            'labels' =>
+                $labels,
+
         ];
     }
+
 
     protected function getType(): string
     {
         return 'pie';
     }
 
+
     protected function getOptions(): RawJs
-{
-    return RawJs::make(<<<'JS'
+    {
+        return RawJs::make(<<<'JS'
 
 {
     responsive: true,
@@ -186,6 +272,7 @@ class AssetLocationStatusChart extends ChartWidget
     maintainAspectRatio: false,
 
     plugins: {
+
         legend: {
             display: true,
 
@@ -193,6 +280,7 @@ class AssetLocationStatusChart extends ChartWidget
         },
 
         tooltip: {
+
             callbacks: {
 
                 label: function(context) {
@@ -210,8 +298,11 @@ class AssetLocationStatusChart extends ChartWidget
                 }
 
             }
+
         }
+
     },
+
 
     onClick(event, elements, chart)
     {
@@ -249,6 +340,5 @@ class AssetLocationStatusChart extends ChartWidget
 }
 
 JS);
-}
-
+    }
 }
