@@ -13,6 +13,7 @@ use App\Filament\Resources\MstAssets\RelationManagers\MutasiAssetRelationManager
 use App\Filament\Resources\MstAssets\RelationManagers\ServiceRelationManager;
 use App\Filament\Resources\MstAssets\RelationManagers\RetireRelationManager;
 use App\Filament\Resources\MstAssets\RelationManagers\AssignmentRelationManager;
+use App\Filament\Resources\MstAssets\RelationManagers\PabxAssignmentRelationManager;
 
 use App\Models\MstAsset;
 
@@ -106,10 +107,17 @@ class MstAssetResource extends Resource
     public static function getRelations(): array
     {
         return [
+
             MutasiAssetRelationManager::class,
+
             ServiceRelationManager::class,
+
             RetireRelationManager::class,
+
             AssignmentRelationManager::class,
+
+            PabxAssignmentRelationManager::class,
+
         ];
     }
 

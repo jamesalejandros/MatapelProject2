@@ -70,4 +70,23 @@ class MstKaryawan extends Model
     );
 }
 
+public function lokasi()
+{
+    return $this->belongsTo(
+        MstLokasi::class,
+        'IDLokasi',
+        'IDLokasi'
+    );
+}
+
+public function pabxAssignment()
+{
+    return $this->hasMany(
+        TrxPabxAssignment::class,
+        'NIK',
+        'NIK'
+    );
+}
+
+
 }

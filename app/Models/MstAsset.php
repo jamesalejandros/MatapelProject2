@@ -144,6 +144,16 @@ class MstAsset extends Model
         );
     }
 
+    public function pabxAssignment()
+{
+    return $this->hasMany(
+        TrxPabxAssignment::class,
+        'NoAssetIT',
+        'NoAssetIT'
+    );
+}
+
+
 
 
     // public function assignment()
