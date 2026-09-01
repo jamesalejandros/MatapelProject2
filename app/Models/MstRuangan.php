@@ -12,10 +12,13 @@ class MstRuangan extends Model
 
     public $timestamps = false;
 
+
     protected $fillable = [
         'NamaRuangan',
+        'Lantai',
         'IDLokasi',
     ];
+
 
     public function lokasi()
     {
@@ -25,6 +28,7 @@ class MstRuangan extends Model
             'IDLokasi'
         );
     }
+
 
     public function pabxAssignment()
     {

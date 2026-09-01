@@ -113,6 +113,16 @@ class MstRuangansTable
 
                     ->wrap(),
 
+                TextColumn::make('Lantai')
+
+                    ->label('LANTAI')
+
+                    ->searchable()
+
+                    ->sortable()
+
+                    ->wrap(),
+
 
 
                 TextColumn::make('lokasi.NamaLokasi')

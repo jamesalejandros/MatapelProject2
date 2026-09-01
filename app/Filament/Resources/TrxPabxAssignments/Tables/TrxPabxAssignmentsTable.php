@@ -21,17 +21,29 @@ class TrxPabxAssignmentsTable
         return $table
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | RECORD URL
+            |--------------------------------------------------------------------------
+            */
+
             ->recordUrl(
-                fn($record) =>
-                TrxPabxAssignmentResource::getUrl(
-                    'edit',
-                    [
-                        'record' => $record,
-                    ]
-                )
+                fn ($record) =>
+                    TrxPabxAssignmentResource::getUrl(
+                        'edit',
+                        [
+                            'record' => $record,
+                        ]
+                    )
             )
 
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | DEFAULT SORT
+            |--------------------------------------------------------------------------
+            */
 
             ->defaultSort(
                 'IDAssignment',
@@ -39,6 +51,12 @@ class TrxPabxAssignmentsTable
             )
 
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | PAGINATION
+            |--------------------------------------------------------------------------
+            */
 
             ->paginated([
                 10,
@@ -66,14 +84,18 @@ class TrxPabxAssignmentsTable
 
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | EAGER LOAD
+            |--------------------------------------------------------------------------
+            */
+
             ->modifyQueryUsing(
                 function ($query) {
 
                     $query->with([
 
                         'asset.perusahaan',
-
-                        'asset.karyawan.departemen',
 
                         'karyawan.departemen',
 
@@ -88,9 +110,21 @@ class TrxPabxAssignmentsTable
 
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | COLUMNS
+            |--------------------------------------------------------------------------
+            */
+
             ->columns([
 
 
+
+                /*
+                |--------------------------------------------------------------------------
+                | NO
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('No')
 
@@ -130,7 +164,10 @@ class TrxPabxAssignmentsTable
 
                     ->searchable(
                         query:
-                        function ($query, string $search): void {
+                        function (
+                            $query,
+                            string $search
+                        ): void {
 
                             $query->whereHas(
                                 'asset',
@@ -169,6 +206,39 @@ class TrxPabxAssignmentsTable
                     ->sortable()
 
                     ->wrap(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | IP ADDRESS
+                |--------------------------------------------------------------------------
+                |
+                | Sumber:
+                |
+                | trxpabxassignment.NoAssetIT
+                |       ↓
+                | mstasset
+                |       ↓
+                | IPAddress
+                |
+                */
+
+                TextColumn::make(
+                    'asset.IPAddress'
+                )
+
+                    ->label('IP ADDRESS')
+
+                    ->placeholder('-')
+
+                    ->searchable()
+
+                    ->sortable()
+
+                    ->copyable()
+
+                    ->toggleable(),
 
 
 
@@ -229,22 +299,25 @@ class TrxPabxAssignmentsTable
                     ->toggleable(),
 
 
-                /*
-|--------------------------------------------------------------------------
-| DEPARTMENT
-|--------------------------------------------------------------------------
-|
-| Sumber:
-|
-| trxpabxassignment.NIK
-|       ↓
-| mstkaryawan
-|       ↓
-| mstdepartemen
-|
-*/
 
-                TextColumn::make('karyawan.departemen.NamaDept')
+                /*
+                |--------------------------------------------------------------------------
+                | DEPARTMENT
+                |--------------------------------------------------------------------------
+                |
+                | Sumber:
+                |
+                | trxpabxassignment.NIK
+                |       ↓
+                | mstkaryawan
+                |       ↓
+                | departemen
+                |
+                */
+
+                TextColumn::make(
+                    'karyawan.departemen.NamaDept'
+                )
 
                     ->label('DEPARTMENT')
 
@@ -262,14 +335,15 @@ class TrxPabxAssignmentsTable
 
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | RUANGAN
                 |--------------------------------------------------------------------------
                 */
 
-                TextColumn::make('ruangan.NamaRuangan')
+                TextColumn::make(
+                    'ruangan.NamaRuangan'
+                )
 
                     ->label('RUANGAN')
 
@@ -287,46 +361,37 @@ class TrxPabxAssignmentsTable
                 |--------------------------------------------------------------------------
                 | LOKASI
                 |--------------------------------------------------------------------------
+                |
+                | Sumber:
+                |
+                | trxpabxassignment.IDRuangan
+                |       ↓
+                | mstruangan
+                |       ↓
+                | mstlokasi
+                |
                 */
 
-                TextColumn::make('Lokasi')
+                TextColumn::make(
+                    'ruangan.lokasi.NamaLokasi'
+                )
 
                     ->label('LOKASI')
 
-                    ->state(
-                        function ($record) {
-
-                            return
-
-                                $record
-                                    ->karyawan
-                                    ?->lokasi
-                                        ?->NamaLokasi
-
-                                ??
-
-                                $record
-                                    ->ruangan
-                                    ?->lokasi
-                                        ?->NamaLokasi
-
-                                ??
-
-                                '-';
-
-                        }
-                    )
+                    ->placeholder('-')
 
                     ->badge()
 
                     ->color(
-                        fn($state) =>
-                        $state !== '-'
-                        ? 'info'
-                        : 'gray'
+                        fn ($state) =>
+                            $state
+                                ? 'info'
+                                : 'gray'
                     )
 
-                    ->sortable(false),
+                    ->searchable()
+
+                    ->sortable(),
 
 
 
@@ -334,9 +399,24 @@ class TrxPabxAssignmentsTable
                 |--------------------------------------------------------------------------
                 | LANTAI
                 |--------------------------------------------------------------------------
+                |
+                | Tidak lagi mengambil dari:
+                |
+                | trxpabxassignment.Lantai
+                |
+                | Sekarang mengambil dari:
+                |
+                | trxpabxassignment.IDRuangan
+                |       ↓
+                | mstruangan
+                |       ↓
+                | Lantai
+                |
                 */
 
-                TextColumn::make('Lantai')
+                TextColumn::make(
+                    'ruangan.Lantai'
+                )
 
                     ->label('LANTAI')
 
@@ -361,29 +441,75 @@ class TrxPabxAssignmentsTable
                     ->badge()
 
                     ->color(
-                        fn(?string $state): string =>
-                        match ($state) {
+                        fn (?string $state): string =>
+                            match ($state) {
 
-                            'Digital' =>
-                            'info',
+                                'Digital' =>
+                                    'info',
 
-                            'Analog' =>
-                            'warning',
+                                'Analog' =>
+                                    'warning',
 
-                            'IP' =>
-                            'success',
+                                'IP' =>
+                                    'success',
 
-                            default =>
-                            'gray',
+                                default =>
+                                    'gray',
 
-                        }
+                            }
                     )
 
                     ->sortable(),
 
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | PIN
+                |--------------------------------------------------------------------------
+                */
+
+                TextColumn::make('Pin')
+
+                    ->label('PIN')
+
+                    ->placeholder('-')
+
+                    ->searchable()
+
+                    ->toggleable(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | SAMBUNGAN
+                |--------------------------------------------------------------------------
+                */
+
+                TextColumn::make('Sambungan')
+
+                    ->label('SAMBUNGAN')
+
+                    ->placeholder('-')
+
+                    ->searchable()
+
+                    ->sortable()
+
+                    ->wrap()
+
+                    ->toggleable(),
+
             ])
 
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | FILTERS
+            |--------------------------------------------------------------------------
+            */
 
             ->filters([
 
@@ -392,6 +518,12 @@ class TrxPabxAssignmentsTable
             ])
 
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | RECORD ACTIONS
+            |--------------------------------------------------------------------------
+            */
 
             ->recordActions([
 
@@ -403,6 +535,12 @@ class TrxPabxAssignmentsTable
 
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | TOOLBAR ACTIONS
+            |--------------------------------------------------------------------------
+            */
+
             ->toolbarActions([
 
                 BulkActionGroup::make([
@@ -412,5 +550,6 @@ class TrxPabxAssignmentsTable
                 ]),
 
             ]);
+
     }
 }

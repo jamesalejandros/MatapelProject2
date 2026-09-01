@@ -4,18 +4,23 @@ namespace App\Filament\Resources\MstAssets\RelationManagers;
 
 use App\Models\MstKaryawan;
 use App\Models\MstRuangan;
+
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\Radio;
+
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+
 use Filament\Resources\RelationManagers\RelationManager;
+
 use Filament\Schemas\Schema;
+
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+
 
 class PabxAssignmentRelationManager extends RelationManager
 {
@@ -23,116 +28,252 @@ class PabxAssignmentRelationManager extends RelationManager
 
 
     /**
-     * Hanya tampil untuk Asset dengan JenisAsset = PABX
+     * Hanya tampil untuk Asset dengan Jenis = PABX
      */
     public static function canViewForRecord(
         $ownerRecord,
         string $pageClass
     ): bool {
+
         return $ownerRecord->Jenis === 'PABX';
+
     }
 
 
     public function form(Schema $schema): Schema
     {
         return $schema
+
             ->components([
 
+
+                /*
+                |--------------------------------------------------------------------------
+                | NOMOR EXTENSION
+                |--------------------------------------------------------------------------
+                */
+
                 TextInput::make('NoExt')
+
                     ->label('No. Extension')
+
                     ->required()
+
                     ->maxLength(50),
 
 
-                Radio::make('TargetAssignment')
-                    ->label('Assign To')
-                    ->options([
-                        'karyawan' => 'Karyawan',
-                        'ruangan' => 'Ruangan',
-                    ])
-                    ->default('karyawan')
-                    ->live()
-                    ->required(),
 
+                /*
+                |--------------------------------------------------------------------------
+                | KARYAWAN
+                |--------------------------------------------------------------------------
+                |
+                | Karyawan boleh kosong.
+                |
+                | Jika diisi:
+                |
+                | NIK
+                |  ↓
+                | MstKaryawan
+                |  ↓
+                | Department
+                |
+                */
 
                 Select::make('NIK')
+
                     ->label('Karyawan')
+
                     ->options(
+
                         MstKaryawan::query()
+
+                            ->with([
+                                'departemen',
+                                'lokasi',
+                            ])
+
                             ->orderBy('Nama')
+
                             ->get()
-                            ->mapWithKeys(fn ($karyawan) => [
-                                $karyawan->NIK =>
-                                    "{$karyawan->Nama} | {$karyawan->NIK}"
-                            ])
+
+                            ->mapWithKeys(
+                                function ($karyawan) {
+
+                                    $departemen =
+                                        $karyawan
+                                            ->departemen
+                                                ?->NamaDept
+                                        ?? '-';
+
+
+
+                                    return [
+
+                                        $karyawan->NIK =>
+
+                                            "{$karyawan->Nama}"
+                                            . " | NIK: {$karyawan->NIK}"
+                                            . " | {$departemen}"
+                                            ,
+
+                                    ];
+
+                                }
+                            )
+
                     )
+
                     ->searchable()
+
                     ->preload()
-                    ->required(
-                        fn ($get) =>
-                            $get('TargetAssignment') === 'karyawan'
-                    )
-                    ->visible(
-                        fn ($get) =>
-                            $get('TargetAssignment') === 'karyawan'
-                    )
-                    ->live()
-                    ->afterStateUpdated(function ($state, $set) {
 
-                        if ($state) {
-                            $set('IDRuangan', null);
-                        }
-
-                    }),
-
-
-                Select::make('IDRuangan')
-                    ->label('Ruangan')
-                    ->options(
-                        MstRuangan::query()
-                            ->with('lokasi')
-                            ->orderBy('NamaRuangan')
-                            ->get()
-                            ->mapWithKeys(fn ($ruangan) => [
-                                $ruangan->IDRuangan =>
-                                    "{$ruangan->NamaRuangan} | " .
-                                    ($ruangan->lokasi?->NamaLokasi ?? '-')
-                            ])
-                    )
-                    ->searchable()
-                    ->preload()
-                    ->required(
-                        fn ($get) =>
-                            $get('TargetAssignment') === 'ruangan'
-                    )
-                    ->visible(
-                        fn ($get) =>
-                            $get('TargetAssignment') === 'ruangan'
-                    )
-                    ->live()
-                    ->afterStateUpdated(function ($state, $set) {
-
-                        if ($state) {
-                            $set('NIK', null);
-                        }
-
-                    }),
-
-
-                TextInput::make('Lantai')
-                    ->label('Lantai')
-                    ->maxLength(50)
                     ->nullable(),
 
 
-                Select::make('Jenis')
-                    ->label('Jenis PABX')
-                    ->options([
-                        'Digital' => 'Digital',
-                        'Analog' => 'Analog',
-                        'IP' => 'IP',
-                    ])
+
+                /*
+                |--------------------------------------------------------------------------
+                | RUANGAN
+                |--------------------------------------------------------------------------
+                |
+                | Ruangan wajib dipilih.
+                |
+                | Lantai dan Lokasi nantinya diambil dari Ruangan.
+                |
+                */
+
+                Select::make('IDRuangan')
+
+                    ->label('Ruangan')
+
+                    ->options(
+
+                        MstRuangan::query()
+
+                            ->with('lokasi')
+
+                            ->orderBy('NamaRuangan')
+
+                            ->get()
+
+                            ->mapWithKeys(
+                                function ($ruangan) {
+
+                                    $lokasi =
+                                        $ruangan
+                                            ->lokasi
+                                                ?->NamaLokasi
+                                        ?? '-';
+
+
+                                    $lantai =
+                                        $ruangan->Lantai
+                                        ??
+                                        '-';
+
+
+                                    return [
+
+                                        $ruangan->IDRuangan =>
+
+                                            "{$ruangan->NamaRuangan}"
+                                            . " | Lantai: {$lantai}"
+                                            . " | {$lokasi}",
+
+                                    ];
+
+                                }
+                            )
+
+                    )
+
+                    ->searchable()
+
+                    ->preload()
+
                     ->required(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | JENIS PABX
+                |--------------------------------------------------------------------------
+                */
+
+                Select::make('Jenis')
+
+                    ->label('Jenis PABX')
+
+                    ->options([
+
+                        'Digital' =>
+                            'Digital',
+
+                        'Analog' =>
+                            'Analog',
+
+                        'IP' =>
+                            'IP',
+
+                    ])
+
+                    ->required(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | PIN
+                |--------------------------------------------------------------------------
+                */
+
+                TextInput::make('Pin')
+
+                    ->label('PIN')
+
+                    ->maxLength(100)
+
+                    ->nullable(),
+
+
+
+                /*
+|--------------------------------------------------------------------------
+| SAMBUNGAN
+|--------------------------------------------------------------------------
+|
+| Database:
+| trxpabxassignment.Sambungan
+|
+| Tipe:
+| STRING nullable
+|
+| User dapat:
+| 1. Memilih opsi yang sudah tersedia
+| 2. Mengetik nilai custom sendiri
+|
+*/
+
+                TextInput::make('Sambungan')
+
+                    ->label('Sambungan')
+
+                    ->maxLength(255)
+
+                    ->nullable()
+
+                    ->datalist([
+
+                        'Telephone keluar hanya lokal saja, tidak bisa HP',
+
+                        'Telephone keluar lokal, interlokal (antar daearah / kode area indonesia) dan HP',
+
+                        'Hanya internal pabrik dan gudang. Tidak bisa telephone keluar',
+
+                    ]),
+
 
             ]);
     }
@@ -144,26 +285,116 @@ class PabxAssignmentRelationManager extends RelationManager
 
         ->recordTitleAttribute('NoExt')
 
-        ->modifyQueryUsing(function ($query) {
 
-            $query->with([
+        /*
+        |--------------------------------------------------------------------------
+        | EAGER LOAD
+        |--------------------------------------------------------------------------
+        */
 
-                'karyawan.departemen',
+        ->modifyQueryUsing(
+            function ($query) {
 
-                'karyawan.lokasi',
+                $query->with([
 
-                'ruangan.lokasi',
+                    'asset',
 
-            ]);
+                    'karyawan.departemen',
 
-        })
+                    'karyawan.lokasi',
+
+                    'ruangan.lokasi',
+
+                ]);
+
+            }
+        )
+
 
         ->columns([
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | NO EXT
+            |--------------------------------------------------------------------------
+            */
+
             TextColumn::make('NoExt')
+
                 ->label('NO. EXT')
+
                 ->searchable()
-                ->sortable(),
+
+                ->sortable()
+
+                ->weight('bold'),
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | ASSET
+            |--------------------------------------------------------------------------
+            */
+
+            TextColumn::make('asset.NoAssetIT')
+
+                ->label('ASSET')
+
+                ->formatStateUsing(
+                    function ($state, $record) {
+
+                        return
+
+                            ($record->asset?->NoAssetIT
+                                ?? '-')
+
+                            . ' | '
+
+                            . ($record->asset?->Nama
+                                ?? '-');
+
+                    }
+                )
+
+                ->searchable()
+
+                ->sortable()
+
+                ->wrap(),
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | IP ADDRESS
+            |--------------------------------------------------------------------------
+            |
+            | Sumber:
+            |
+            | trxpabxassignment.NoAssetIT
+            |       ↓
+            | mstasset
+            |       ↓
+            | IPAddress
+            |
+            */
+
+            TextColumn::make('asset.IPAddress')
+
+                ->label('IP ADDRESS')
+
+                ->placeholder('-')
+
+                ->searchable()
+
+                ->sortable()
+
+                ->copyable()
+
+                ->toggleable(),
+
 
 
             /*
@@ -173,11 +404,17 @@ class PabxAssignmentRelationManager extends RelationManager
             */
 
             TextColumn::make('karyawan.Nama')
+
                 ->label('KARYAWAN')
+
                 ->placeholder('-')
+
                 ->searchable()
+
                 ->sortable()
+
                 ->wrap(),
+
 
 
             /*
@@ -187,11 +424,17 @@ class PabxAssignmentRelationManager extends RelationManager
             */
 
             TextColumn::make('NIK')
+
                 ->label('NIK')
+
                 ->placeholder('-')
+
                 ->searchable()
+
                 ->sortable()
+
                 ->toggleable(),
+
 
 
             /*
@@ -209,14 +452,24 @@ class PabxAssignmentRelationManager extends RelationManager
             |
             */
 
-            TextColumn::make('karyawan.departemen.NamaDept')
+            TextColumn::make(
+                'karyawan.departemen.NamaDept'
+            )
+
                 ->label('DEPARTMENT')
+
                 ->placeholder('-')
+
                 ->badge()
+
                 ->color('primary')
+
                 ->searchable()
+
                 ->sortable()
+
                 ->toggleable(),
+
 
 
             /*
@@ -225,12 +478,20 @@ class PabxAssignmentRelationManager extends RelationManager
             |--------------------------------------------------------------------------
             */
 
-            TextColumn::make('ruangan.NamaRuangan')
+            TextColumn::make(
+                'ruangan.NamaRuangan'
+            )
+
                 ->label('RUANGAN')
+
                 ->placeholder('-')
+
                 ->searchable()
+
                 ->sortable()
+
                 ->wrap(),
+
 
 
             /*
@@ -238,112 +499,66 @@ class PabxAssignmentRelationManager extends RelationManager
             | LOKASI
             |--------------------------------------------------------------------------
             |
-            | Jika assignment ke Karyawan:
-            | Karyawan → Lokasi
-            |
-            | Jika assignment ke Ruangan:
-            | Ruangan → Lokasi
+            | Assignment
+            |     ↓
+            | Ruangan
+            |     ↓
+            | Lokasi
             |
             */
 
-            TextColumn::make('Lokasi')
+            TextColumn::make(
+                'ruangan.lokasi.NamaLokasi'
+            )
 
                 ->label('LOKASI')
 
-                ->state(function ($record) {
-
-                    return
-
-                        $record
-                            ->karyawan
-                            ?->lokasi
-                            ?->NamaLokasi
-
-                        ??
-
-                        $record
-                            ->ruangan
-                            ?->lokasi
-                            ?->NamaLokasi
-
-                        ??
-
-                        '-';
-
-                })
+                ->placeholder('-')
 
                 ->badge()
 
                 ->color(
                     fn ($state) =>
-                        $state !== '-'
+                        $state
                             ? 'info'
                             : 'gray'
                 )
 
-                ->sortable(false)
+                ->searchable()
 
-                ->searchable(
-                    query: function ($query, string $search) {
+                ->sortable(),
 
-                        $query->where(function ($query) use ($search) {
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | Cari lokasi dari Karyawan
-                            |--------------------------------------------------------------------------
-                            */
-
-                            $query->whereHas(
-                                'karyawan.lokasi',
-                                function ($query) use ($search) {
-
-                                    $query->where(
-                                        'NamaLokasi',
-                                        'like',
-                                        "%{$search}%"
-                                    );
-
-                                }
-                            )
-
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | ATAU cari lokasi dari Ruangan
-                            |--------------------------------------------------------------------------
-                            */
-
-                            ->orWhereHas(
-                                'ruangan.lokasi',
-                                function ($query) use ($search) {
-
-                                    $query->where(
-                                        'NamaLokasi',
-                                        'like',
-                                        "%{$search}%"
-                                    );
-
-                                }
-                            );
-
-                        });
-
-                    }
-                ),
 
 
             /*
             |--------------------------------------------------------------------------
             | LANTAI
             |--------------------------------------------------------------------------
+            |
+            | Tidak lagi mengambil dari trxpabxassignment.
+            |
+            | Sekarang:
+            |
+            | trxpabxassignment
+            |        ↓
+            | IDRuangan
+            |        ↓
+            | mstruangan.Lantai
+            |
             */
 
-            TextColumn::make('Lantai')
+            TextColumn::make(
+                'ruangan.Lantai'
+            )
+
                 ->label('LANTAI')
+
                 ->placeholder('-')
+
                 ->searchable()
+
                 ->sortable(),
+
 
 
             /*
@@ -353,42 +568,105 @@ class PabxAssignmentRelationManager extends RelationManager
             */
 
             TextColumn::make('Jenis')
+
                 ->label('JENIS PABX')
+
                 ->badge()
+
                 ->color(
                     fn (?string $state): string =>
                         match ($state) {
 
-                            'Digital' => 'info',
+                            'Digital' =>
+                                'info',
 
-                            'Analog' => 'warning',
+                            'Analog' =>
+                                'warning',
 
-                            'IP' => 'success',
+                            'IP' =>
+                                'success',
 
-                            default => 'gray',
+                            default =>
+                                'gray',
 
                         }
                 )
+
                 ->sortable(),
 
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | PIN
+            |--------------------------------------------------------------------------
+            */
+
+            TextColumn::make('Pin')
+
+                ->label('PIN')
+
+                ->placeholder('-')
+
+                ->searchable()
+
+                ->toggleable(),
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | SAMBUNGAN
+            |--------------------------------------------------------------------------
+            */
+
+            TextColumn::make('Sambungan')
+
+                ->label('SAMBUNGAN')
+
+                ->placeholder('-')
+
+                ->searchable()
+
+                ->sortable()
+
+                ->wrap()
+
+                ->toggleable(),
+
+
         ])
+
 
         ->filters([])
 
+
         ->headerActions([
+
             CreateAction::make(),
+
         ])
+
 
         ->recordActions([
+
             EditAction::make(),
+
             DeleteAction::make(),
+
         ])
 
+
         ->toolbarActions([
+
             BulkActionGroup::make([
+
                 DeleteBulkAction::make(),
+
             ]),
+
         ]);
+
 }
 
 }

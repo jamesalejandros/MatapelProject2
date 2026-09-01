@@ -12,14 +12,17 @@ class TrxPabxAssignment extends Model
 
     public $timestamps = false;
 
+
     protected $fillable = [
         'NoAssetIT',
         'NoExt',
         'NIK',
         'IDRuangan',
-        'Lantai',
         'Jenis',
+        'Pin',
+        'Sambungan',
     ];
+
 
     public function asset()
     {
@@ -30,6 +33,7 @@ class TrxPabxAssignment extends Model
         );
     }
 
+
     public function karyawan()
     {
         return $this->belongsTo(
@@ -38,6 +42,7 @@ class TrxPabxAssignment extends Model
             'NIK'
         );
     }
+
 
     public function ruangan()
     {

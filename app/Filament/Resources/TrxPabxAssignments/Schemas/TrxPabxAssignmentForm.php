@@ -4,9 +4,7 @@ namespace App\Filament\Resources\TrxPabxAssignments\Schemas;
 
 use App\Models\MstKaryawan;
 use App\Models\MstRuangan;
-use App\Models\MstAsset;
 
-use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 
@@ -26,6 +24,9 @@ class TrxPabxAssignmentForm
                 |--------------------------------------------------------------------------
                 | ASSET
                 |--------------------------------------------------------------------------
+                |
+                | Hanya Asset dengan Jenis = PABX yang dapat dipilih.
+                |
                 */
 
                 Select::make('NoAssetIT')
@@ -98,36 +99,14 @@ class TrxPabxAssignmentForm
 
                 /*
                 |--------------------------------------------------------------------------
-                | TARGET ASSIGNMENT
-                |--------------------------------------------------------------------------
-                */
-
-                Radio::make('TargetAssignment')
-
-                    ->label('Assign Kepada')
-
-                    ->options([
-
-                        'karyawan' =>
-                            'Karyawan',
-
-                        'ruangan' =>
-                            'Ruangan',
-
-                    ])
-
-                    ->default('karyawan')
-
-                    ->live()
-
-                    ->required(),
-
-
-
-                /*
-                |--------------------------------------------------------------------------
                 | KARYAWAN
                 |--------------------------------------------------------------------------
+                |
+                | Karyawan bersifat OPTIONAL / nullable.
+                |
+                | Jika assignment memang ditujukan ke ruangan saja,
+                | NIK boleh dikosongkan.
+                |
                 */
 
                 Select::make('NIK')
@@ -156,11 +135,13 @@ class TrxPabxAssignmentForm
                                             ?->NamaDept
                                         ?? '-';
 
+
                                     $lokasi =
                                         $karyawan
                                             ->lokasi
                                             ?->NamaLokasi
                                         ?? '-';
+
 
                                     return [
 
@@ -182,34 +163,7 @@ class TrxPabxAssignmentForm
 
                     ->preload()
 
-                    ->visible(
-                        fn ($get) =>
-                            $get('TargetAssignment')
-                            === 'karyawan'
-                    )
-
-                    ->required(
-                        fn ($get) =>
-                            $get('TargetAssignment')
-                            === 'karyawan'
-                    )
-
-                    ->live()
-
-                    ->afterStateUpdated(
-                        function ($state, $set) {
-
-                            if ($state) {
-
-                                $set(
-                                    'IDRuangan',
-                                    null
-                                );
-
-                            }
-
-                        }
-                    ),
+                    ->nullable(),
 
 
 
@@ -217,6 +171,11 @@ class TrxPabxAssignmentForm
                 |--------------------------------------------------------------------------
                 | RUANGAN
                 |--------------------------------------------------------------------------
+                |
+                | Ruangan wajib dipilih.
+                |
+                | Lantai dan Lokasi nantinya mengikuti Ruangan.
+                |
                 */
 
                 Select::make('IDRuangan')
@@ -242,12 +201,20 @@ class TrxPabxAssignmentForm
                                             ?->NamaLokasi
                                         ?? '-';
 
+
+                                    $lantai =
+                                        $ruangan->Lantai
+                                        ??
+                                        '-';
+
+
                                     return [
 
                                         $ruangan->IDRuangan =>
 
                                             "{$ruangan->NamaRuangan}"
-                                            . " | Lokasi: {$lokasi}",
+                                            . " | Lantai: {$lantai}"
+                                            . " | {$lokasi}",
 
                                     ];
 
@@ -260,50 +227,7 @@ class TrxPabxAssignmentForm
 
                     ->preload()
 
-                    ->visible(
-                        fn ($get) =>
-                            $get('TargetAssignment')
-                            === 'ruangan'
-                    )
-
-                    ->required(
-                        fn ($get) =>
-                            $get('TargetAssignment')
-                            === 'ruangan'
-                    )
-
-                    ->live()
-
-                    ->afterStateUpdated(
-                        function ($state, $set) {
-
-                            if ($state) {
-
-                                $set(
-                                    'NIK',
-                                    null
-                                );
-
-                            }
-
-                        }
-                    ),
-
-
-
-                /*
-                |--------------------------------------------------------------------------
-                | LANTAI
-                |--------------------------------------------------------------------------
-                */
-
-                TextInput::make('Lantai')
-
-                    ->label('Lantai')
-
-                    ->maxLength(50)
-
-                    ->nullable(),
+                    ->required(),
 
 
 
@@ -331,6 +255,56 @@ class TrxPabxAssignmentForm
                     ])
 
                     ->required(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | PIN
+                |--------------------------------------------------------------------------
+                */
+
+                TextInput::make('Pin')
+
+                    ->label('PIN')
+
+                    ->maxLength(100)
+
+                    ->nullable(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | SAMBUNGAN
+                |--------------------------------------------------------------------------
+                |
+                | Database menggunakan STRING biasa.
+                |
+                | User dapat:
+                |
+                | 1. Memilih rekomendasi yang tersedia.
+                | 2. Mengetik nilai custom sendiri.
+                |
+                */
+
+                TextInput::make('Sambungan')
+
+                    ->label('Sambungan')
+
+                    ->maxLength(255)
+
+                    ->nullable()
+
+                    ->datalist([
+
+                        'Telephone keluar hanya lokal saja, tidak bisa HP',
+
+                        'Telephone keluar lokal, interlokal (antar daearah / kode area indonesia) dan HP',
+
+                        'Hanya internal pabrik dan gudang. Tidak bisa telephone keluar',
+
+                    ]),
 
             ]);
     }

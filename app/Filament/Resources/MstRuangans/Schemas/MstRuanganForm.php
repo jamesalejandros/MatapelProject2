@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\MstRuangans\Schemas;
 
-use App\Models\MstLokasi;
-
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 
@@ -19,6 +17,12 @@ class MstRuanganForm
             ->components([
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | NAMA RUANGAN
+                |--------------------------------------------------------------------------
+                */
+
                 TextInput::make('NamaRuangan')
 
                     ->label('Nama Ruangan')
@@ -28,6 +32,28 @@ class MstRuanganForm
                     ->maxLength(100),
 
 
+
+                /*
+                |--------------------------------------------------------------------------
+                | LANTAI
+                |--------------------------------------------------------------------------
+                */
+
+                TextInput::make('Lantai')
+
+                    ->label('Lantai')
+
+                    ->maxLength(50)
+
+                    ->nullable(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | LOKASI
+                |--------------------------------------------------------------------------
+                */
 
                 Select::make('IDLokasi')
 
@@ -43,6 +69,7 @@ class MstRuanganForm
                     ->preload()
 
                     ->required(),
+
 
             ]);
     }
