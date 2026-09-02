@@ -4,9 +4,11 @@ namespace App\Filament\Resources\TrxPabxAssignments\Schemas;
 
 use App\Models\MstKaryawan;
 use App\Models\MstRuangan;
+use App\Models\MstSambungan;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 
 use Filament\Schemas\Schema;
 
@@ -136,11 +138,6 @@ class TrxPabxAssignmentForm
                                         ?? '-';
 
 
-                                    $lokasi =
-                                        $karyawan
-                                            ->lokasi
-                                            ?->NamaLokasi
-                                        ?? '-';
 
 
                                     return [
@@ -149,8 +146,7 @@ class TrxPabxAssignmentForm
 
                                             "{$karyawan->Nama}"
                                             . " | NIK: {$karyawan->NIK}"
-                                            . " | {$departemen}"
-                                            . " | {$lokasi}",
+                                            . " | {$departemen}",
 
                                     ];
 
@@ -279,32 +275,67 @@ class TrxPabxAssignmentForm
                 | SAMBUNGAN
                 |--------------------------------------------------------------------------
                 |
-                | Database menggunakan STRING biasa.
+                | Database:
+                | trxpabxassignment.IDSambungan
                 |
-                | User dapat:
+                | Relasi:
+                | trxpabxassignment
+                |       ↓
+                | IDSambungan
+                |       ↓
+                | mstsambungan
+                |       ↓
+                | Rule
                 |
-                | 1. Memilih rekomendasi yang tersedia.
-                | 2. Mengetik nilai custom sendiri.
+                | User memilih Rule dari tabel MstSambungan.
                 |
                 */
 
-                TextInput::make('Sambungan')
+                Select::make('IDSambungan')
 
                     ->label('Sambungan')
 
-                    ->maxLength(255)
+                    ->options(
 
-                    ->nullable()
+                        MstSambungan::query()
 
-                    ->datalist([
+                            ->orderBy('Rule')
 
-                        'Telephone keluar hanya lokal saja, tidak bisa HP',
+                            ->pluck(
+                                'Rule',
+                                'IDSambungan'
+                            )
 
-                        'Telephone keluar lokal, interlokal (antar daearah / kode area indonesia) dan HP',
+                    )
 
-                        'Hanya internal pabrik dan gudang. Tidak bisa telephone keluar',
+                    ->searchable()
 
-                    ]),
+                    ->preload()
+
+                    ->nullable(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | KETERANGAN
+                |--------------------------------------------------------------------------
+                |
+                | Field biasa pada:
+                | trxpabxassignment.Keterangan
+                |
+                */
+
+                Textarea::make('Keterangan')
+
+                    ->label('Keterangan')
+
+                    ->rows(5)
+
+                    ->columnSpanFull()
+
+                    ->nullable(),
+
 
             ]);
     }

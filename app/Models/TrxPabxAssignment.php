@@ -20,7 +20,8 @@ class TrxPabxAssignment extends Model
         'IDRuangan',
         'Jenis',
         'Pin',
-        'Sambungan',
+        'IDSambungan',
+        'Keterangan',
     ];
 
 
@@ -50,6 +51,16 @@ class TrxPabxAssignment extends Model
             MstRuangan::class,
             'IDRuangan',
             'IDRuangan'
+        );
+    }
+
+
+    public function sambungan()
+    {
+        return $this->belongsTo(
+            MstSambungan::class,
+            'IDSambungan',
+            'IDSambungan'
         );
     }
 }

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\MstAssets\Schemas;
 use Filament\Schemas\Schema;
 
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\DatePicker;
 
@@ -134,9 +135,11 @@ class MstAssetForm
 
                             ->label('Lapor'),
 
-                        TextInput::make('Keterangan')
+                        Textarea::make('Keterangan')
+                            ->label('Keterangan')
+                            ->rows(5)
+                            ->columnSpanFull(),
 
-                            ->label('Keterangan'),
 
 
 
@@ -173,7 +176,7 @@ class MstAssetForm
                         DatePicker::make('TanggalBeli')
 
                             ->label('Tanggal Beli')
-                    ->format('Y-m-d') ->displayFormat('d M Y')
+                            ->format('Y-m-d')->displayFormat('d M Y')
 
                             ->default(now())
 
@@ -217,7 +220,7 @@ class MstAssetForm
 
 
                         CurrencyInput::make('Harga')
-                        ->required()
+                            ->required()
                             ->label('Harga'),
 
 
@@ -502,14 +505,14 @@ class MstAssetForm
 
 
                         Select::make('NIK')
-    ->label('Pemegang Asset')
-    ->relationship('karyawan', 'Nama')
-    ->getOptionLabelFromRecordUsing(
-        fn ($record) => $record->Nama . ' - ' . ($record->perusahaan?->NamaPerusahaan ?? '-')
-    )
-    ->searchable()
-    ->preload()
-    ->placeholder('Belum ada pemegang'),
+                            ->label('Pemegang Asset')
+                            ->relationship('karyawan', 'Nama')
+                            ->getOptionLabelFromRecordUsing(
+                                fn($record) => $record->Nama . ' - ' . ($record->perusahaan?->NamaPerusahaan ?? '-')
+                            )
+                            ->searchable()
+                            ->preload()
+                            ->placeholder('Belum ada pemegang'),
 
 
 

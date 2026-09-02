@@ -103,6 +103,8 @@ class TrxPabxAssignmentsTable
 
                         'ruangan.lokasi',
 
+                        'sambungan',
+
                     ]);
 
                 }
@@ -485,9 +487,23 @@ class TrxPabxAssignmentsTable
                 |--------------------------------------------------------------------------
                 | SAMBUNGAN
                 |--------------------------------------------------------------------------
+                |
+                | Database:
+                | trxpabxassignment.IDSambungan
+                |
+                | Ditampilkan melalui relasi:
+                |
+                | trxpabxassignment
+                |       ↓
+                | IDSambungan
+                |       ↓
+                | mstsambungan
+                |       ↓
+                | Rule
+                |
                 */
 
-                TextColumn::make('Sambungan')
+                TextColumn::make('sambungan.Rule')
 
                     ->label('SAMBUNGAN')
 
@@ -500,6 +516,34 @@ class TrxPabxAssignmentsTable
                     ->wrap()
 
                     ->toggleable(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | KETERANGAN
+                |--------------------------------------------------------------------------
+                |
+                | Field langsung dari:
+                |
+                | trxpabxassignment.Keterangan
+                |
+                */
+
+                TextColumn::make('Keterangan')
+
+                    ->label('KETERANGAN')
+
+                    ->placeholder('-')
+
+                    ->searchable()
+
+                    ->sortable()
+
+                    ->wrap()
+
+                    ->toggleable(),
+
 
             ])
 

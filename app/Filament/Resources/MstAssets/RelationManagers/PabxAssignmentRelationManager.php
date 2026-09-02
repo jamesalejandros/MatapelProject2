@@ -4,6 +4,7 @@ namespace App\Filament\Resources\MstAssets\RelationManagers;
 
 use App\Models\MstKaryawan;
 use App\Models\MstRuangan;
+use App\Models\MstSambungan;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -13,6 +14,7 @@ use Filament\Actions\EditAction;
 
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
 
 use Filament\Resources\RelationManagers\RelationManager;
 
@@ -240,39 +242,67 @@ class PabxAssignmentRelationManager extends RelationManager
 
 
                 /*
-|--------------------------------------------------------------------------
-| SAMBUNGAN
-|--------------------------------------------------------------------------
-|
-| Database:
-| trxpabxassignment.Sambungan
-|
-| Tipe:
-| STRING nullable
-|
-| User dapat:
-| 1. Memilih opsi yang sudah tersedia
-| 2. Mengetik nilai custom sendiri
-|
-*/
+                |--------------------------------------------------------------------------
+                | SAMBUNGAN
+                |--------------------------------------------------------------------------
+                |
+                | Database:
+                | trxpabxassignment.IDSambungan
+                |
+                | Relasi:
+                | trxpabxassignment
+                |       ↓
+                | IDSambungan
+                |       ↓
+                | mstsambungan
+                |       ↓
+                | Rule
+                |
+                */
 
-                TextInput::make('Sambungan')
+                Select::make('IDSambungan')
 
                     ->label('Sambungan')
 
-                    ->maxLength(255)
+                    ->options(
 
-                    ->nullable()
+                        MstSambungan::query()
 
-                    ->datalist([
+                            ->orderBy('Rule')
 
-                        'Telephone keluar hanya lokal saja, tidak bisa HP',
+                            ->pluck(
+                                'Rule',
+                                'IDSambungan'
+                            )
 
-                        'Telephone keluar lokal, interlokal (antar daearah / kode area indonesia) dan HP',
+                    )
 
-                        'Hanya internal pabrik dan gudang. Tidak bisa telephone keluar',
+                    ->searchable()
 
-                    ]),
+                    ->preload()
+
+                    ->nullable(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | KETERANGAN
+                |--------------------------------------------------------------------------
+                |
+                | Field biasa pada trxpabxassignment.
+                |
+                */
+
+                Textarea::make('Keterangan')
+
+                    ->label('Keterangan')
+
+                    ->rows(5)
+
+                    ->columnSpanFull()
+
+                    ->nullable(),
 
 
             ]);
@@ -284,6 +314,8 @@ class PabxAssignmentRelationManager extends RelationManager
     return $table
 
         ->recordTitleAttribute('NoExt')
+
+        ->defaultSort('IDAssignment', 'desc')
 
 
         /*
@@ -304,6 +336,8 @@ class PabxAssignmentRelationManager extends RelationManager
                     'karyawan.lokasi',
 
                     'ruangan.lokasi',
+
+                    'sambungan',
 
                 ]);
 
@@ -618,11 +652,44 @@ class PabxAssignmentRelationManager extends RelationManager
             |--------------------------------------------------------------------------
             | SAMBUNGAN
             |--------------------------------------------------------------------------
+            |
+            | Database:
+            | trxpabxassignment.IDSambungan
+            |
+            | Ditampilkan dari:
+            | mstsambungan.Rule
+            |
             */
 
-            TextColumn::make('Sambungan')
+            TextColumn::make('sambungan.Rule')
 
                 ->label('SAMBUNGAN')
+
+                ->placeholder('-')
+
+                ->searchable()
+
+                ->sortable()
+
+                ->wrap()
+
+                ->toggleable(),
+
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | KETERANGAN
+            |--------------------------------------------------------------------------
+            |
+            | Field langsung dari:
+            | trxpabxassignment.Keterangan
+            |
+            */
+
+            TextColumn::make('Keterangan')
+
+                ->label('KETERANGAN')
 
                 ->placeholder('-')
 
