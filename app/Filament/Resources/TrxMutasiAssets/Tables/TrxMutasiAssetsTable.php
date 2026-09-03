@@ -5,7 +5,10 @@ namespace App\Filament\Resources\TrxMutasiAssets\Tables;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 
 class TrxMutasiAssetsTable
@@ -82,6 +85,45 @@ class TrxMutasiAssetsTable
                     ->wrap()
                     ->searchable()
                     ->toggleable(),
+
+            ])
+
+            ->filters([
+
+                Filter::make('TanggalMutasi')
+                    ->label('Tanggal Mutasi')
+                    ->form([
+
+                        DatePicker::make('dari')
+                            ->label('Dari Tanggal'),
+
+                        DatePicker::make('sampai')
+                            ->label('Sampai Tanggal'),
+
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+
+                        return $query
+                            ->when(
+                                $data['dari'] ?? null,
+                                fn (Builder $query, $date) =>
+                                    $query->whereDate(
+                                        'TanggalMutasi',
+                                        '>=',
+                                        $date
+                                    )
+                            )
+                            ->when(
+                                $data['sampai'] ?? null,
+                                fn (Builder $query, $date) =>
+                                    $query->whereDate(
+                                        'TanggalMutasi',
+                                        '<=',
+                                        $date
+                                    )
+                            );
+
+                    }),
 
             ])
 

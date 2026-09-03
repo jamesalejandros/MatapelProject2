@@ -10,6 +10,9 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use App\Filament\Exports\MstAssetExporter;
 use Filament\Actions\ExportAction;
+use Filament\Tables\Filters\Filter;
+use Filament\Forms\Components\DatePicker;
+use Illuminate\Database\Eloquent\Builder;
 
 
 
@@ -53,18 +56,18 @@ class MstAssetsTable
 
 
                 TextColumn::make('Nama')
-    ->label('NAMA ASSET')
-    ->searchable()
-    ->sortable()
-    ->wrap()
-    ->extraAttributes([
-        'style' => '
-            max-width: 420px;
-            min-width: 350px;
-            white-space: normal;
-            word-break: break-word;
-        ',
-    ]),
+                    ->label('NAMA ASSET')
+                    ->searchable()
+                    ->sortable()
+                    ->wrap()
+                    ->extraAttributes([
+                        'style' => '
+                            max-width: 420px;
+                            min-width: 350px;
+                            white-space: normal;
+                            word-break: break-word;
+                        ',
+                    ]),
 
 
 
@@ -290,7 +293,44 @@ class MstAssetsTable
 
 
             ->filters([
-                //
+
+                Filter::make('TanggalBeli')
+                    ->label('Tanggal Beli')
+                    ->form([
+
+                        DatePicker::make('dari')
+                            ->label('Dari Tanggal'),
+
+                        DatePicker::make('sampai')
+                            ->label('Sampai Tanggal'),
+
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+
+                        return $query
+
+                            ->when(
+                                $data['dari'] ?? null,
+                                fn (Builder $query, $date) =>
+                                    $query->whereDate(
+                                        'TanggalBeli',
+                                        '>=',
+                                        $date
+                                    )
+                            )
+
+                            ->when(
+                                $data['sampai'] ?? null,
+                                fn (Builder $query, $date) =>
+                                    $query->whereDate(
+                                        'TanggalBeli',
+                                        '<=',
+                                        $date
+                                    )
+                            );
+
+                    }),
+
             ])
 
 
@@ -324,11 +364,11 @@ class MstAssetsTable
             ->toolbarActions([
 
 
-            ExportAction::make()
-        ->label('Export Excel')
-        ->exporter(MstAssetExporter::class),
+                ExportAction::make()
+                    ->label('Export Excel')
+                    ->exporter(MstAssetExporter::class),
             
-            BulkActionGroup::make([
+                BulkActionGroup::make([
 
                     DeleteBulkAction::make(),
 
@@ -336,5 +376,7 @@ class MstAssetsTable
 
 
             ]);
+
+
     }
 }

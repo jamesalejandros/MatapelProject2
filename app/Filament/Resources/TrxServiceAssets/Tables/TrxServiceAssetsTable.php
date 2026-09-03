@@ -13,10 +13,15 @@ use Filament\Actions\ExportAction;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Filters\Filter;
+
+use Filament\Forms\Components\DatePicker;
 
 use Filament\Tables\Table;
 
 use Carbon\Carbon;
+
+use Illuminate\Database\Eloquent\Builder;
 
 
 
@@ -328,6 +333,47 @@ class TrxServiceAssetsTable
 
 
             ->filters([
+
+
+                Filter::make('TanggalMasuk')
+
+                    ->label('Tanggal Masuk')
+
+                    ->form([
+
+                        DatePicker::make('dari')
+                            ->label('Dari Tanggal'),
+
+                        DatePicker::make('sampai')
+                            ->label('Sampai Tanggal'),
+
+                    ])
+
+                    ->query(function (Builder $query, array $data): Builder {
+
+                        return $query
+
+                            ->when(
+                                $data['dari'] ?? null,
+                                fn (Builder $query, $date) =>
+                                    $query->whereDate(
+                                        'TanggalMasuk',
+                                        '>=',
+                                        $date
+                                    )
+                            )
+
+                            ->when(
+                                $data['sampai'] ?? null,
+                                fn (Builder $query, $date) =>
+                                    $query->whereDate(
+                                        'TanggalMasuk',
+                                        '<=',
+                                        $date
+                                    )
+                            );
+
+                    }),
 
 
 
