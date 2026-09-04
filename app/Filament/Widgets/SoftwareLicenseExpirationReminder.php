@@ -48,15 +48,13 @@ class SoftwareLicenseExpirationReminder extends TableWidget
             | QUERY
             |--------------------------------------------------------------------------
             |
-            | Hanya menampilkan:
+            | Query dasar hanya mengambil license:
             |
-            | - StatusLisensi = Active
-            | - ExpiredDate tersedia
-            | - ExpiredDate >= hari ini
-            | - ExpiredDate <= 30 hari dari sekarang
+            | - Active
+            | - Memiliki ExpiredDate
+            | - ExpiredDate belum lewat
             |
-            | IMPORTANT:
-            | ExpiredDate TIDAK mengubah StatusLisensi.
+            | Batas maksimal 90 hari mengikuti pilihan filter.
             |
             */
 
@@ -76,7 +74,7 @@ class SoftwareLicenseExpirationReminder extends TableWidget
                     ->whereDate(
                         'ExpiredDate',
                         '<=',
-                        today()->addDays(30)
+                        today()->addDays(90)
                     )
                     ->orderBy(
                         'ExpiredDate',
@@ -152,9 +150,9 @@ class SoftwareLicenseExpirationReminder extends TableWidget
                 | STATUS
                 |--------------------------------------------------------------------------
                 |
-                | Status tetap mengikuti database.
+                | Status mengikuti database.
                 |
-                | ExpiredDate yang lewat TIDAK mengubah Active menjadi Expired.
+                | ExpiredDate tidak mengubah StatusLisensi.
                 |
                 */
 
@@ -263,6 +261,9 @@ class SoftwareLicenseExpirationReminder extends TableWidget
                             $days <= 14 =>
                                 'warning',
 
+                            $days <= 30 =>
+                                'warning',
+
                             default =>
                                 'success',
 
@@ -280,7 +281,7 @@ class SoftwareLicenseExpirationReminder extends TableWidget
             |
             | Default = 30 hari.
             |
-            | User dapat mengganti menjadi:
+            | Pilihan:
             |
             | 7 hari
             | 14 hari
@@ -322,6 +323,13 @@ class SoftwareLicenseExpirationReminder extends TableWidget
                         $days = (int) (
                             $data['value'] ?? 30
                         );
+
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | FILTER EXPIRED DATE
+                        |--------------------------------------------------------------------------
+                        */
 
                         return $query
 
