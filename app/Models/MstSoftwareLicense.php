@@ -45,7 +45,8 @@ class MstSoftwareLicense extends Model
         'LokasiSimpan',
         'TempatSimpan',
         'Keterangan', // Tambahkan ini
-        'StatusLisensi'
+        'StatusLisensi',
+        'ExpiredDate'
 
     ];
 

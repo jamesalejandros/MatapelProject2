@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\MstSoftwareLicenses\Tables;
 
 use App\Filament\Resources\MstSoftwareLicenses\MstSoftwareLicenseResource;
-use App\Models\MstPerusahaan;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -11,6 +10,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+
 
 class MstSoftwareLicensesTable
 {
@@ -120,10 +120,15 @@ class MstSoftwareLicensesTable
                     ->sortable()
                     ->color(fn (string $state): string => match ($state) {
                         'Active' => 'success',
-                        'Expired' => 'danger',
                         'Inactive' => 'gray',
-                        default => 'warning',
+                        default => 'gray',
                     }),
+
+                TextColumn::make('ExpiredDate')
+                    ->label('EXPIRED DATE')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->placeholder('-'),
 
             ])
 
@@ -143,7 +148,6 @@ class MstSoftwareLicensesTable
                     ->options([
                         'Active' => 'Active',
                         'Inactive' => 'Inactive',
-                        'Expired' => 'Expired',
                     ]),
 
             ])

@@ -7,6 +7,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\DatePicker;
 
 
 class MstSoftwareLicenseForm
@@ -199,8 +200,6 @@ class MstSoftwareLicenseForm
                         'Active' =>
                             'Active',
 
-                        'Expired' =>
-                            'Expired',
 
                         'Inactive' =>
                             'Inactive',
@@ -210,6 +209,16 @@ class MstSoftwareLicenseForm
                     ->default('Active')
 
                     ->required(),
+
+                DatePicker::make('ExpiredDate')
+    ->label('Expired Date')
+    ->placeholder('Pilih tanggal expired')
+    ->native(false)
+    ->displayFormat('d/m/Y')
+    ->format('Y-m-d')
+    ->suffixIcon('heroicon-m-calendar-days')
+    ->helperText('Tanggal berakhirnya license')
+    ->closeOnDateSelection(),
 
 
             ]);

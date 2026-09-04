@@ -20,6 +20,22 @@
 
         </div>
 
+        {{-- ========================================================= --}}
+{{-- SOFTWARE LICENSE EXPIRATION REMINDER                     --}}
+{{-- ========================================================= --}}
+
+<div style="margin-bottom:24px;">
+
+    @livewire(
+        $this->getSoftwareLicenseReminderWidget(),
+        [],
+        key('software-license-expiration-reminder')
+    )
+
+</div>
+
+
+
 
         {{-- ===================================================== --}}
         {{-- ANALYTICS + ACTIVE WIDGET                             --}}

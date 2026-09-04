@@ -23,6 +23,7 @@ class MstSoftware extends Model
         'SoftCategory',
         'Jenis',
         'Version',
+        'EndSupportDate',
         'Is32Bit',
         'Is64Bit',
         'Keterangan'

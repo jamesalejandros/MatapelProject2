@@ -9,6 +9,8 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Filament\Forms\Components\DatePicker;
+
 
 
 class MstSoftwareForm
@@ -54,6 +56,17 @@ class MstSoftwareForm
 
                 TextInput::make('Version')
                     ->label('Version'),
+
+                DatePicker::make('EndSupportDate')
+                    ->label('End Support Date')
+                    ->placeholder('Pilih tanggal')
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->format('Y-m-d')
+                    ->suffixIcon('heroicon-m-calendar-days')
+                    ->helperText('Tanggal berakhirnya dukungan software')
+                    ->closeOnDateSelection(),
+
 
 
 

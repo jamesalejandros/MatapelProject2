@@ -11,12 +11,15 @@ use App\Filament\Widgets\AssetStatusChart;
 use App\Filament\Widgets\ServiceYearChart;
 use App\Filament\Widgets\SoftwareAssignmentCompanyChart;
 use App\Filament\Widgets\WarrantyExpiringAssets;
+use App\Filament\Widgets\SoftwareLicenseExpirationReminder;
 
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 
+
 class Dashboard extends Page
 {
+
     protected static ?string $title = 'Dashboard';
 
     protected static ?string $navigationLabel = 'Dashboard';
@@ -26,16 +29,14 @@ class Dashboard extends Page
     protected static string|\BackedEnum|null $navigationIcon =
         Heroicon::OutlinedHome;
 
-    protected string $view = 'filament.pages.dashboard';
+    protected string $view =
+        'filament.pages.dashboard';
 
 
     /*
     |--------------------------------------------------------------------------
     | ACTIVE ANALYTICS
     |--------------------------------------------------------------------------
-    |
-    | Hanya satu analytics yang ditampilkan pada satu waktu.
-    |
     */
 
     public ?string $activeWidget = 'company';
@@ -49,22 +50,41 @@ class Dashboard extends Page
 
     public function openWidget(string $widget): void
     {
+
         $allowedWidgets = [
+
             'status',
+
             'company',
+
             'department',
+
             'jenis',
+
             'location',
+
             'service',
+
             'software',
+
             'warranty',
+
         ];
 
-        if (! in_array($widget, $allowedWidgets, true)) {
+
+        if (! in_array(
+            $widget,
+            $allowedWidgets,
+            true
+        )) {
+
             return;
+
         }
 
+
         $this->activeWidget = $widget;
+
     }
 
 
@@ -76,7 +96,9 @@ class Dashboard extends Page
 
     public function closeWidget(): void
     {
+
         $this->activeWidget = null;
+
     }
 
 
@@ -88,6 +110,7 @@ class Dashboard extends Page
 
     public function getWidgetClass(): ?string
     {
+
         return match ($this->activeWidget) {
 
             'status' =>
@@ -118,6 +141,7 @@ class Dashboard extends Page
                 null,
 
         };
+
     }
 
 
@@ -129,6 +153,7 @@ class Dashboard extends Page
 
     public function getWidgetTitle(): string
     {
+
         return match ($this->activeWidget) {
 
             'status' =>
@@ -159,6 +184,7 @@ class Dashboard extends Page
                 'Dashboard Analytics',
 
         };
+
     }
 
 
@@ -170,6 +196,23 @@ class Dashboard extends Page
 
     public function getStatsWidget(): string
     {
+
         return AssetStats::class;
+
     }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SOFTWARE LICENSE REMINDER WIDGET
+    |--------------------------------------------------------------------------
+    */
+
+    public function getSoftwareLicenseReminderWidget(): string
+    {
+
+        return SoftwareLicenseExpirationReminder::class;
+
+    }
+
 }

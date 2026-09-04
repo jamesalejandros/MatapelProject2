@@ -19,31 +19,31 @@ class MstSoftwareTable
     public static function configure(Table $table): Table
     {
         return $table
-    ->recordUrl(fn ($record) => MstSoftwareResource::getUrl('edit', [
-    'record' => $record,
-]))
-    ->paginated([
-        10,
-        25,
-        50,
-        100,
-        250,
-        'all',
-    ])
-    ->paginationPageOptions([
-        10,
-        25,
-        50,
-        100,
-        250,
-        'all',
-    ])
-    ->defaultPaginationPageOption('all')
-    ->modifyQueryUsing(function ($query) {
-        $query->with([
-            'license.perusahaan',
-        ]);
-    })
+            ->recordUrl(fn($record) => MstSoftwareResource::getUrl('edit', [
+                'record' => $record,
+            ]))
+            ->paginated([
+                10,
+                25,
+                50,
+                100,
+                250,
+                'all',
+            ])
+            ->paginationPageOptions([
+                10,
+                25,
+                50,
+                100,
+                250,
+                'all',
+            ])
+            ->defaultPaginationPageOption('all')
+            ->modifyQueryUsing(function ($query) {
+                $query->with([
+                    'license.perusahaan',
+                ]);
+            })
             ->columns([
                 TextColumn::make('No')
                     ->label('NO')
@@ -59,7 +59,7 @@ class MstSoftwareTable
                     ->badge()
                     ->color('info')
                     ->formatStateUsing(
-                        fn ($state) => $state . ' Key'
+                        fn($state) => $state . ' Key'
                     ),
                 TextColumn::make('license.perusahaan.NamaPerusahaan')
                     ->label('PERUSAHAAN')
@@ -82,6 +82,11 @@ class MstSoftwareTable
                     ->badge(),
                 TextColumn::make('Version')
                     ->label('VERSION'),
+                TextColumn::make('EndSupportDate')
+                    ->label('END SUPPORT')
+                    ->date('d/m/Y')
+                    ->sortable(),
+
                 IconColumn::make('Is32Bit')
                     ->label('32')
                     ->boolean(),
@@ -167,13 +172,13 @@ class MstSoftwareTable
                     ->slideOver()
                     ->modalWidth('4xl')
                     ->modalHeading(
-                        fn ($record) =>
-                            'Product Keys - ' .
-                            $record->NamaSoftware
+                        fn($record) =>
+                        'Product Keys - ' .
+                        $record->NamaSoftware
                     )
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Close')
-                    ->modalContent(fn ($record) => view(
+                    ->modalContent(fn($record) => view(
                         'filament.tables.columns.software-product-keys',
                         [
                             'licenses' => $record->license,
@@ -184,10 +189,10 @@ class MstSoftwareTable
             ])
             ->toolbarActions([
 
-            ExportAction::make()
-        ->label('Export Excel')
-        ->exporter(MstSoftwareExporter::class),
-        
+                ExportAction::make()
+                    ->label('Export Excel')
+                    ->exporter(MstSoftwareExporter::class),
+
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

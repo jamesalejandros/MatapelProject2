@@ -12,6 +12,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\DatePicker;
 
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -25,15 +26,10 @@ use Filament\Tables\Table;
 class LicenseRelationManager extends RelationManager
 {
 
-
     protected static string $relationship = 'license';
 
 
-
     protected static ?string $title = 'PRODUCT KEY / LICENSE';
-
-
-
 
 
     /*
@@ -47,18 +43,10 @@ class LicenseRelationManager extends RelationManager
     protected static bool $isCollapsed = true;
 
 
-
-
-
-
-
-
-
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-
 
                 TextInput::make('IDLicense')
                     ->label('ID License')
@@ -66,8 +54,6 @@ class LicenseRelationManager extends RelationManager
                     ->required()
                     ->maxLength(100)
                     ->unique(ignoreRecord: true),
-
-
 
 
                 Select::make('IDPerusahaan')
@@ -78,13 +64,9 @@ class LicenseRelationManager extends RelationManager
                     ->required(),
 
 
-
-
                 Textarea::make('ProductKey')
                     ->label('Product Key')
                     ->columnSpanFull(),
-
-
 
 
                 Select::make('TipeLisensi')
@@ -101,8 +83,6 @@ class LicenseRelationManager extends RelationManager
                     ]),
 
 
-
-
                 TextInput::make('JumlahLisensi')
                     ->label('Jumlah License')
                     ->numeric()
@@ -110,27 +90,17 @@ class LicenseRelationManager extends RelationManager
                     ->required(),
 
 
-
-
                 Toggle::make('HasDVD')
                     ->label('DVD Installer'),
-
-
 
 
                 TextInput::make('Barcode'),
 
 
-
-
                 TextInput::make('LokasiSimpan'),
 
 
-
-
                 TextInput::make('TempatSimpan'),
-
-
 
 
                 Textarea::make('Keterangan')
@@ -139,14 +109,19 @@ class LicenseRelationManager extends RelationManager
                     ->columnSpanFull(),
 
 
-
+                /*
+                |--------------------------------------------------------------------------
+                | STATUS MANUAL
+                |--------------------------------------------------------------------------
+                | Status tidak dipengaruhi oleh ExpiredDate.
+                |--------------------------------------------------------------------------
+                */
 
                 Select::make('StatusLisensi')
                     ->label('Status License')
                     ->options([
 
                         'Active' => 'Active',
-                        'Expired' => 'Expired',
                         'Inactive' => 'Inactive',
 
                     ])
@@ -154,15 +129,24 @@ class LicenseRelationManager extends RelationManager
                     ->required(),
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | EXPIRED DATE
+                |--------------------------------------------------------------------------
+                */
+
+                DatePicker::make('ExpiredDate')
+                    ->label('Expired Date')
+                    ->placeholder('Pilih tanggal expired')
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->format('Y-m-d')
+                    ->suffixIcon('heroicon-m-calendar-days')
+                    ->helperText('Tanggal berakhirnya license')
+                    ->closeOnDateSelection(),
+
             ]);
     }
-
-
-
-
-
-
-
 
 
     public function table(Table $table): Table
@@ -171,17 +155,12 @@ class LicenseRelationManager extends RelationManager
 
             ->recordTitleAttribute('ProductKey')
 
-
             ->columns([
-
-
 
                 TextColumn::make('IDLicense')
                     ->label('ID LICENSE')
                     ->sortable()
                     ->searchable(),
-
-
 
 
                 TextColumn::make('perusahaan.NamaPerusahaan')
@@ -190,8 +169,6 @@ class LicenseRelationManager extends RelationManager
                     ->color('primary')
                     ->searchable()
                     ->sortable(),
-
-
 
 
                 TextColumn::make('ProductKey')
@@ -208,8 +185,6 @@ class LicenseRelationManager extends RelationManager
                     ->wrap(),
 
 
-
-
                 BadgeColumn::make('TipeLisensi')
                     ->label('TIPE')
                     ->colors([
@@ -223,8 +198,6 @@ class LicenseRelationManager extends RelationManager
                     ]),
 
 
-
-
                 TextColumn::make('JumlahLisensi')
                     ->label('JUMLAH')
                     ->badge()
@@ -232,13 +205,9 @@ class LicenseRelationManager extends RelationManager
                     ->sortable(),
 
 
-
-
                 IconColumn::make('HasDVD')
                     ->label('DVD')
                     ->boolean(),
-
-
 
 
                 TextColumn::make('Barcode')
@@ -248,14 +217,10 @@ class LicenseRelationManager extends RelationManager
                     ->toggleable(),
 
 
-
-
                 TextColumn::make('LokasiSimpan')
                     ->label('LOKASI')
                     ->placeholder('-')
                     ->toggleable(),
-
-
 
 
                 TextColumn::make('TempatSimpan')
@@ -264,8 +229,6 @@ class LicenseRelationManager extends RelationManager
                     ->toggleable(
                         isToggledHiddenByDefault: true
                     ),
-
-
 
 
                 TextColumn::make('Keterangan')
@@ -280,27 +243,39 @@ class LicenseRelationManager extends RelationManager
                     ),
 
 
-
+                /*
+                |--------------------------------------------------------------------------
+                | STATUS MANUAL
+                |--------------------------------------------------------------------------
+                | ExpiredDate tidak mempengaruhi StatusLisensi.
+                |--------------------------------------------------------------------------
+                */
 
                 BadgeColumn::make('StatusLisensi')
                     ->label('STATUS')
                     ->colors([
 
                         'success' => 'Active',
-                        'warning' => 'Expired',
-                        'danger' => 'Inactive',
+                        'gray' => 'Inactive',
 
                     ]),
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | EXPIRED DATE
+                |--------------------------------------------------------------------------
+                */
+
+                TextColumn::make('ExpiredDate')
+                    ->label('EXPIRED DATE')
+                    ->date('d/m/Y')
+                    ->sortable()
+                    ->placeholder('-'),
+
             ])
 
-
-
-
             ->filters([])
-
-
 
             ->headerActions([
 
@@ -309,9 +284,6 @@ class LicenseRelationManager extends RelationManager
 
             ])
 
-
-
-
             ->recordActions([
 
                 EditAction::make(),
@@ -319,9 +291,6 @@ class LicenseRelationManager extends RelationManager
                 DeleteAction::make(),
 
             ])
-
-
-
 
             ->toolbarActions([
 
@@ -333,8 +302,6 @@ class LicenseRelationManager extends RelationManager
 
             ]);
 
-
     }
-
 
 }
