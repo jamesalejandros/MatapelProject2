@@ -11,6 +11,7 @@ use App\Filament\Widgets\AssetStatusChart;
 use App\Filament\Widgets\ServiceYearChart;
 use App\Filament\Widgets\SoftwareAssignmentCompanyChart;
 use App\Filament\Widgets\WarrantyExpiringAssets;
+use App\Filament\Widgets\PabxLocationChart;
 use App\Filament\Widgets\SoftwareLicenseExpirationReminder;
 
 use Filament\Pages\Page;
@@ -68,6 +69,8 @@ class Dashboard extends Page
             'software',
 
             'warranty',
+
+            'pabx',
 
         ];
 
@@ -137,6 +140,9 @@ class Dashboard extends Page
             'warranty' =>
                 WarrantyExpiringAssets::class,
 
+            'pabx' =>
+                PabxLocationChart::class,
+
             default =>
                 null,
 
@@ -179,6 +185,9 @@ class Dashboard extends Page
 
             'warranty' =>
                 'Warranty Expiring Assets',
+
+            'pabx' =>
+                'PABX Berdasarkan Lokasi',
 
             default =>
                 'Dashboard Analytics',

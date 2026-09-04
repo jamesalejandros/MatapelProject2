@@ -635,6 +635,76 @@
 
                     </button>
 
+                    {{-- PABX --}}
+
+<button
+    type="button"
+    wire:click="openWidget('pabx')"
+    style="
+        width:100%;
+        padding:13px;
+        border:1px solid {{ $activeWidget === 'pabx' ? '#f59e0b' : '#e5e7eb' }};
+        border-radius:10px;
+        background:{{ $activeWidget === 'pabx' ? 'rgba(245,158,11,.08)' : 'white' }};
+        cursor:pointer;
+        text-align:left;
+        transition:all .15s ease;
+    "
+>
+    <div
+        style="
+            display:flex;
+            align-items:center;
+            gap:12px;
+        "
+    >
+
+        <div
+            style="
+                width:40px;
+                height:40px;
+                flex-shrink:0;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                border-radius:9px;
+                background:#ede9fe;
+                color:#7c3aed;
+            "
+        >
+            <x-heroicon-o-phone class="h-5 w-5" />
+        </div>
+
+        <div style="min-width:0;">
+
+            <div
+                style="
+                    font-size:14px;
+                    font-weight:600;
+                    color:#111827;
+                "
+                class="dark:text-white"
+            >
+                PABX
+            </div>
+
+            <div
+                style="
+                    margin-top:3px;
+                    font-size:12px;
+                    color:#6b7280;
+                "
+            >
+                Distribusi PABX berdasarkan lokasi
+            </div>
+
+        </div>
+
+    </div>
+
+</button>
+
+
 
                     {{-- WARRANTY --}}
 
@@ -952,6 +1022,15 @@
         [],
         key('dashboard-modal-software')
     )
+
+    {{-- PABX LOCATION MODAL --}}
+
+@livewire(
+    'pabx-location-modal',
+    [],
+    key('dashboard-modal-pabx')
+)
+
 
 
 </x-filament-panels::page>
