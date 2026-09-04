@@ -145,6 +145,7 @@ class MstSoftwareForm
                                         'OLP' => 'OLP',
                                         'Volume' => 'Volume',
                                         'Subscription' => 'Subscription',
+                                        'FPP' => 'FPP',
                                     ])
                                     ->required(),
 

@@ -100,6 +100,8 @@ class MstSoftwareLicenseForm
 
                         'Subscription' =>
                             'Subscription',
+                        
+                        'FPP' => 'FPP',
 
                     ])
 
