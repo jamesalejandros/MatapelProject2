@@ -12,14 +12,20 @@ class PabxLocationModal extends Component
     public bool $show = false;
 
     /**
-     * Lokasi yang diklik dari chart.
+     * ==========================================================
+     * LOKASI
+     * ==========================================================
+     *
+     * Lokasi berasal dari filter chart.
      */
     public ?string $location = null;
 
     /**
-     * Jenis PABX yang sedang difilter.
+     * ==========================================================
+     * JENIS PABX
+     * ==========================================================
      *
-     * all = semua jenis
+     * Jenis berasal dari potongan chart yang diklik.
      */
     public ?string $jenis = 'all';
 
@@ -30,13 +36,19 @@ class PabxLocationModal extends Component
      */
     #[On('open-pabx-location-detail-modal')]
     public function open(
-        $location,
+        $location = null,
         $jenis = 'all'
     ): void {
 
-        $this->location = $location;
+        $this->location =
+            $location !== null
+                ? (string) $location
+                : null;
 
-        $this->jenis = $jenis;
+        $this->jenis =
+            $jenis !== null
+                ? (string) $jenis
+                : 'all';
 
         $this->show = true;
     }
@@ -96,10 +108,10 @@ class PabxLocationModal extends Component
 
     /**
      * ==========================================================
-     * DATA PABX ASSIGNMENT
+     * DATA ASSIGNMENT PABX
      * ==========================================================
      *
-     * Sumber utama:
+     * Sumber:
      *
      *     trxpabxassignment
      *
@@ -108,8 +120,9 @@ class PabxLocationModal extends Component
      *     1. Lokasi asset
      *     2. Jenis PABX
      *
-     * Yang ditampilkan adalah setiap assignment PABX,
-     * bukan setiap asset.
+     * Yang ditampilkan:
+     *
+     *     Setiap assignment PABX.
      */
     public function getAssignmentsProperty()
     {
@@ -130,6 +143,7 @@ class PabxLocationModal extends Component
                         $this->location !== null &&
                         $this->location !== 'all'
                     ) {
+
                         $query->where(
                             'IDLokasi',
                             $this->location
@@ -140,12 +154,13 @@ class PabxLocationModal extends Component
 
             /**
              * ==================================================
-             * FILTER JENIS PABX
+             * FILTER JENIS
              * ==================================================
              */
             ->when(
                 $this->jenis !== null &&
                 $this->jenis !== 'all',
+
                 fn ($query) =>
                     $query->where(
                         'Jenis',
@@ -157,14 +172,40 @@ class PabxLocationModal extends Component
              * ==================================================
              * LOAD RELATIONSHIP
              * ==================================================
+             *
+             * Sambungan WAJIB di-load dari relationship.
              */
             ->with([
+
+                /**
+                 * Asset
+                 */
+                'asset',
+
                 'asset.perusahaan',
+
                 'asset.lokasi',
+
                 'asset.karyawan',
+
+                /**
+                 * Karyawan assignment
+                 */
                 'karyawan',
+
+                /**
+                 * Ruangan
+                 */
                 'ruangan',
+
+                /**
+                 * Sambungan
+                 *
+                 * TrxPabxAssignment
+                 *     -> MstSambungan
+                 */
                 'sambungan',
+
             ])
 
             /**
@@ -181,7 +222,7 @@ class PabxLocationModal extends Component
 
     /**
      * ==========================================================
-     * TOTAL ASSIGNMENT
+     * TOTAL
      * ==========================================================
      */
     public function getTotalProperty(): int

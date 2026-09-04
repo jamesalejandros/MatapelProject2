@@ -74,7 +74,7 @@
                             font-weight:700;
                         "
                     >
-                        Detail PABX Berdasarkan Lokasi
+                        Detail PABX
                     </div>
 
 
@@ -424,15 +424,6 @@
                                 {{-- ================================================= --}}
                                 {{-- SAMBUNGAN                                          --}}
                                 {{-- ================================================= --}}
-                                {{--                                                  --}}
-                                {{-- DATA DIAMBIL DARI RELASI:                       --}}
-                                {{-- TrxPabxAssignment -> MstSambungan               --}}
-                                {{--                                                  --}}
-                                {{-- IDSambungan -> IDSambungan                     --}}
-                                {{--                                                  --}}
-                                {{-- Field yang tersedia di MstSambungan:           --}}
-                                {{-- Rule                                               --}}
-                                {{-- ================================================= --}}
 
                                 <td
                                     style="
@@ -454,7 +445,7 @@
                                                 font-weight:600;
                                             "
                                         >
-                                            {{ $assignment->sambungan->Rule }}
+                                            {{ $assignment->sambungan->Rule ?? '-' }}
                                         </span>
 
                                     @else
@@ -465,7 +456,6 @@
                                             "
                                         >
                                             -
-
                                         </span>
 
                                     @endif
