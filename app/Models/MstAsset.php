@@ -2,6 +2,7 @@
 
 namespace App\Models;
 use App\Models\TrxMutasiAsset;
+use App\Models\TrxCctvAssignment;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -152,6 +153,16 @@ class MstAsset extends Model
         'NoAssetIT'
     );
 }
+
+public function cctvAssignment()
+{
+    return $this->hasMany(
+        TrxCctvAssignment::class,
+        'NoAssetIT',
+        'NoAssetIT'
+    );
+}
+
 
 
 

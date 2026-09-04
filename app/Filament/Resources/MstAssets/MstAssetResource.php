@@ -14,6 +14,7 @@ use App\Filament\Resources\MstAssets\RelationManagers\ServiceRelationManager;
 use App\Filament\Resources\MstAssets\RelationManagers\RetireRelationManager;
 use App\Filament\Resources\MstAssets\RelationManagers\AssignmentRelationManager;
 use App\Filament\Resources\MstAssets\RelationManagers\PabxAssignmentRelationManager;
+use App\Filament\Resources\MstAssets\RelationManagers\CctvAssignmentRelationManager;
 
 use App\Models\MstAsset;
 
@@ -117,6 +118,8 @@ class MstAssetResource extends Resource
             AssignmentRelationManager::class,
 
             PabxAssignmentRelationManager::class,
+            
+            CctvAssignmentRelationManager::class,
 
         ];
     }
