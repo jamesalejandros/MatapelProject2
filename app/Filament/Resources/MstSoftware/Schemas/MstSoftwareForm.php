@@ -197,11 +197,20 @@ class MstSoftwareForm
                                     ->label('Status')
                                     ->options([
                                         'Active' => 'Active',
-                                        'Expired' => 'Expired',
                                         'Inactive' => 'Inactive',
                                     ])
                                     ->default('Active')
                                     ->required(),
+
+                                DatePicker::make('ExpiredDate')
+                    ->label('Expired Date')
+                    ->placeholder('Pilih tanggal expired')
+                    ->native(false)
+                    ->displayFormat('d/m/Y')
+                    ->format('Y-m-d')
+                    ->suffixIcon('heroicon-m-calendar-days')
+                    ->helperText('Tanggal berakhirnya license')
+                    ->closeOnDateSelection(),
 
 
 
