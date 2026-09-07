@@ -9,12 +9,12 @@ use App\Filament\Resources\MstKaryawans\Schemas\MstKaryawanForm;
 use App\Filament\Resources\MstKaryawans\Tables\MstKaryawansTable;
 use App\Models\MstKaryawan;
 use BackedEnum;
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class MstKaryawanResource extends Resource
+class MstKaryawanResource extends BaseResource
 {
     protected static ?string $model = MstKaryawan::class;
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-users';

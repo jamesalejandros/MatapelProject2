@@ -13,14 +13,17 @@ use App\Models\TrxPabxAssignment;
 
 use BackedEnum;
 
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
 
-class TrxPabxAssignmentResource extends Resource
+class TrxPabxAssignmentResource extends BaseResource
 {
     protected static ?string $model = TrxPabxAssignment::class;
+
+    protected static string $permissionPrefix =
+        'trxpabxassignment';
 
 
     protected static ?string $navigationLabel = 'PABX Assignment';

@@ -9,12 +9,12 @@ use App\Filament\Resources\MstVendors\Schemas\MstVendorForm;
 use App\Filament\Resources\MstVendors\Tables\MstVendorsTable;
 use App\Models\MstVendor;
 use BackedEnum;
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class MstVendorResource extends Resource
+class MstVendorResource extends BaseResource
 {
     protected static ?string $model = MstVendor::class;
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-office';

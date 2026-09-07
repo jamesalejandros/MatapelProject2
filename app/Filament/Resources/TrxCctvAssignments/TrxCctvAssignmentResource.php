@@ -13,12 +13,12 @@ use App\Models\TrxCctvAssignment;
 
 use BackedEnum;
 
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
 
-class TrxCctvAssignmentResource extends Resource
+class TrxCctvAssignmentResource extends BaseResource
 {
     protected static ?string $model = TrxCctvAssignment::class;
 

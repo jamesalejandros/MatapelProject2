@@ -17,13 +17,13 @@ use App\Models\MstSoftware;
 
 use BackedEnum;
 
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
 
 
-class MstSoftwareResource extends Resource
+class MstSoftwareResource extends BaseResource
 {
 
 

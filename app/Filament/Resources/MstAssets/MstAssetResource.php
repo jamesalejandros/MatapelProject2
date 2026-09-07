@@ -20,12 +20,12 @@ use App\Models\MstAsset;
 
 use BackedEnum;
 
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
 
-class MstAssetResource extends Resource
+class MstAssetResource extends BaseResource
 {
 
     protected static ?string $model = MstAsset::class;

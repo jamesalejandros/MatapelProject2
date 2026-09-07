@@ -9,14 +9,14 @@ use App\Filament\Resources\TrxServiceAssets\Schemas\TrxServiceAssetForm;
 use App\Filament\Resources\TrxServiceAssets\Tables\TrxServiceAssetsTable;
 use App\Models\TrxServiceAsset;
 
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
 use Filament\Support\Icons\Heroicon;
 
 
-class TrxServiceAssetResource extends Resource
+class TrxServiceAssetResource extends BaseResource
 {
 
 

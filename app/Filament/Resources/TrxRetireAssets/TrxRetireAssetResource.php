@@ -8,13 +8,13 @@ use App\Filament\Resources\TrxRetireAssets\Pages\ListTrxRetireAssets;
 use App\Filament\Resources\TrxRetireAssets\Schemas\TrxRetireAssetForm;
 use App\Filament\Resources\TrxRetireAssets\Tables\TrxRetireAssetsTable;
 use App\Models\TrxRetireAsset;
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Support\Icons\Heroicon;
 
 
-class TrxRetireAssetResource extends Resource
+class TrxRetireAssetResource extends BaseResource
 {
     protected static ?string $model = TrxRetireAsset::class;
 

@@ -9,12 +9,12 @@ use App\Filament\Resources\MstSambungans\Schemas\MstSambunganForm;
 use App\Filament\Resources\MstSambungans\Tables\MstSambungansTable;
 use App\Models\MstSambungan;
 use BackedEnum;
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class MstSambunganResource extends Resource
+class MstSambunganResource extends BaseResource
 {
     protected static ?string $model = MstSambungan::class;
 

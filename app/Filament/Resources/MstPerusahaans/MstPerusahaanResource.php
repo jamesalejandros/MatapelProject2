@@ -8,13 +8,13 @@ use App\Filament\Resources\MstPerusahaans\Pages\ListMstPerusahaans;
 use App\Filament\Resources\MstPerusahaans\Schemas\MstPerusahaanForm;
 use App\Filament\Resources\MstPerusahaans\Tables\MstPerusahaansTable;
 use App\Models\MstPerusahaan;
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use BackedEnum;
 
 
-class MstPerusahaanResource extends Resource
+class MstPerusahaanResource extends BaseResource
 {
     protected static ?string $model = MstPerusahaan::class;
 

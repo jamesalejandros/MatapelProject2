@@ -8,13 +8,13 @@ use App\Filament\Resources\TrxMutasiAssets\Pages\ListTrxMutasiAssets;
 use App\Filament\Resources\TrxMutasiAssets\Schemas\TrxMutasiAssetForm;
 use App\Filament\Resources\TrxMutasiAssets\Tables\TrxMutasiAssetsTable;
 use App\Models\TrxMutasiAsset;
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Filament\Support\Icons\Heroicon;
 
 
-class TrxMutasiAssetResource extends Resource
+class TrxMutasiAssetResource extends BaseResource
 {
     protected static ?string $model = TrxMutasiAsset::class;
 

@@ -10,11 +10,11 @@ use App\Filament\Resources\MstSoftwareLicenses\Schemas\MstSoftwareLicenseForm;
 use App\Filament\Resources\MstSoftwareLicenses\Tables\MstSoftwareLicensesTable;
 use App\Models\MstSoftwareLicense;
 use BackedEnum;
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
-class MstSoftwareLicenseResource extends Resource
+class MstSoftwareLicenseResource extends BaseResource
 {
     protected static ?string $model = MstSoftwareLicense::class;
 

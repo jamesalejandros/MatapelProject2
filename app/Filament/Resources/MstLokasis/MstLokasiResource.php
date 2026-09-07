@@ -9,12 +9,12 @@ use App\Filament\Resources\MstLokasis\Schemas\MstLokasiForm;
 use App\Filament\Resources\MstLokasis\Tables\MstLokasisTable;
 use App\Models\MstLokasi;
 use BackedEnum;
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class MstLokasiResource extends Resource
+class MstLokasiResource extends BaseResource
 {
     protected static ?string $model = MstLokasi::class;
 

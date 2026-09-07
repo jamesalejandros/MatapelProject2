@@ -9,12 +9,12 @@ use App\Filament\Resources\MstDepartemens\Schemas\MstDepartemenForm;
 use App\Filament\Resources\MstDepartemens\Tables\MstDepartemensTable;
 use App\Models\MstDepartemen;
 use BackedEnum;
-use Filament\Resources\Resource;
+use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 
-class MstDepartemenResource extends Resource
+class MstDepartemenResource extends BaseResource
 {
     protected static ?string $model = MstDepartemen::class;
 

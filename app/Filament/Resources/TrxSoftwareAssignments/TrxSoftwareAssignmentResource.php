@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\TrxSoftwareAssignments;
 
+use App\Filament\Resources\BaseResource;
 
 use App\Filament\Resources\TrxSoftwareAssignments\Pages\CreateTrxSoftwareAssignment;
 use App\Filament\Resources\TrxSoftwareAssignments\Pages\EditTrxSoftwareAssignment;
@@ -14,97 +15,103 @@ use App\Models\TrxSoftwareAssignment;
 
 use BackedEnum;
 
-use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
 
-
-class TrxSoftwareAssignmentResource extends Resource
+class TrxSoftwareAssignmentResource extends BaseResource
 {
+    protected static ?string $model =
+        TrxSoftwareAssignment::class;
 
 
-    protected static ?string $model = TrxSoftwareAssignment::class;
+    /**
+     * ==========================================================
+     * PERMISSION
+     * ==========================================================
+     *
+     * Permission:
+     *
+     * trxsoftwareassignment.view
+     * trxsoftwareassignment.create
+     * trxsoftwareassignment.update
+     * trxsoftwareassignment.delete
+     */
+    protected static string $permissionPrefix =
+        'trxsoftwareassignment';
 
 
+    /**
+     * ==========================================================
+     * NAVIGATION
+     * ==========================================================
+     */
 
-    protected static bool $shouldRegisterNavigation = true;
-
-
+    protected static bool $shouldRegisterNavigation =
+        true;
 
 
     protected static ?string $navigationLabel =
         'Software Assignment';
 
 
-
-
     protected static ?string $modelLabel =
         'Software Assignment';
-
-
 
 
     protected static ?string $pluralModelLabel =
         'Software Assignment';
 
 
-
-
-
     protected static string|BackedEnum|null $navigationIcon =
         'heroicon-o-link';
-
-
-
 
 
     protected static string|\UnitEnum|null $navigationGroup =
         'Asset Management';
 
 
+    protected static ?int $navigationSort =
+        3;
 
 
+    /**
+     * ==========================================================
+     * FORM
+     * ==========================================================
+     */
 
-    /*
-    |--------------------------------------------------------------------------
-    | Navigation Order
-    |--------------------------------------------------------------------------
-    |
-    | Software
-    | Software License
-    | Software Assignment
-    |
-    */
+    public static function form(
+        Schema $schema
+    ): Schema {
 
-    protected static ?int $navigationSort = 3;
-
-
-
-
-
-    public static function form(Schema $schema): Schema
-    {
-        return TrxSoftwareAssignmentForm::configure($schema);
+        return TrxSoftwareAssignmentForm::configure(
+            $schema
+        );
     }
 
 
+    /**
+     * ==========================================================
+     * TABLE
+     * ==========================================================
+     */
 
+    public static function table(
+        Table $table
+    ): Table {
 
-
-
-
-    public static function table(Table $table): Table
-    {
-        return TrxSoftwareAssignmentsTable::configure($table);
+        return TrxSoftwareAssignmentsTable::configure(
+            $table
+        );
     }
 
 
-
-
-
-
-
+    /**
+     * ==========================================================
+     * RELATIONS
+     * ==========================================================
+     */
 
     public static function getRelations(): array
     {
@@ -112,11 +119,11 @@ class TrxSoftwareAssignmentResource extends Resource
     }
 
 
-
-
-
-
-
+    /**
+     * ==========================================================
+     * PAGES
+     * ==========================================================
+     */
 
     public static function getPages(): array
     {
@@ -125,18 +132,12 @@ class TrxSoftwareAssignmentResource extends Resource
             'index' =>
                 ListTrxSoftwareAssignments::route('/'),
 
-
-
             'create' =>
                 CreateTrxSoftwareAssignment::route('/create'),
-
-
 
             'edit' =>
                 EditTrxSoftwareAssignment::route('/{record}/edit'),
 
         ];
     }
-
-
 }

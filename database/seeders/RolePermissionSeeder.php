@@ -3,144 +3,198 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
-
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
-
+    /**
+     * ==========================================================
+     * ROLE & PERMISSION SEEDER
+     * ==========================================================
+     *
+     * Role:
+     *
+     * 1. super_admin
+     * 2. user
+     *
+     * super_admin:
+     * - Tidak membutuhkan permission satu per satu.
+     * - Akan dibypass melalui Gate::before().
+     * - Otomatis memiliki akses penuh.
+     *
+     * user:
+     * - Awalnya hanya CRUD:
+     *      mstruangan
+     *      trxsoftwareassignment
+     *
+     * Permission dapat ditambahkan kemudian.
+     */
     public function run(): void
     {
+        /**
+         * ======================================================
+         * RESET PERMISSION CACHE
+         * ======================================================
+         */
+        app(
+            PermissionRegistrar::class
+        )->forgetCachedPermissions();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Permission
-        |--------------------------------------------------------------------------
-        */
 
+        /**
+         * ======================================================
+         * GUARD
+         * ======================================================
+         */
+        $guard = 'web';
+
+
+        /**
+         * ======================================================
+         * CREATE ROLES
+         * ======================================================
+         */
+
+        $superAdminRole = Role::firstOrCreate(
+            [
+                'name' => 'super_admin',
+                'guard_name' => $guard,
+            ]
+        );
+
+        $userRole = Role::firstOrCreate(
+            [
+                'name' => 'user',
+                'guard_name' => $guard,
+            ]
+        );
+
+
+        /**
+         * ======================================================
+         * PERMISSION LIST
+         * ======================================================
+         *
+         * Permission awal untuk role user.
+         */
         $permissions = [
 
-            // Asset
-            'view asset',
-            'create asset',
-            'edit asset',
-            'delete asset',
+            /*
+            |--------------------------------------------------------------------------
+            | MST RUANGAN
+            |--------------------------------------------------------------------------
+            */
 
-            // Mutasi
-            'view mutasi',
-            'create mutasi',
-            'edit mutasi',
+            'mstruangan.view',
+            'mstruangan.create',
+            'mstruangan.update',
+            'mstruangan.delete',
 
-            // Service
-            'view service',
-            'create service',
-            'edit service',
 
-            // Retire
-            'view retire',
-            'create retire',
+            /*
+            |--------------------------------------------------------------------------
+            | TRX SOFTWARE ASSIGNMENT
+            |--------------------------------------------------------------------------
+            */
 
-            // Software
-            'manage software',
+            'trxsoftwareassignment.view',
+            'trxsoftwareassignment.create',
+            'trxsoftwareassignment.update',
+            'trxsoftwareassignment.delete',
 
-            // Master
-            'manage master',
+            /*
+    |--------------------------------------------------------------------------
+    | TRX PABX ASSIGNMENT
+    |--------------------------------------------------------------------------
+    */
 
-            // User
-            'manage user',
-
-            // Report
-            'view report',
+    'trxpabxassignment.view',
+    'trxpabxassignment.create',
+    'trxpabxassignment.update',
+    'trxpabxassignment.delete',
 
         ];
 
 
-        foreach($permissions as $permission){
+        /**
+         * ======================================================
+         * CREATE PERMISSIONS
+         * ======================================================
+         */
+        foreach ($permissions as $permissionName) {
 
-            Permission::firstOrCreate([
-                'name'=>$permission,
-                'guard_name'=>'web'
-            ]);
-
+            Permission::firstOrCreate(
+                [
+                    'name' => $permissionName,
+                    'guard_name' => $guard,
+                ]
+            );
         }
 
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | Roles
-        |--------------------------------------------------------------------------
-        */
-
-
-        $superAdmin = Role::firstOrCreate([
-            'name'=>'Super Admin'
-        ]);
-
-
-        $manager = Role::firstOrCreate([
-            'name'=>'IT Manager'
-        ]);
-
-
-        $support = Role::firstOrCreate([
-            'name'=>'IT Support'
-        ]);
-
-
-        $viewer = Role::firstOrCreate([
-            'name'=>'Viewer'
-        ]);
+        /**
+         * ======================================================
+         * ASSIGN PERMISSIONS TO USER ROLE
+         * ======================================================
+         *
+         * syncPermissions() memastikan role user hanya
+         * mendapatkan permission yang didefinisikan di sini.
+         */
+        $userRole->syncPermissions([]);
 
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | Role Permission
-        |--------------------------------------------------------------------------
-        */
+        /**
+         * ======================================================
+         * SUPER ADMIN
+         * ======================================================
+         *
+         * super_admin sengaja tidak diberi daftar permission.
+         *
+         * Akses super_admin akan dilakukan melalui:
+         *
+         * Gate::before()
+         *
+         * sehingga:
+         *
+         * $user->can(...)
+         *
+         * akan selalu TRUE untuk super_admin.
+         */
+        $superAdminRole->syncPermissions([]);
 
 
-        $superAdmin
-            ->syncPermissions(
-                Permission::all()
-            );
+        /**
+         * ======================================================
+         * CLEAR CACHE LAGI
+         * ======================================================
+         */
+        app(
+            PermissionRegistrar::class
+        )->forgetCachedPermissions();
 
 
+        /**
+         * ======================================================
+         * OUTPUT
+         * ======================================================
+         */
+        $this->command?->info(
+            'Role dan permission berhasil dibuat.'
+        );
 
-        $manager
-            ->syncPermissions([
-                'view asset',
-                'create asset',
-                'edit asset',
-                'view mutasi',
-                'create mutasi',
-                'view service',
-                'view retire',
-                'manage software',
-                'view report'
-            ]);
+        $this->command?->info(
+            'Role: super_admin'
+        );
 
+        $this->command?->info(
+            'Role: user'
+        );
 
-
-        $support
-            ->syncPermissions([
-                'view asset',
-                'create mutasi',
-                'edit mutasi',
-                'create service',
-                'edit service',
-            ]);
-
-
-
-        $viewer
-            ->syncPermissions([
-                'view asset',
-                'view report'
-            ]);
-
+        $this->command?->info(
+            'Permission awal user: mstruangan + trxsoftwareassignment'
+        );
     }
-
 }
