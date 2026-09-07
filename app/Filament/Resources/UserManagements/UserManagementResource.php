@@ -1,29 +1,31 @@
 <?php
 
-namespace App\Filament\Resources\UserPermissions;
+namespace App\Filament\Resources\UserManagements;
 
-use App\Filament\Resources\UserPermissions\Pages\CreateUserPermission;
-use App\Filament\Resources\UserPermissions\Pages\EditUserPermission;
-use App\Filament\Resources\UserPermissions\Pages\ListUserPermissions;
-use App\Filament\Resources\UserPermissions\Schemas\UserPermissionForm;
-use App\Filament\Resources\UserPermissions\Tables\UserPermissionsTable;
+use App\Filament\Resources\BaseResource;
+use App\Filament\Resources\UserManagements\Pages\CreateUserManagement;
+use App\Filament\Resources\UserManagements\Pages\EditUserManagement;
+use App\Filament\Resources\UserManagements\Pages\ListUserManagements;
+use App\Filament\Resources\UserManagements\Schemas\UserManagementForm;
+use App\Filament\Resources\UserManagements\Tables\UserManagementsTable;
 use App\Models\User;
 
 use BackedEnum;
 
-use App\Filament\Resources\BaseResource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
 use Illuminate\Database\Eloquent\Model;
 
 
-class UserPermissionResource extends BaseResource
+class UserManagementResource extends BaseResource
 {
-    protected static ?string $model = User::class;
+    protected static ?string $model =
+        User::class;
+
 
     protected static string $permissionPrefix =
-        'userpermission';
+        'usermanagement';
 
 
     /**
@@ -32,24 +34,32 @@ class UserPermissionResource extends BaseResource
      * ==========================================================
      */
 
-    protected static bool $shouldRegisterNavigation = false;
+    protected static bool $shouldRegisterNavigation =
+        true;
+
 
     protected static ?string $navigationLabel =
-        'User Permissions';
+        'User Management';
+
 
     protected static ?string $modelLabel =
-        'User Permission';
+        'User';
+
 
     protected static ?string $pluralModelLabel =
-        'User Permissions';
+        'Users';
+
 
     protected static string|BackedEnum|null $navigationIcon =
-        'heroicon-o-shield-check';
+        'heroicon-o-users';
+
 
     protected static string|\UnitEnum|null $navigationGroup =
         'Administration';
 
-    protected static ?int $navigationSort = 1;
+
+    protected static ?int $navigationSort =
+        0;
 
 
     /**
@@ -57,57 +67,78 @@ class UserPermissionResource extends BaseResource
      * AUTHORIZATION
      * ==========================================================
      *
-     * Halaman ini khusus untuk super_admin.
+     * User Management hanya dapat digunakan oleh
+     * super_admin.
      *
-     * Jangan menggunakan BaseResource di sini karena
-     * UserPermission bukan resource CRUD biasa.
+     * Super Admin tidak dapat dikelola melalui
+     * User Management.
      */
+
 
     public static function canViewAny(): bool
     {
         return auth()->check()
-            && auth()->user()->hasRole('super_admin');
+            && auth()->user()->hasRole(
+                'super_admin'
+            );
     }
 
 
     public static function canView(
         Model $record
     ): bool {
+
         return auth()->check()
-            && auth()->user()->hasRole('super_admin');
+            && auth()->user()->hasRole(
+                'super_admin'
+            );
+    }
+
+
+    public static function canCreate(): bool
+    {
+        return auth()->check()
+            && auth()->user()->hasRole(
+                'super_admin'
+            );
     }
 
 
     public static function canEdit(
         Model $record
     ): bool {
+
         return auth()->check()
-            && auth()->user()->hasRole('super_admin')
-            && ! $record->hasRole('super_admin');
-    }
-
-
-    /**
-     * Tidak digunakan untuk membuat user.
-     *
-     * User dibuat melalui UserSeeder / User Management.
-     */
-    public static function canCreate(): bool
-    {
-        return false;
+            && auth()->user()->hasRole(
+                'super_admin'
+            )
+            && ! $record->hasRole(
+                'super_admin'
+            );
     }
 
 
     public static function canDelete(
         Model $record
     ): bool {
-        return false;
+
+        return auth()->check()
+            && auth()->user()->hasRole(
+                'super_admin'
+            )
+            && ! $record->hasRole(
+                'super_admin'
+            )
+            && $record->id !== auth()->id();
     }
 
 
     public static function canDeleteAny(): bool
     {
-        return false;
+        return auth()->check()
+            && auth()->user()->hasRole(
+                'super_admin'
+            );
     }
 
 
@@ -120,7 +151,8 @@ class UserPermissionResource extends BaseResource
     public static function form(
         Schema $schema
     ): Schema {
-        return UserPermissionForm::configure(
+
+        return UserManagementForm::configure(
             $schema
         );
     }
@@ -135,7 +167,8 @@ class UserPermissionResource extends BaseResource
     public static function table(
         Table $table
     ): Table {
-        return UserPermissionsTable::configure(
+
+        return UserManagementsTable::configure(
             $table
         );
     }
@@ -164,13 +197,15 @@ class UserPermissionResource extends BaseResource
         return [
 
             'index' =>
-                ListUserPermissions::route('/'),
+                ListUserManagements::route('/'),
 
             'create' =>
-                CreateUserPermission::route('/create'),
+                CreateUserManagement::route('/create'),
 
             'edit' =>
-                EditUserPermission::route('/{record}/edit'),
+                EditUserManagement::route(
+                    '/{record}/edit'
+                ),
 
         ];
     }
