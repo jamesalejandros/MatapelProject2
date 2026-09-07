@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\TrxCctvAssignments\Tables;
 
+use App\Filament\Resources\TrxCctvAssignments\TrxCctvAssignmentResource;
+
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -19,17 +21,24 @@ class TrxCctvAssignmentsTable
 
         return $table
 
+
+            /**
+             * ======================================================
+             * DEFAULT SORT
+             * ======================================================
+             */
+
             ->defaultSort(
                 'IDAssignment',
                 'desc'
             )
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | EAGER LOAD
-            |--------------------------------------------------------------------------
-            */
+            /**
+             * ======================================================
+             * EAGER LOAD
+             * ======================================================
+             */
 
             ->modifyQueryUsing(
                 function ($query) {
@@ -41,6 +50,12 @@ class TrxCctvAssignmentsTable
                 }
             )
 
+
+            /**
+             * ======================================================
+             * COLUMNS
+             * ======================================================
+             */
 
             ->columns([
 
@@ -60,6 +75,7 @@ class TrxCctvAssignmentsTable
                     ->sortable()
 
                     ->weight('bold'),
+
 
 
                 /*
@@ -95,6 +111,7 @@ class TrxCctvAssignmentsTable
                     ->wrap(),
 
 
+
                 /*
                 |--------------------------------------------------------------------------
                 | IP ADDRESS
@@ -114,6 +131,7 @@ class TrxCctvAssignmentsTable
                     ->copyable()
 
                     ->toggleable(),
+
 
 
                 /*
@@ -147,6 +165,7 @@ class TrxCctvAssignmentsTable
                     ->sortable(),
 
 
+
                 /*
                 |--------------------------------------------------------------------------
                 | TANGGAL PASANG
@@ -162,6 +181,7 @@ class TrxCctvAssignmentsTable
                     ->placeholder('-')
 
                     ->sortable(),
+
 
 
                 /*
@@ -183,6 +203,7 @@ class TrxCctvAssignmentsTable
                     ->wrap(),
 
 
+
                 /*
                 |--------------------------------------------------------------------------
                 | KONDISI
@@ -200,6 +221,7 @@ class TrxCctvAssignmentsTable
                     ->sortable()
 
                     ->wrap(),
+
 
 
                 /*
@@ -222,45 +244,94 @@ class TrxCctvAssignmentsTable
 
                     ->toggleable(),
 
-
             ])
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | FILTER
-            |--------------------------------------------------------------------------
-            */
+            /**
+             * ======================================================
+             * FILTER
+             * ======================================================
+             */
 
             ->filters([])
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | RECORD ACTIONS
-            |--------------------------------------------------------------------------
-            */
+            /**
+             * ======================================================
+             * RECORD ACTIONS
+             * ======================================================
+             */
 
             ->recordActions([
 
-                EditAction::make(),
 
-                DeleteAction::make(),
+                /**
+                 * ==================================================
+                 * EDIT
+                 * ==================================================
+                 *
+                 * Hanya visible jika user memiliki:
+                 *
+                 * trxcctvassignment.update
+                 */
+
+                EditAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            TrxCctvAssignmentResource::canEdit($record)
+                    ),
+
+
+
+                /**
+                 * ==================================================
+                 * DELETE
+                 * ==================================================
+                 *
+                 * Hanya visible jika user memiliki:
+                 *
+                 * trxcctvassignment.delete
+                 */
+
+                DeleteAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            TrxCctvAssignmentResource::canDelete($record)
+                    ),
 
             ])
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | BULK ACTIONS
-            |--------------------------------------------------------------------------
-            */
+            /**
+             * ======================================================
+             * BULK ACTIONS
+             * ======================================================
+             */
 
             ->toolbarActions([
 
+
                 BulkActionGroup::make([
 
-                    DeleteBulkAction::make(),
+
+                    /**
+                     * ==================================================
+                     * DELETE BULK
+                     * ==================================================
+                     *
+                     * Hanya visible jika user memiliki:
+                     *
+                     * trxcctvassignment.delete
+                     */
+
+                    DeleteBulkAction::make()
+                        ->visible(
+                            fn () =>
+                                auth()->check()
+                                && auth()->user()->can(
+                                    'trxcctvassignment.delete'
+                                )
+                        ),
 
                 ]),
 

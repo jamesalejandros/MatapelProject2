@@ -2,12 +2,19 @@
 
 namespace App\Filament\Resources\TrxRetireAssets\Tables;
 
+use App\Filament\Resources\TrxRetireAssets\TrxRetireAssetResource;
+
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Tables\Filters\Filter;
+
 use Filament\Forms\Components\DatePicker;
+
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Table;
+
 use Illuminate\Database\Eloquent\Builder;
 
 
@@ -17,10 +24,24 @@ class TrxRetireAssetsTable
     {
         return $table
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | DEFAULT SORT
+            |--------------------------------------------------------------------------
+            */
+
             ->defaultSort(
                 'TanggalRetire',
                 'desc'
             )
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | COLUMNS
+            |--------------------------------------------------------------------------
+            */
 
             ->columns([
 
@@ -79,13 +100,21 @@ class TrxRetireAssetsTable
                     ->label('KETERANGAN')
                     ->limit(50)
                     ->tooltip(
-                        fn ($record) => $record->KeteranganDetail
+                        fn ($record) =>
+                            $record->KeteranganDetail
                     )
                     ->wrap()
                     ->searchable()
                     ->toggleable(),
 
             ])
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | FILTER
+            |--------------------------------------------------------------------------
+            */
 
             ->filters([
 
@@ -100,30 +129,112 @@ class TrxRetireAssetsTable
                             ->label('Sampai Tanggal'),
 
                     ])
-                    ->query(function (Builder $query, array $data): Builder {
+                    ->query(
+                        function (
+                            Builder $query,
+                            array $data
+                        ): Builder {
 
-                        return $query
-                            ->when(
-                                $data['dari'] ?? null,
-                                fn (Builder $query, $date) =>
-                                    $query->whereDate('TanggalRetire', '>=', $date)
-                            )
-                            ->when(
-                                $data['sampai'] ?? null,
-                                fn (Builder $query, $date) =>
-                                    $query->whereDate('TanggalRetire', '<=', $date)
-                            );
+                            return $query
 
-                    }),
+                                ->when(
+                                    $data['dari'] ?? null,
+                                    fn (
+                                        Builder $query,
+                                        $date
+                                    ) =>
+                                        $query->whereDate(
+                                            'TanggalRetire',
+                                            '>=',
+                                            $date
+                                        )
+                                )
+
+                                ->when(
+                                    $data['sampai'] ?? null,
+                                    fn (
+                                        Builder $query,
+                                        $date
+                                    ) =>
+                                        $query->whereDate(
+                                            'TanggalRetire',
+                                            '<=',
+                                            $date
+                                        )
+                                );
+
+                        }
+                    ),
 
             ])
 
+
+            /*
+            |--------------------------------------------------------------------------
+            | RECORD ACTIONS
+            |--------------------------------------------------------------------------
+            */
+
             ->recordActions([
 
-                EditAction::make(),
 
-                DeleteAction::make(),
+                /**
+                 * ==================================================
+                 * EDIT
+                 * ==================================================
+                 */
+
+                EditAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            TrxRetireAssetResource::canEdit($record)
+                    ),
+
+
+                /**
+                 * ==================================================
+                 * DELETE
+                 * ==================================================
+                 */
+
+                DeleteAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            TrxRetireAssetResource::canDelete($record)
+                    ),
+
+            ])
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | TOOLBAR ACTIONS
+            |--------------------------------------------------------------------------
+            */
+
+            ->toolbarActions([
+
+                BulkActionGroup::make([
+
+
+                    /**
+                     * ==================================================
+                     * DELETE BULK
+                     * ==================================================
+                     */
+
+                    DeleteBulkAction::make()
+                        ->visible(
+                            fn () =>
+                                auth()->check()
+                                && auth()->user()->can(
+                                    'trxretireasset.delete'
+                                )
+                        ),
+
+                ]),
 
             ]);
+
     }
 }

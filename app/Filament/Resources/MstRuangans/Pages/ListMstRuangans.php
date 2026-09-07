@@ -5,7 +5,6 @@ namespace App\Filament\Resources\MstRuangans\Pages;
 use App\Filament\Resources\MstRuangans\MstRuanganResource;
 
 use Filament\Actions\CreateAction;
-
 use Filament\Resources\Pages\ListRecords;
 
 
@@ -15,11 +14,31 @@ class ListMstRuangans extends ListRecords
         MstRuanganResource::class;
 
 
+    /**
+     * ==========================================================
+     * HEADER ACTIONS
+     * ==========================================================
+     *
+     * Tombol Tambah hanya ditampilkan apabila user memiliki:
+     *
+     * mstruangan.create
+     */
+
     protected function getHeaderActions(): array
     {
         return [
 
-            CreateAction::make(),
+            /**
+             * ==================================================
+             * CREATE
+             * ==================================================
+             */
+
+            CreateAction::make()
+                ->visible(
+                    fn () =>
+                        MstRuanganResource::canCreate()
+                ),
 
         ];
     }

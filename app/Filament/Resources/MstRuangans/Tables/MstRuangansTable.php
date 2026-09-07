@@ -10,7 +10,6 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 
 use Filament\Tables\Columns\TextColumn;
-
 use Filament\Tables\Table;
 
 
@@ -20,6 +19,17 @@ class MstRuangansTable
     {
         return $table
 
+
+            /**
+             * ==================================================
+             * RECORD URL
+             * ==================================================
+             *
+             * Klik record akan membuka halaman Edit.
+             *
+             * Permission untuk benar-benar melakukan update
+             * tetap dikontrol oleh EditAction dan BaseResource.
+             */
 
             ->recordUrl(
                 fn ($record) =>
@@ -32,6 +42,11 @@ class MstRuangansTable
             )
 
 
+            /**
+             * ==================================================
+             * DEFAULT SORT
+             * ==================================================
+             */
 
             ->defaultSort(
                 'IDRuangan',
@@ -39,6 +54,11 @@ class MstRuangansTable
             )
 
 
+            /**
+             * ==================================================
+             * PAGINATION
+             * ==================================================
+             */
 
             ->paginated([
                 10,
@@ -48,7 +68,6 @@ class MstRuangansTable
                 250,
                 'all',
             ])
-
 
 
             ->paginationPageOptions([
@@ -61,10 +80,14 @@ class MstRuangansTable
             ])
 
 
-
             ->defaultPaginationPageOption('all')
 
 
+            /**
+             * ==================================================
+             * QUERY
+             * ==================================================
+             */
 
             ->modifyQueryUsing(
                 function ($query) {
@@ -77,73 +100,58 @@ class MstRuangansTable
             )
 
 
+            /**
+             * ==================================================
+             * COLUMNS
+             * ==================================================
+             */
 
             ->columns([
 
 
                 TextColumn::make('No')
-
                     ->label('NO')
-
                     ->rowIndex()
-
                     ->weight('bold'),
 
 
-
                 TextColumn::make('IDRuangan')
-
                     ->label('ID RUANGAN')
-
                     ->searchable()
-
                     ->sortable(),
 
 
-
                 TextColumn::make('NamaRuangan')
-
                     ->label('NAMA RUANGAN')
-
                     ->searchable()
-
                     ->sortable()
-
                     ->weight('bold')
-
                     ->wrap(),
+
 
                 TextColumn::make('Lantai')
-
                     ->label('LANTAI')
-
                     ->searchable()
-
                     ->sortable()
-
                     ->wrap(),
-
 
 
                 TextColumn::make('lokasi.NamaLokasi')
-
                     ->label('LOKASI')
-
                     ->badge()
-
                     ->color('info')
-
                     ->searchable()
-
                     ->sortable()
-
                     ->placeholder('-'),
-
-
 
             ])
 
 
+            /**
+             * ==================================================
+             * FILTERS
+             * ==================================================
+             */
 
             ->filters([
 
@@ -152,22 +160,81 @@ class MstRuangansTable
             ])
 
 
+            /**
+             * ==================================================
+             * RECORD ACTIONS
+             * ==================================================
+             */
 
             ->recordActions([
 
-                EditAction::make(),
+                /**
+                 * ==================================================
+                 * EDIT
+                 * ==================================================
+                 *
+                 * Hanya muncul apabila user memiliki:
+                 *
+                 * mstruangan.update
+                 */
 
-                DeleteAction::make(),
+                EditAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            MstRuanganResource::canEdit($record)
+                    ),
+
+
+                /**
+                 * ==================================================
+                 * DELETE
+                 * ==================================================
+                 *
+                 * Hanya muncul apabila user memiliki:
+                 *
+                 * mstruangan.delete
+                 *
+                 * Permission update tidak memberikan
+                 * permission delete secara otomatis.
+                 */
+
+                DeleteAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            MstRuanganResource::canDelete($record)
+                    ),
 
             ])
 
 
+            /**
+             * ==================================================
+             * TOOLBAR ACTIONS
+             * ==================================================
+             */
 
             ->toolbarActions([
 
                 BulkActionGroup::make([
 
-                    DeleteBulkAction::make(),
+                    /**
+                     * ==================================================
+                     * DELETE BULK
+                     * ==================================================
+                     *
+                     * Hanya muncul apabila user memiliki:
+                     *
+                     * mstruangan.delete
+                     */
+
+                    DeleteBulkAction::make()
+                        ->visible(
+                            fn () =>
+                                auth()->check()
+                                && auth()->user()->can(
+                                    'mstruangan.delete'
+                                )
+                        ),
 
                 ]),
 

@@ -38,7 +38,6 @@ class TrxPabxAssignmentsTable
             )
 
 
-
             /*
             |--------------------------------------------------------------------------
             | DEFAULT SORT
@@ -49,7 +48,6 @@ class TrxPabxAssignmentsTable
                 'IDAssignment',
                 'desc'
             )
-
 
 
             /*
@@ -68,7 +66,6 @@ class TrxPabxAssignmentsTable
             ])
 
 
-
             ->paginationPageOptions([
                 10,
                 25,
@@ -79,9 +76,7 @@ class TrxPabxAssignmentsTable
             ])
 
 
-
             ->defaultPaginationPageOption('all')
-
 
 
             /*
@@ -111,7 +106,6 @@ class TrxPabxAssignmentsTable
             )
 
 
-
             /*
             |--------------------------------------------------------------------------
             | COLUMNS
@@ -119,7 +113,6 @@ class TrxPabxAssignmentsTable
             */
 
             ->columns([
-
 
 
                 /*
@@ -135,7 +128,6 @@ class TrxPabxAssignmentsTable
                     ->rowIndex()
 
                     ->weight('bold'),
-
 
 
                 /*
@@ -210,20 +202,10 @@ class TrxPabxAssignmentsTable
                     ->wrap(),
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | IP ADDRESS
                 |--------------------------------------------------------------------------
-                |
-                | Sumber:
-                |
-                | trxpabxassignment.NoAssetIT
-                |       ↓
-                | mstasset
-                |       ↓
-                | IPAddress
-                |
                 */
 
                 TextColumn::make(
@@ -243,7 +225,6 @@ class TrxPabxAssignmentsTable
                     ->toggleable(),
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | NO EXT
@@ -259,7 +240,6 @@ class TrxPabxAssignmentsTable
                     ->sortable()
 
                     ->weight('bold'),
-
 
 
                 /*
@@ -281,7 +261,6 @@ class TrxPabxAssignmentsTable
                     ->wrap(),
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | NIK
@@ -301,20 +280,10 @@ class TrxPabxAssignmentsTable
                     ->toggleable(),
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | DEPARTMENT
                 |--------------------------------------------------------------------------
-                |
-                | Sumber:
-                |
-                | trxpabxassignment.NIK
-                |       ↓
-                | mstkaryawan
-                |       ↓
-                | departemen
-                |
                 */
 
                 TextColumn::make(
@@ -334,7 +303,6 @@ class TrxPabxAssignmentsTable
                     ->sortable()
 
                     ->toggleable(),
-
 
 
                 /*
@@ -358,20 +326,10 @@ class TrxPabxAssignmentsTable
                     ->wrap(),
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | LOKASI
                 |--------------------------------------------------------------------------
-                |
-                | Sumber:
-                |
-                | trxpabxassignment.IDRuangan
-                |       ↓
-                | mstruangan
-                |       ↓
-                | mstlokasi
-                |
                 */
 
                 TextColumn::make(
@@ -396,24 +354,10 @@ class TrxPabxAssignmentsTable
                     ->sortable(),
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | LANTAI
                 |--------------------------------------------------------------------------
-                |
-                | Tidak lagi mengambil dari:
-                |
-                | trxpabxassignment.Lantai
-                |
-                | Sekarang mengambil dari:
-                |
-                | trxpabxassignment.IDRuangan
-                |       ↓
-                | mstruangan
-                |       ↓
-                | Lantai
-                |
                 */
 
                 TextColumn::make(
@@ -427,7 +371,6 @@ class TrxPabxAssignmentsTable
                     ->searchable()
 
                     ->sortable(),
-
 
 
                 /*
@@ -464,7 +407,6 @@ class TrxPabxAssignmentsTable
                     ->sortable(),
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | PIN
@@ -482,25 +424,10 @@ class TrxPabxAssignmentsTable
                     ->toggleable(),
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | SAMBUNGAN
                 |--------------------------------------------------------------------------
-                |
-                | Database:
-                | trxpabxassignment.IDSambungan
-                |
-                | Ditampilkan melalui relasi:
-                |
-                | trxpabxassignment
-                |       ↓
-                | IDSambungan
-                |       ↓
-                | mstsambungan
-                |       ↓
-                | Rule
-                |
                 */
 
                 TextColumn::make('sambungan.Rule')
@@ -518,16 +445,10 @@ class TrxPabxAssignmentsTable
                     ->toggleable(),
 
 
-
                 /*
                 |--------------------------------------------------------------------------
                 | KETERANGAN
                 |--------------------------------------------------------------------------
-                |
-                | Field langsung dari:
-                |
-                | trxpabxassignment.Keterangan
-                |
                 */
 
                 TextColumn::make('Keterangan')
@@ -544,9 +465,7 @@ class TrxPabxAssignmentsTable
 
                     ->toggleable(),
 
-
             ])
-
 
 
             /*
@@ -562,7 +481,6 @@ class TrxPabxAssignmentsTable
             ])
 
 
-
             /*
             |--------------------------------------------------------------------------
             | RECORD ACTIONS
@@ -571,12 +489,42 @@ class TrxPabxAssignmentsTable
 
             ->recordActions([
 
-                EditAction::make(),
+                /**
+                 * ==================================================
+                 * EDIT
+                 * ==================================================
+                 *
+                 * Membutuhkan:
+                 *
+                 * trxpabxassignment.update
+                 */
 
-                DeleteAction::make(),
+                EditAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            TrxPabxAssignmentResource::canEdit($record)
+                    ),
+
+
+                /**
+                 * ==================================================
+                 * DELETE
+                 * ==================================================
+                 *
+                 * Membutuhkan:
+                 *
+                 * trxpabxassignment.delete
+                 *
+                 * Permission update tidak memberikan hak delete.
+                 */
+
+                DeleteAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            TrxPabxAssignmentResource::canDelete($record)
+                    ),
 
             ])
-
 
 
             /*
@@ -589,7 +537,24 @@ class TrxPabxAssignmentsTable
 
                 BulkActionGroup::make([
 
-                    DeleteBulkAction::make(),
+                    /**
+                     * ==================================================
+                     * DELETE BULK
+                     * ==================================================
+                     *
+                     * Membutuhkan:
+                     *
+                     * trxpabxassignment.delete
+                     */
+
+                    DeleteBulkAction::make()
+                        ->visible(
+                            fn () =>
+                                auth()->check()
+                                && auth()->user()->can(
+                                    'trxpabxassignment.delete'
+                                )
+                        ),
 
                 ]),
 

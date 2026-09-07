@@ -2,42 +2,47 @@
 
 namespace App\Filament\Resources\TrxSoftwareAssignments\Tables;
 
-
 use App\Filament\Resources\TrxSoftwareAssignments\TrxSoftwareAssignmentResource;
 
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\Action;
 
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
 
-
 class TrxSoftwareAssignmentsTable
 {
-
-
     public static function configure(Table $table): Table
     {
-
-
         return $table
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | RECORD URL
+            |--------------------------------------------------------------------------
+            */
+
             ->recordUrl(
-                fn($record) =>
-                TrxSoftwareAssignmentResource::getUrl(
-                    'edit',
-                    [
-                        'record' => $record,
-                    ]
-                )
+                fn ($record) =>
+                    TrxSoftwareAssignmentResource::getUrl(
+                        'edit',
+                        [
+                            'record' => $record,
+                        ]
+                    )
             )
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | DEFAULT SORT
+            |--------------------------------------------------------------------------
+            */
 
             ->defaultSort(
                 'TanggalAssign',
@@ -45,6 +50,11 @@ class TrxSoftwareAssignmentsTable
             )
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | PAGINATION
+            |--------------------------------------------------------------------------
+            */
 
             ->paginated([
                 10,
@@ -54,7 +64,6 @@ class TrxSoftwareAssignmentsTable
                 250,
                 'all',
             ])
-
 
 
             ->paginationPageOptions([
@@ -67,10 +76,14 @@ class TrxSoftwareAssignmentsTable
             ])
 
 
-
             ->defaultPaginationPageOption('all')
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | EAGER LOAD
+            |--------------------------------------------------------------------------
+            */
 
             ->modifyQueryUsing(function ($query) {
 
@@ -89,10 +102,20 @@ class TrxSoftwareAssignmentsTable
             })
 
 
+            /*
+            |--------------------------------------------------------------------------
+            | COLUMNS
+            |--------------------------------------------------------------------------
+            */
 
             ->columns([
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | NO
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('No')
 
@@ -103,9 +126,11 @@ class TrxSoftwareAssignmentsTable
                     ->weight('bold'),
 
 
-
-
-
+                /*
+                |--------------------------------------------------------------------------
+                | ASSET
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('asset.NoAssetIT')
 
@@ -113,44 +138,46 @@ class TrxSoftwareAssignmentsTable
 
                     ->formatStateUsing(function ($state, $record) {
 
-
                         return
 
                             ($record->asset?->NoAssetIT ?? '-')
 
-                            .
-
-                            ' | '
+                            . ' | '
 
                             .
 
                             ($record->asset?->Nama ?? '-');
-
 
                     })
 
                     ->searchable(
                         query: function ($query, string $search): void {
 
-                            $query->whereHas('asset', function ($query) use ($search) {
-
-                                $query->where(function ($query) use ($search) {
+                            $query->whereHas(
+                                'asset',
+                                function ($query) use ($search) {
 
                                     $query->where(
-                                        'NoAssetIT',
-                                        'like',
-                                        "%{$search}%"
-                                    )
+                                        function ($query) use ($search) {
 
-                                    ->orWhere(
-                                        'Nama',
-                                        'like',
-                                        "%{$search}%"
+                                            $query
+                                                ->where(
+                                                    'NoAssetIT',
+                                                    'like',
+                                                    "%{$search}%"
+                                                )
+
+                                                ->orWhere(
+                                                    'Nama',
+                                                    'like',
+                                                    "%{$search}%"
+                                                );
+
+                                        }
                                     );
 
-                                });
-
-                            });
+                                }
+                            );
 
                         }
                     )
@@ -160,11 +187,15 @@ class TrxSoftwareAssignmentsTable
                     ->wrap(),
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | PEMEGANG ASSET
+                |--------------------------------------------------------------------------
+                */
 
-
-
-
-                TextColumn::make('asset.karyawan.Nama')
+                TextColumn::make(
+                    'asset.karyawan.Nama'
+                )
 
                     ->label('PEMEGANG ASSET')
 
@@ -175,11 +206,15 @@ class TrxSoftwareAssignmentsTable
                     ->sortable(),
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | DEPARTEMEN
+                |--------------------------------------------------------------------------
+                */
 
-
-
-
-                TextColumn::make('asset.karyawan.departemen.NamaDept')
+                TextColumn::make(
+                    'asset.karyawan.departemen.NamaDept'
+                )
 
                     ->label('DEPARTEMEN')
 
@@ -194,11 +229,15 @@ class TrxSoftwareAssignmentsTable
                     ->toggleable(),
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | PERUSAHAAN ASSET
+                |--------------------------------------------------------------------------
+                */
 
-
-
-
-                TextColumn::make('asset.perusahaan.NamaPerusahaan')
+                TextColumn::make(
+                    'asset.perusahaan.NamaPerusahaan'
+                )
 
                     ->label('PERUSAHAAN ASSET')
 
@@ -215,12 +254,15 @@ class TrxSoftwareAssignmentsTable
                     ->toggleable(),
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | SOFTWARE
+                |--------------------------------------------------------------------------
+                */
 
-
-
-
-
-                TextColumn::make('license.software.NamaSoftware')
+                TextColumn::make(
+                    'license.software.NamaSoftware'
+                )
 
                     ->label('SOFTWARE')
 
@@ -232,6 +274,12 @@ class TrxSoftwareAssignmentsTable
 
                     ->wrap(),
 
+
+                /*
+                |--------------------------------------------------------------------------
+                | ID LICENSE
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('license.IDLicense')
 
@@ -246,14 +294,15 @@ class TrxSoftwareAssignmentsTable
                     ->wrap(),
 
 
+                /*
+                |--------------------------------------------------------------------------
+                | PERUSAHAAN LICENSE
+                |--------------------------------------------------------------------------
+                */
 
-
-
-
-
-
-
-                TextColumn::make('license.perusahaan.NamaPerusahaan')
+                TextColumn::make(
+                    'license.perusahaan.NamaPerusahaan'
+                )
 
                     ->label('PERUSAHAAN LICENSE')
 
@@ -270,11 +319,11 @@ class TrxSoftwareAssignmentsTable
                     ->toggleable(),
 
 
-
-
-
-
-
+                /*
+                |--------------------------------------------------------------------------
+                | TIPE LISENSI
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('license.TipeLisensi')
 
@@ -289,18 +338,19 @@ class TrxSoftwareAssignmentsTable
                     ->toggleable(),
 
 
-
-
-
-
-
+                /*
+                |--------------------------------------------------------------------------
+                | PRODUCT KEY
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('license.ProductKey')
 
                     ->label('PRODUCT KEY')
 
                     ->formatStateUsing(
-                        fn() => '••••••••••••••'
+                        fn () =>
+                            '••••••••••••••'
                     )
 
                     ->copyable(false)
@@ -310,11 +360,11 @@ class TrxSoftwareAssignmentsTable
                     ),
 
 
-
-
-
-
-
+                /*
+                |--------------------------------------------------------------------------
+                | TANGGAL INSTALL
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('TanggalAssign')
 
@@ -325,11 +375,11 @@ class TrxSoftwareAssignmentsTable
                     ->sortable(),
 
 
-
-
-
-
-
+                /*
+                |--------------------------------------------------------------------------
+                | TANGGAL REVOKE
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('TanggalRevoke')
 
@@ -344,12 +394,11 @@ class TrxSoftwareAssignmentsTable
                     ->toggleable(),
 
 
-
-
-
-
-
-
+                /*
+                |--------------------------------------------------------------------------
+                | STATUS ASSET
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('asset.StatusAsset')
 
@@ -357,31 +406,35 @@ class TrxSoftwareAssignmentsTable
 
                     ->badge()
 
-                    ->color(fn(?string $state): string => match ($state) {
+                    ->color(
+                        fn (?string $state): string =>
+                            match ($state) {
 
+                                'Available' =>
+                                    'success',
 
-                        'Available' => 'success',
+                                'In Service' =>
+                                    'warning',
 
-                        'In Service' => 'warning',
+                                'Retired' =>
+                                    'danger',
 
-                        'Retired' => 'danger',
+                                default =>
+                                    'gray',
 
-                        default => 'gray',
-
-
-                    })
+                            }
+                    )
 
                     ->sortable()
 
                     ->toggleable(),
 
 
-
-
-
-
-
-
+                /*
+                |--------------------------------------------------------------------------
+                | STATUS SOFTWARE
+                |--------------------------------------------------------------------------
+                */
 
                 TextColumn::make('StatusAssignment')
 
@@ -391,26 +444,33 @@ class TrxSoftwareAssignmentsTable
 
                     ->sortable()
 
-                    ->color(fn(?string $state): string => match ($state) {
+                    ->color(
+                        fn (?string $state): string =>
+                            match ($state) {
 
+                                'Installed' =>
+                                    'success',
 
-                        'Installed' => 'success',
+                                'Revoked' =>
+                                    'danger',
 
-                        'Revoked' => 'danger',
+                                'Expired' =>
+                                    'warning',
 
-                        'Expired' => 'warning',
+                                default =>
+                                    'gray',
 
-                        default => 'gray',
-
-
-                    }),
-
-
+                            }
+                    ),
 
             ])
 
 
-
+            /*
+            |--------------------------------------------------------------------------
+            | FILTERS
+            |--------------------------------------------------------------------------
+            */
 
             ->filters([
 
@@ -419,10 +479,23 @@ class TrxSoftwareAssignmentsTable
             ])
 
 
-
+            /*
+            |--------------------------------------------------------------------------
+            | RECORD ACTIONS
+            |--------------------------------------------------------------------------
+            */
 
             ->recordActions([
 
+
+                /**
+                 * ==================================================
+                 * VIEW PRODUCT KEY
+                 * ==================================================
+                 *
+                 * Product key tidak ditampilkan langsung di tabel.
+                 * User dapat melihatnya melalui slide-over.
+                 */
 
                 Action::make('viewLicense')
 
@@ -435,13 +508,13 @@ class TrxSoftwareAssignmentsTable
                     ->slideOver()
 
                     ->modalHeading(
-                        fn($record) =>
-                        'Product Key - ' .
-                        (
-                            $record->license?->software?->NamaSoftware
-                            ??
-                            '-'
-                        )
+                        fn ($record) =>
+                            'Product Key - ' .
+                            (
+                                $record->license?->software?->NamaSoftware
+                                ??
+                                '-'
+                            )
                     )
 
                     ->modalSubmitAction(false)
@@ -449,45 +522,77 @@ class TrxSoftwareAssignmentsTable
                     ->modalCancelActionLabel('Close')
 
                     ->modalContent(
-                        fn($record) =>
-                        view(
-                            'filament.tables.columns.assignment-product-key',
-                            [
-                                'license' => $record->license,
-                            ]
-                        )
+                        fn ($record) =>
+                            view(
+                                'filament.tables.columns.assignment-product-key',
+                                [
+                                    'license' =>
+                                        $record->license,
+                                ]
+                            )
                     ),
 
 
+                /**
+                 * ==================================================
+                 * EDIT
+                 * ==================================================
+                 */
 
-                EditAction::make(),
+                EditAction::make()
+
+                    ->visible(
+                        fn ($record) =>
+                            TrxSoftwareAssignmentResource::canEdit($record)
+                    ),
 
 
+                /**
+                 * ==================================================
+                 * DELETE
+                 * ==================================================
+                 */
 
-                DeleteAction::make(),
+                DeleteAction::make()
 
+                    ->visible(
+                        fn ($record) =>
+                            TrxSoftwareAssignmentResource::canDelete($record)
+                    ),
 
             ])
 
 
-
+            /*
+            |--------------------------------------------------------------------------
+            | TOOLBAR ACTIONS
+            |--------------------------------------------------------------------------
+            */
 
             ->toolbarActions([
-
 
                 BulkActionGroup::make([
 
 
-                    DeleteBulkAction::make(),
+                    /**
+                     * ==================================================
+                     * DELETE BULK
+                     * ==================================================
+                     */
 
+                    DeleteBulkAction::make()
+
+                        ->visible(
+                            fn () =>
+                                auth()->check()
+                                && auth()->user()->can(
+                                    'trxsoftwareassignment.delete'
+                                )
+                        ),
 
                 ]),
 
-
             ]);
 
-
     }
-
-
 }

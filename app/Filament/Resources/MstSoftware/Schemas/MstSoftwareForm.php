@@ -59,13 +59,9 @@ class MstSoftwareForm
 
                 DatePicker::make('EndSupportDate')
                     ->label('End Support Date')
-                    ->placeholder('Pilih tanggal')
-                    ->native(false)
-                    ->displayFormat('d/m/Y')
+                    ->default(now())
                     ->format('Y-m-d')
-                    ->suffixIcon('heroicon-m-calendar-days')
-                    ->helperText('Tanggal berakhirnya dukungan software')
-                    ->closeOnDateSelection(),
+                    ->displayFormat('d M Y'),
 
 
 
@@ -205,13 +201,9 @@ class MstSoftwareForm
 
                                 DatePicker::make('ExpiredDate')
                     ->label('Expired Date')
-                    ->placeholder('Pilih tanggal expired')
-                    ->native(false)
-                    ->displayFormat('d/m/Y')
+                    ->default(now())
                     ->format('Y-m-d')
-                    ->suffixIcon('heroicon-m-calendar-days')
-                    ->helperText('Tanggal berakhirnya license')
-                    ->closeOnDateSelection(),
+                    ->displayFormat('d M Y'),
 
 
 

@@ -11,35 +11,53 @@ use Filament\Resources\Pages\ListRecords;
 
 class ListMstSoftware extends ListRecords
 {
+    protected static string $resource =
+        MstSoftwareResource::class;
 
-    protected static string $resource = MstSoftwareResource::class;
 
-
-
+    /**
+     * ==========================================================
+     * HEADER ACTIONS
+     * ==========================================================
+     *
+     * Tombol Tambah hanya ditampilkan apabila user memiliki:
+     *
+     * mstsoftware.create
+     */
 
     protected function getHeaderActions(): array
     {
         return [
 
-            CreateAction::make(),
+            /**
+             * ==================================================
+             * CREATE
+             * ==================================================
+             */
+
+            CreateAction::make()
+                ->visible(
+                    fn () =>
+                        MstSoftwareResource::canCreate()
+                ),
 
         ];
     }
 
 
-
-
-
     /**
-     * Statistik License tampil di atas tabel
+     * ==========================================================
+     * HEADER WIDGETS
+     * ==========================================================
+     *
+     * Statistik License dapat diaktifkan kembali apabila
+     * diperlukan.
      */
+
     // protected function getHeaderWidgets(): array
     // {
     //     return [
-
     //         SoftwareLicenseOverview::class,
-
     //     ];
     // }
-
 }

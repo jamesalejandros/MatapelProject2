@@ -214,13 +214,9 @@ class MstSoftwareLicenseForm
 
                 DatePicker::make('ExpiredDate')
     ->label('Expired Date')
-    ->placeholder('Pilih tanggal expired')
-    ->native(false)
-    ->displayFormat('d/m/Y')
-    ->format('Y-m-d')
-    ->suffixIcon('heroicon-m-calendar-days')
-    ->helperText('Tanggal berakhirnya license')
-    ->closeOnDateSelection(),
+    ->default(now())
+                    ->format('Y-m-d')
+                    ->displayFormat('d M Y'),
 
 
             ]);

@@ -14,11 +14,25 @@ class ListTrxCctvAssignments extends ListRecords
         TrxCctvAssignmentResource::class;
 
 
+    /**
+     * ==========================================================
+     * HEADER ACTIONS
+     * ==========================================================
+     *
+     * Tombol Tambah hanya ditampilkan apabila user memiliki:
+     *
+     * trxcctvassignment.create
+     */
+
     protected function getHeaderActions(): array
     {
         return [
 
-            CreateAction::make(),
+            CreateAction::make()
+                ->visible(
+                    fn () =>
+                        TrxCctvAssignmentResource::canCreate()
+                ),
 
         ];
     }

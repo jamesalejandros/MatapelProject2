@@ -3,17 +3,37 @@
 namespace App\Filament\Resources\MstDepartemens\Pages;
 
 use App\Filament\Resources\MstDepartemens\MstDepartemenResource;
+
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
+
 class ListMstDepartemens extends ListRecords
 {
-    protected static string $resource = MstDepartemenResource::class;
+    protected static string $resource =
+        MstDepartemenResource::class;
+
+
+    /**
+     * ==========================================================
+     * HEADER ACTIONS
+     * ==========================================================
+     *
+     * Tombol Tambah hanya ditampilkan apabila user memiliki:
+     *
+     * mstdepartemen.create
+     */
 
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+
+            CreateAction::make()
+                ->visible(
+                    fn () =>
+                        MstDepartemenResource::canCreate()
+                ),
+
         ];
     }
 }

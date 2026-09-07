@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\MstAssets\Tables;
 
+use App\Filament\Resources\MstAssets\MstAssetResource;
+
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -13,7 +15,6 @@ use Filament\Actions\ExportAction;
 use Filament\Tables\Filters\Filter;
 use Filament\Forms\Components\DatePicker;
 use Illuminate\Database\Eloquent\Builder;
-
 
 
 class MstAssetsTable
@@ -245,7 +246,6 @@ class MstAssetsTable
 
                 TextColumn::make('lokasi.NamaLokasi')
                     ->label('LOKASI ASSET')
-                    ->placeholder('-')
                     ->searchable()
                     ->sortable(),
 
@@ -339,11 +339,32 @@ class MstAssetsTable
             ->recordActions([
 
 
-                EditAction::make(),
+                /**
+                 * ==================================================
+                 * EDIT
+                 * ==================================================
+                 */
+
+                EditAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            MstAssetResource::canEdit($record)
+                    ),
 
 
+
+                /**
+                 * ==================================================
+                 * DELETE
+                 * ==================================================
+                 */
 
                 DeleteAction::make()
+
+                    ->visible(
+                        fn ($record) =>
+                            MstAssetResource::canDelete($record)
+                    )
 
                     ->before(function ($record) {
 
@@ -367,10 +388,24 @@ class MstAssetsTable
                 ExportAction::make()
                     ->label('Export Excel')
                     ->exporter(MstAssetExporter::class),
-            
+
+
                 BulkActionGroup::make([
 
-                    DeleteBulkAction::make(),
+                    /**
+                     * ==================================================
+                     * DELETE BULK
+                     * ==================================================
+                     */
+
+                    DeleteBulkAction::make()
+                        ->visible(
+                            fn () =>
+                                auth()->check()
+                                && auth()->user()->can(
+                                    'mstasset.delete'
+                                )
+                        ),
 
                 ]),
 

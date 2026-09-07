@@ -2,12 +2,17 @@
 
 namespace App\Filament\Resources\TrxMutasiAssets\Tables;
 
+use App\Filament\Resources\TrxMutasiAssets\TrxMutasiAssetResource;
+
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
+
+use Filament\Forms\Components\DatePicker;
+
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
-use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Table;
+
 use Illuminate\Database\Eloquent\Builder;
 
 
@@ -21,6 +26,7 @@ class TrxMutasiAssetsTable
                 'TanggalMutasi',
                 'desc'
             )
+
 
             ->columns([
 
@@ -69,24 +75,32 @@ class TrxMutasiAssetsTable
 
                 TextColumn::make('AksesWebsite')
                     ->label('AKSES WEBSITE')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(
+                        isToggledHiddenByDefault: true
+                    ),
 
 
                 TextColumn::make('AksesEmail')
                     ->label('AKSES EMAIL')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(
+                        isToggledHiddenByDefault: true
+                    ),
 
 
                 TextColumn::make('Keterangan')
                     ->label('KETERANGAN')
                     ->placeholder('-')
                     ->limit(50)
-                    ->tooltip(fn ($record) => $record->Keterangan)
+                    ->tooltip(
+                        fn ($record) =>
+                            $record->Keterangan
+                    )
                     ->wrap()
                     ->searchable()
                     ->toggleable(),
 
             ])
+
 
             ->filters([
 
@@ -101,37 +115,88 @@ class TrxMutasiAssetsTable
                             ->label('Sampai Tanggal'),
 
                     ])
-                    ->query(function (Builder $query, array $data): Builder {
+                    ->query(
+                        function (
+                            Builder $query,
+                            array $data
+                        ): Builder {
 
-                        return $query
-                            ->when(
-                                $data['dari'] ?? null,
-                                fn (Builder $query, $date) =>
-                                    $query->whereDate(
-                                        'TanggalMutasi',
-                                        '>=',
-                                        $date
-                                    )
-                            )
-                            ->when(
-                                $data['sampai'] ?? null,
-                                fn (Builder $query, $date) =>
-                                    $query->whereDate(
-                                        'TanggalMutasi',
-                                        '<=',
-                                        $date
-                                    )
-                            );
+                            return $query
 
-                    }),
+                                ->when(
+                                    $data['dari'] ?? null,
+                                    fn (
+                                        Builder $query,
+                                        $date
+                                    ) =>
+                                        $query->whereDate(
+                                            'TanggalMutasi',
+                                            '>=',
+                                            $date
+                                        )
+                                )
+
+                                ->when(
+                                    $data['sampai'] ?? null,
+                                    fn (
+                                        Builder $query,
+                                        $date
+                                    ) =>
+                                        $query->whereDate(
+                                            'TanggalMutasi',
+                                            '<=',
+                                            $date
+                                        )
+                                );
+
+                        }
+                    ),
 
             ])
 
+
+            /**
+             * ==================================================
+             * RECORD ACTIONS
+             * ==================================================
+             */
+
             ->recordActions([
 
-                EditAction::make(),
+                /**
+                 * ==================================================
+                 * EDIT
+                 * ==================================================
+                 *
+                 * Edit hanya membutuhkan:
+                 *
+                 * trxmutasiasset.update
+                 */
 
-                DeleteAction::make(),
+                EditAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            TrxMutasiAssetResource::canEdit($record)
+                    ),
+
+
+                /**
+                 * ==================================================
+                 * DELETE
+                 * ==================================================
+                 *
+                 * Delete hanya membutuhkan:
+                 *
+                 * trxmutasiasset.delete
+                 *
+                 * Permission update tidak memberikan hak delete.
+                 */
+
+                DeleteAction::make()
+                    ->visible(
+                        fn ($record) =>
+                            TrxMutasiAssetResource::canDelete($record)
+                    ),
 
             ]);
     }
