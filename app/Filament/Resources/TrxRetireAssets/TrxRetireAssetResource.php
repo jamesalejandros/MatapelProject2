@@ -18,6 +18,9 @@ class TrxRetireAssetResource extends BaseResource
 {
     protected static ?string $model = TrxRetireAsset::class;
 
+    protected static string $permissionPrefix =
+        'trxretireasset';
+
 
     protected static string|\UnitEnum|null $navigationGroup = 'Asset Management';
 

@@ -18,6 +18,9 @@ class MstLokasiResource extends BaseResource
 {
     protected static ?string $model = MstLokasi::class;
 
+    protected static string $permissionPrefix =
+        'mstlokasi';
+
 protected static ?string $navigationLabel = 'Lokasi';
 
 protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';

@@ -30,6 +30,9 @@ class MstAssetResource extends BaseResource
 
     protected static ?string $model = MstAsset::class;
 
+    protected static string $permissionPrefix =
+        'mstasset';
+
 
     protected static ?string $navigationLabel = 'Asset';
 

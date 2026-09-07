@@ -17,6 +17,9 @@ use Filament\Tables\Table;
 class MstVendorResource extends BaseResource
 {
     protected static ?string $model = MstVendor::class;
+
+    protected static string $permissionPrefix =
+        'mstvendor';
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-office';
 
 protected static ?string $navigationLabel = 'Vendor';

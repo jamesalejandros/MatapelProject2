@@ -1,29 +1,25 @@
 <?php
 
-namespace App\Filament\Resources\UserPermissions;
+namespace App\Filament\Resources\ActivityLogs;
 
-use App\Filament\Resources\UserPermissions\Pages\CreateUserPermission;
-use App\Filament\Resources\UserPermissions\Pages\EditUserPermission;
-use App\Filament\Resources\UserPermissions\Pages\ListUserPermissions;
-use App\Filament\Resources\UserPermissions\Schemas\UserPermissionForm;
-use App\Filament\Resources\UserPermissions\Tables\UserPermissionsTable;
-use App\Models\User;
+use App\Filament\Resources\ActivityLogs\Pages\ListActivityLogs;
+use App\Filament\Resources\ActivityLogs\Tables\ActivityLogsTable;
 
 use BackedEnum;
 
-use App\Filament\Resources\BaseResource;
+use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
 use Illuminate\Database\Eloquent\Model;
 
+use Spatie\Activitylog\Models\Activity;
 
-class UserPermissionResource extends BaseResource
+
+class ActivityLogResource extends Resource
 {
-    protected static ?string $model = User::class;
-
-    protected static string $permissionPrefix =
-        'userpermission';
+    protected static ?string $model =
+        Activity::class;
 
 
     /**
@@ -32,68 +28,69 @@ class UserPermissionResource extends BaseResource
      * ==========================================================
      */
 
-    protected static bool $shouldRegisterNavigation = true;
+    protected static bool $shouldRegisterNavigation =
+        true;
+
 
     protected static ?string $navigationLabel =
-        'User Permissions';
+        'Activity History';
+
 
     protected static ?string $modelLabel =
-        'User Permission';
+        'Activity History';
+
 
     protected static ?string $pluralModelLabel =
-        'User Permissions';
+        'Activity History';
+
 
     protected static string|BackedEnum|null $navigationIcon =
-        'heroicon-o-shield-check';
+        'heroicon-o-clock';
+
 
     protected static string|\UnitEnum|null $navigationGroup =
         'Administration';
 
-    protected static ?int $navigationSort = 1;
+
+    protected static ?int $navigationSort =
+        2;
 
 
     /**
      * ==========================================================
      * AUTHORIZATION
      * ==========================================================
-     *
-     * Halaman ini khusus untuk super_admin.
-     *
-     * Jangan menggunakan BaseResource di sini karena
-     * UserPermission bukan resource CRUD biasa.
      */
 
     public static function canViewAny(): bool
     {
         return auth()->check()
-            && auth()->user()->hasRole('super_admin');
+            && auth()->user()->hasRole(
+                'super_admin'
+            );
     }
 
 
     public static function canView(
         Model $record
     ): bool {
+
         return auth()->check()
-            && auth()->user()->hasRole('super_admin');
+            && auth()->user()->hasRole(
+                'super_admin'
+            );
+    }
+
+
+    public static function canCreate(): bool
+    {
+        return false;
     }
 
 
     public static function canEdit(
         Model $record
     ): bool {
-        return auth()->check()
-            && auth()->user()->hasRole('super_admin')
-            && ! $record->hasRole('super_admin');
-    }
-
-
-    /**
-     * Tidak digunakan untuk membuat user.
-     *
-     * User dibuat melalui UserSeeder / User Management.
-     */
-    public static function canCreate(): bool
-    {
         return false;
     }
 
@@ -120,9 +117,8 @@ class UserPermissionResource extends BaseResource
     public static function form(
         Schema $schema
     ): Schema {
-        return UserPermissionForm::configure(
-            $schema
-        );
+
+        return $schema->components([]);
     }
 
 
@@ -135,7 +131,8 @@ class UserPermissionResource extends BaseResource
     public static function table(
         Table $table
     ): Table {
-        return UserPermissionsTable::configure(
+
+        return ActivityLogsTable::configure(
             $table
         );
     }
@@ -164,13 +161,7 @@ class UserPermissionResource extends BaseResource
         return [
 
             'index' =>
-                ListUserPermissions::route('/'),
-
-            'create' =>
-                CreateUserPermission::route('/create'),
-
-            'edit' =>
-                EditUserPermission::route('/{record}/edit'),
+                ListActivityLogs::route('/'),
 
         ];
     }

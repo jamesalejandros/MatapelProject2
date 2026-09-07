@@ -29,6 +29,9 @@ class MstSoftwareResource extends BaseResource
 
     protected static ?string $model = MstSoftware::class;
 
+    protected static string $permissionPrefix =
+        'mstsoftware';
+
 
 
     protected static ?string $navigationLabel = 'Software';

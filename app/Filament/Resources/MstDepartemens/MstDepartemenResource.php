@@ -18,6 +18,9 @@ class MstDepartemenResource extends BaseResource
 {
     protected static ?string $model = MstDepartemen::class;
 
+    protected static string $permissionPrefix =
+        'mstdepartemen';
+
 protected static ?string $navigationLabel = 'Departemen';
 
 

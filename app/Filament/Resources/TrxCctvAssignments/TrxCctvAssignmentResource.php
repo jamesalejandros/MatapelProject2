@@ -22,6 +22,9 @@ class TrxCctvAssignmentResource extends BaseResource
 {
     protected static ?string $model = TrxCctvAssignment::class;
 
+    protected static string $permissionPrefix =
+        'trxcctvassignment';
+
 
     protected static ?string $navigationLabel = 'CCTV Assignment';
 

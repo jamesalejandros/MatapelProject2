@@ -22,6 +22,9 @@ class TrxServiceAssetResource extends BaseResource
 
     protected static ?string $model = TrxServiceAsset::class;
 
+    protected static string $permissionPrefix =
+        'trxserviceasset';
+
 
 
     protected static bool $shouldRegisterNavigation = true;

@@ -18,6 +18,9 @@ class MstSoftwareLicenseResource extends BaseResource
 {
     protected static ?string $model = MstSoftwareLicense::class;
 
+    protected static string $permissionPrefix =
+        'mstsoftwarelicense';
+
     protected static bool $shouldRegisterNavigation = true;
 
     protected static ?string $navigationLabel = 'Software License';

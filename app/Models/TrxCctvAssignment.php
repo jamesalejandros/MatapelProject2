@@ -1,11 +1,13 @@
 <?php
 
 namespace App\Models;
+use App\Models\Concerns\AuditLoggable;
 
 use Illuminate\Database\Eloquent\Model;
 
 class TrxCctvAssignment extends Model
 {
+    use AuditLoggable;
     protected $table = 'trxcctvassignment';
 
     protected $primaryKey = 'IDAssignment';

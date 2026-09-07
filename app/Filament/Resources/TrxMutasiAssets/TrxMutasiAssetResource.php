@@ -18,6 +18,9 @@ class TrxMutasiAssetResource extends BaseResource
 {
     protected static ?string $model = TrxMutasiAsset::class;
 
+    protected static string $permissionPrefix =
+        'trxmutasiasset';
+
 
     protected static string|\UnitEnum|null $navigationGroup = 'Asset Management';
 

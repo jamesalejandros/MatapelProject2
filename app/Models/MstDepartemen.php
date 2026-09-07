@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditLoggable;
 use Illuminate\Database\Eloquent\Model;
 
 
 class MstDepartemen extends Model
 {
+    use AuditLoggable;
 
     protected $table='mstdepartemen';
 

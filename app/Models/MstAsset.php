@@ -2,6 +2,8 @@
 
 namespace App\Models;
 use App\Models\TrxMutasiAsset;
+use App\Models\Concerns\AuditLoggable;
+
 use App\Models\TrxCctvAssignment;
 
 use Illuminate\Database\Eloquent\Model;
@@ -9,6 +11,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class MstAsset extends Model
 {
+    use AuditLoggable;
+
     protected $table = 'mstasset';
 
     protected $primaryKey = 'NoAssetIT';

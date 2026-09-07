@@ -18,6 +18,9 @@ class MstPerusahaanResource extends BaseResource
 {
     protected static ?string $model = MstPerusahaan::class;
 
+    protected static string $permissionPrefix =
+        'mstperusahaan';
+
     protected static ?string $navigationLabel = 'Perusahaan';
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-building-library';

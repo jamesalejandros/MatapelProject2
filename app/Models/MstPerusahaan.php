@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditLoggable;
 use Illuminate\Database\Eloquent\Model;
 
 class MstPerusahaan extends Model
 {
+    use AuditLoggable;
     protected $table = 'mstperusahaan';
 
     protected $primaryKey = 'IDPerusahaan';

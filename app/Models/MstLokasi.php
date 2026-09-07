@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\AuditLoggable;
 use Illuminate\Database\Eloquent\Model;
 
 class MstLokasi extends Model
 {
+    use AuditLoggable;
     protected $table='mstlokasi';
 
     protected $primaryKey='IDLokasi';

@@ -7,6 +7,8 @@ use App\Filament\Resources\UserPermissions\UserPermissionResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
+use Spatie\Permission\PermissionRegistrar;
+
 
 class EditUserPermission extends EditRecord
 {
@@ -14,23 +16,42 @@ class EditUserPermission extends EditRecord
         UserPermissionResource::class;
 
 
-    /**
-     * ==========================================================
-     * PERMISSION YANG AKAN DI-SYNC
-     * ==========================================================
-     *
-     * Field "permissions" bukan kolom di tabel users.
-     *
-     * Kita simpan sementara permission yang dipilih
-     * sebelum proses save dijalankan.
-     */
-
     protected array $selectedPermissions = [];
 
 
+    protected array $oldPermissions = [];
+
+
     /**
      * ==========================================================
-     * MUTATE FORM DATA BEFORE SAVE
+     * BEFORE FILL
+     * ==========================================================
+     */
+
+    protected function mutateFormDataBeforeFill(
+        array $data
+    ): array {
+
+        $this->oldPermissions =
+            $this->record
+                ->getDirectPermissions()
+                ->pluck('name')
+                ->sort()
+                ->values()
+                ->toArray();
+
+
+        $data['permissions'] =
+            $this->oldPermissions;
+
+
+        return $data;
+    }
+
+
+    /**
+     * ==========================================================
+     * BEFORE SAVE
      * ==========================================================
      */
 
@@ -39,16 +60,21 @@ class EditUserPermission extends EditRecord
     ): array {
 
         $this->selectedPermissions =
-            $data['permissions'] ?? [];
+            collect(
+                $data['permissions'] ?? []
+            )
+                ->map(
+                    fn ($permission) =>
+                        (string) $permission
+                )
+                ->sort()
+                ->values()
+                ->toArray();
 
 
-        /**
-         * "permissions" bukan kolom users.
-         *
-         * Jangan sampai Laravel mencoba menyimpannya
-         * ke tabel users.
-         */
-        unset($data['permissions']);
+        unset(
+            $data['permissions']
+        );
 
 
         return $data;
@@ -59,9 +85,6 @@ class EditUserPermission extends EditRecord
      * ==========================================================
      * AFTER SAVE
      * ==========================================================
-     *
-     * Setelah user berhasil disimpan, permission user
-     * langsung disinkronkan menggunakan Spatie Permission.
      */
 
     protected function afterSave(): void
@@ -70,16 +93,17 @@ class EditUserPermission extends EditRecord
          * ======================================================
          * SECURITY
          * ======================================================
-         *
-         * Super admin tidak boleh diubah permission-nya.
-         *
-         * Super admin mendapatkan akses penuh melalui
-         * Gate::before().
          */
-        if ($this->record->hasRole('super_admin')) {
+
+        if (
+            $this->record
+                ->hasRole('super_admin')
+        ) {
 
             Notification::make()
-                ->title('Tidak dapat mengubah Super Admin')
+                ->title(
+                    'Tidak dapat mengubah Super Admin'
+                )
                 ->body(
                     'Super Admin memiliki akses penuh secara otomatis.'
                 )
@@ -92,14 +116,8 @@ class EditUserPermission extends EditRecord
 
         /**
          * ======================================================
-         * SYNC PERMISSION
+         * SYNC
          * ======================================================
-         *
-         * syncPermissions() akan:
-         *
-         * - menambahkan permission yang dicentang
-         * - menghapus permission yang tidak dicentang
-         * - mempertahankan hanya permission yang dipilih
          */
 
         $this->record->syncPermissions(
@@ -109,13 +127,115 @@ class EditUserPermission extends EditRecord
 
         /**
          * ======================================================
-         * CLEAR SPATIE CACHE
+         * CLEAR CACHE
          * ======================================================
          */
 
         app(
-            \Spatie\Permission\PermissionRegistrar::class
+            PermissionRegistrar::class
         )->forgetCachedPermissions();
+
+
+        /**
+         * ======================================================
+         * OLD / NEW
+         * ======================================================
+         */
+
+        $oldPermissions =
+            collect(
+                $this->oldPermissions
+            );
+
+
+        $newPermissions =
+            collect(
+                $this->selectedPermissions
+            );
+
+
+        /**
+         * ======================================================
+         * ADDED
+         * ======================================================
+         */
+
+        $added =
+            $newPermissions
+                ->diff($oldPermissions)
+                ->values()
+                ->toArray();
+
+
+        /**
+         * ======================================================
+         * REMOVED
+         * ======================================================
+         */
+
+        $removed =
+            $oldPermissions
+                ->diff($newPermissions)
+                ->values()
+                ->toArray();
+
+
+        /**
+         * ======================================================
+         * ACTIVITY LOG
+         * ======================================================
+         */
+
+        if (
+            count($added) > 0 ||
+            count($removed) > 0
+        ) {
+
+            activity('permission')
+                ->causedBy(
+                    auth()->user()
+                )
+                ->performedOn(
+                    $this->record
+                )
+                ->withProperties([
+
+                    'user_id' =>
+                        $this->record->id,
+
+                    'user_name' =>
+                        $this->record->name,
+
+                    'user_email' =>
+                        $this->record->email,
+
+                    'old_permissions' =>
+                        $oldPermissions
+                            ->values()
+                            ->toArray(),
+
+                    'new_permissions' =>
+                        $newPermissions
+                            ->values()
+                            ->toArray(),
+
+                    'added' =>
+                        $added,
+
+                    'removed' =>
+                        $removed,
+
+                    'ip_address' =>
+                        request()->ip(),
+
+                    'user_agent' =>
+                        request()->userAgent(),
+
+                ])
+                ->log(
+                    'Permission user diperbarui'
+                );
+        }
 
 
         /**
@@ -125,7 +245,9 @@ class EditUserPermission extends EditRecord
          */
 
         Notification::make()
-            ->title('Hak akses berhasil diperbarui')
+            ->title(
+                'Hak akses berhasil diperbarui'
+            )
             ->body(
                 'Permission user telah berhasil disimpan.'
             )
@@ -136,7 +258,7 @@ class EditUserPermission extends EditRecord
 
     /**
      * ==========================================================
-     * PAGE TITLE
+     * TITLE
      * ==========================================================
      */
 
@@ -149,31 +271,7 @@ class EditUserPermission extends EditRecord
 
     /**
      * ==========================================================
-     * MUTATE FORM DATA BEFORE FILL
-     * ==========================================================
-     *
-     * Ketika halaman edit dibuka, ambil permission yang
-     * saat ini dimiliki user.
-     */
-
-    protected function mutateFormDataBeforeFill(
-        array $data
-    ): array {
-
-        $data['permissions'] =
-            $this->record
-                ->permissions
-                ->pluck('name')
-                ->toArray();
-
-
-        return $data;
-    }
-
-
-    /**
-     * ==========================================================
-     * HEADER ACTIONS
+     * HEADER
      * ==========================================================
      */
 

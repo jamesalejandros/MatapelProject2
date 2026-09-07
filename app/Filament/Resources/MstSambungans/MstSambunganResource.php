@@ -18,6 +18,9 @@ class MstSambunganResource extends BaseResource
 {
     protected static ?string $model = MstSambungan::class;
 
+    protected static string $permissionPrefix =
+        'mstsambungan';
+
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-link';
 
     protected static ?string $navigationLabel = 'Sambungan';

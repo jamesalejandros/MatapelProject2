@@ -1,12 +1,14 @@
 <?php
 
 namespace App\Models;
+use App\Models\Concerns\AuditLoggable;
 
 use Illuminate\Database\Eloquent\Model;
 
 
 class TrxMutasiAsset extends Model
 {
+    use AuditLoggable;
 
     protected $table='trxmutasiasset';
 

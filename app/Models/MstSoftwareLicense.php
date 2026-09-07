@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\AuditLoggable;
 use App\Models\MstSoftware;
 use App\Models\MstPerusahaan;
 use App\Models\TrxSoftwareAssignment;
@@ -10,6 +11,7 @@ use App\Models\TrxSoftwareAssignment;
 
 class MstSoftwareLicense extends Model
 {
+    use AuditLoggable;
 
     protected $table = 'mstsoftwarelicense';
 
