@@ -11,6 +11,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 
@@ -474,7 +475,77 @@ class TrxSoftwareAssignmentsTable
 
             ->filters([
 
-                //
+
+                /*
+                |--------------------------------------------------------------------------
+                | STATUS ASSET
+                |--------------------------------------------------------------------------
+                |
+                | Filter berdasarkan status asset dari tabel mstasset.
+                |
+                */
+
+                SelectFilter::make('StatusAsset')
+
+                    ->label('STATUS ASSET')
+
+                    ->options([
+                        'Available' => 'Available',
+                        'In Service' => 'In Service',
+                        'Retired' => 'Retired',
+                    ])
+
+                    ->query(
+                        function ($query, array $data) {
+
+                            if (
+                                blank(
+                                    $data['value'] ?? null
+                                )
+                            ) {
+                                return;
+                            }
+
+                            $query->whereHas(
+                                'asset',
+                                function ($query) use ($data) {
+
+                                    $query->where(
+                                        'StatusAsset',
+                                        $data['value']
+                                    );
+
+                                }
+                            );
+
+                        }
+                    )
+
+
+                    ->native(false),
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | STATUS SOFTWARE
+                |--------------------------------------------------------------------------
+                |
+                | Filter berdasarkan StatusAssignment.
+                |
+                */
+
+                SelectFilter::make('StatusAssignment')
+
+                    ->label('STATUS SOFTWARE')
+
+                    ->options([
+                        'Installed' => 'Installed',
+                        'Revoked' => 'Revoked',
+                        'Expired' => 'Expired',
+                    ])
+
+                    ->native(false),
+
 
             ])
 

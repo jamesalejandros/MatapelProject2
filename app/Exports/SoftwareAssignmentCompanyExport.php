@@ -1,172 +1,43 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Exports;
 
-use App\Exports\SoftwareAssignmentCompanyExport;
-use App\Models\MstPerusahaan;
 use Illuminate\Support\Facades\DB;
-use Livewire\Component;
-use Livewire\Attributes\On;
-use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\ShouldAutoSize;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+use Maatwebsite\Excel\Concerns\WithStyles;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class SoftwareAssignmentCompanyModal extends Component
+class SoftwareAssignmentCompanyExport implements
+    FromCollection,
+    WithHeadings,
+    WithMapping,
+    WithStyles,
+    ShouldAutoSize
 {
-    public bool $show = false;
-
-    public ?string $software = null;
-
-    public ?string $company = 'all';
-
-    public string $statusAssignment = 'Installed';
+    protected int $rowNumber = 1;
 
 
-    // =========================================================
-    // SORTING
-    // =========================================================
+    public function __construct(
+        protected ?string $software = null,
 
-    public string $sortColumn = 'NamaPemakai';
+        protected string $company = 'all',
 
-    public string $sortDirection = 'asc';
+        protected string $statusAssignment = 'Installed',
+
+        protected string $sortColumn = 'NamaPemakai',
+
+        protected string $sortDirection = 'asc',
+    ) {}
 
 
     // =========================================================
-    // OPEN MODAL
+    // QUERY EXPORT
     // =========================================================
 
-    #[On('open-software-assignment-modal')]
-    public function open(
-        $software,
-        $company = 'all'
-    ): void {
-
-        $this->software = $software;
-
-        $this->company =
-            $company !== null
-                ? (string) $company
-                : 'all';
-
-        /*
-         * Assignment pada chart memang hanya
-         * menampilkan Installed + belum direvoke.
-         *
-         * Nilai awal tetap Installed agar data
-         * awal modal sama dengan chart.
-         */
-        $this->statusAssignment = 'Installed';
-
-
-        // Reset sorting setiap modal dibuka
-
-        $this->sortColumn =
-            'NamaPemakai';
-
-        $this->sortDirection =
-            'asc';
-
-
-        $this->show = true;
-    }
-
-
-    // =========================================================
-    // CLOSE MODAL
-    // =========================================================
-
-    public function close(): void
-    {
-        $this->show = false;
-
-        $this->software = null;
-
-        $this->company = 'all';
-
-        $this->statusAssignment = 'Installed';
-
-        $this->sortColumn = 'NamaPemakai';
-
-        $this->sortDirection = 'asc';
-    }
-
-
-    // =========================================================
-    // SORTING
-    // =========================================================
-
-    public function sortBy(string $column): void
-    {
-        /*
-         * Kolom yang diperbolehkan untuk sorting.
-         *
-         * Dibuat whitelist supaya nama kolom SQL
-         * tidak dapat dimasukkan sembarangan.
-         */
-
-        $allowedColumns = [
-
-            'Software',
-            'Version',
-            'IDLicense',
-            'NIK',
-            'NamaPemakai',
-            'NoAssetIT',
-            'NamaAsset',
-            'ComputerName',
-            'Perusahaan',
-            'TanggalAssign',
-            'StatusAssignment',
-
-        ];
-
-
-        if (
-            !in_array(
-                $column,
-                $allowedColumns,
-                true
-            )
-        ) {
-
-            return;
-        }
-
-
-        /*
-         * Jika klik kolom yang sama,
-         * ASC <-> DESC.
-         */
-
-        if (
-            $this->sortColumn === $column
-        ) {
-
-            $this->sortDirection =
-                $this->sortDirection === 'asc'
-                    ? 'desc'
-                    : 'asc';
-
-            return;
-        }
-
-
-        /*
-         * Jika kolom berbeda,
-         * mulai dari ASC.
-         */
-
-        $this->sortColumn =
-            $column;
-
-        $this->sortDirection =
-            'asc';
-    }
-
-
-    // =========================================================
-    // DATA ASSIGNMENT
-    // =========================================================
-
-    public function getAssignmentsProperty()
+    public function collection()
     {
         $query = DB::table(
             'trxsoftwareassignment as tsa'
@@ -248,7 +119,7 @@ class SoftwareAssignmentCompanyModal extends Component
 
 
         // =====================================================
-        // SORTING
+        // VALIDASI SORT DIRECTION
         // =====================================================
 
         $sortDirection =
@@ -267,6 +138,10 @@ class SoftwareAssignmentCompanyModal extends Component
                 )
                 : 'asc';
 
+
+        // =====================================================
+        // SORTING
+        // =====================================================
 
         switch ($this->sortColumn) {
 
@@ -467,72 +342,127 @@ class SoftwareAssignmentCompanyModal extends Component
 
 
     // =========================================================
-    // TOTAL
+    // EXCEL HEADINGS
     // =========================================================
 
-    public function getTotalProperty()
+    public function headings(): array
     {
-        return $this->assignments->count();
+        return [
+
+            'No.',
+
+            'Software',
+
+            'Version',
+
+            'ID License',
+
+            'NIK',
+
+            'Nama Pemakai',
+
+            'No Asset IT',
+
+            'Nama Asset',
+
+            'Computer Name',
+
+            'Perusahaan',
+
+            'Tanggal Assign',
+
+            'Status Assignment',
+
+        ];
     }
 
 
     // =========================================================
-    // EXPORT EXCEL
+    // MAPPING
     // =========================================================
 
-    public function exportExcel()
+    public function map($assignment): array
     {
-        $filename =
-            'Software-Assignment';
+        return [
 
+            $this->rowNumber++,
 
-        if ($this->software) {
+            $assignment->NamaSoftware
+                ?? '-',
 
-            $filename .= '-'
-                . preg_replace(
-                    '/[^A-Za-z0-9\-]/',
-                    '-',
-                    $this->software
-                );
-        }
+            $assignment->Version
+                ?? '-',
 
+            $assignment->IDLicense
+                ?? '-',
 
-        $filename .= '-'
-            . now()->format('Y-m-d-His')
-            . '.xlsx';
+            $assignment->NIK
+                ?? '-',
 
+            $assignment->NamaPemakai
+                ?? 'Belum Ada Pemakai',
 
-        return Excel::download(
+            $assignment->NoAssetIT
+                ?? '-',
 
-            new SoftwareAssignmentCompanyExport(
+            $assignment->NamaAsset
+                ?? '-',
 
-                software: $this->software,
+            $assignment->ComputerName
+                ?? '-',
 
-                company: $this->company,
+            $assignment->NamaPerusahaan
+                ?? '-',
 
-                statusAssignment:
-                    $this->statusAssignment,
+            $assignment->TanggalAssign
+                ? \Carbon\Carbon::parse(
+                    $assignment->TanggalAssign
+                )->format('d/m/Y H:i')
+                : '-',
 
-                sortColumn:
-                    $this->sortColumn,
+            $assignment->StatusAssignment
+                ?? '-',
 
-                sortDirection:
-                    $this->sortDirection,
-            ),
-
-            $filename
-        );
+        ];
     }
 
 
     // =========================================================
-    // RENDER
+    // EXCEL STYLE
     // =========================================================
 
-    public function render()
+    public function styles(Worksheet $sheet)
     {
-        return view(
-            'livewire.software-assignment-company-modal'
-        );
+        return [
+
+            1 => [
+
+                'font' => [
+
+                    'bold' => true,
+
+                    'color' => [
+
+                        'rgb' => 'FFFFFF',
+
+                    ],
+
+                ],
+
+                'fill' => [
+
+                    'fillType' => 'solid',
+
+                    'startColor' => [
+
+                        'rgb' => '6D28D9',
+
+                    ],
+
+                ],
+
+            ],
+
+        ];
     }
 }

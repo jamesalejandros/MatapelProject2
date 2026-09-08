@@ -13,10 +13,17 @@ class SoftwareAssignmentCompanyChart extends ChartWidget
 
     public ?string $filter = 'all';
 
+
+    // =========================================================
+    // FILTER PERUSAHAAN
+    // =========================================================
+
     protected function getFilters(): ?array
     {
         return [
+
             'all' => 'Semua Perusahaan',
+
         ] + MstPerusahaan::query()
             ->orderBy('NamaPerusahaan')
             ->pluck(
@@ -26,66 +33,117 @@ class SoftwareAssignmentCompanyChart extends ChartWidget
             ->toArray();
     }
 
+
+    // =========================================================
+    // DATA CHART
+    // =========================================================
+
     protected function getData(): array
     {
         $query = DB::table('trxsoftwareassignment as tsa')
+
             ->join(
                 'mstsoftwarelicense as msl',
                 'tsa.IDLicense',
                 '=',
                 'msl.IDLicense'
             )
+
             ->join(
                 'mstsoftware as ms',
                 'msl.IDSoftware',
                 '=',
                 'ms.IDSoftware'
             )
+
             ->join(
                 'mstasset as ma',
                 'tsa.NoAssetIT',
                 '=',
                 'ma.NoAssetIT'
             )
-            ->whereNull('tsa.TanggalRevoke')
-            ->where('tsa.StatusAssignment', 'Installed');
+
+            ->whereNull(
+                'tsa.TanggalRevoke'
+            )
+
+            ->where(
+                'tsa.StatusAssignment',
+                'Installed'
+            );
+
+
+        // =====================================================
+        // FILTER PERUSAHAAN
+        // =====================================================
 
         if (
             $this->filter !== null &&
             $this->filter !== 'all'
         ) {
+
             $query->where(
                 'ma.IDPerusahaan',
                 $this->filter
             );
         }
 
+
+        // =====================================================
+        // GROUP SOFTWARE
+        // =====================================================
+
         $result = $query
+
             ->select(
                 'ms.IDSoftware',
                 'ms.NamaSoftware',
             )
-            ->selectRaw('COUNT(*) as total')
+
+            ->selectRaw(
+                'COUNT(*) as total'
+            )
+
             ->groupBy(
                 'ms.IDSoftware',
                 'ms.NamaSoftware'
             )
+
             ->orderByDesc('total')
+
             ->get();
 
+
         $labels = $result
+
             ->pluck('NamaSoftware')
+
             ->map(
                 fn ($software) =>
                     $software ?: 'Tidak Diketahui'
             )
+
             ->toArray();
+
 
         $data = $result
+
             ->pluck('total')
+
+            ->map(
+                fn ($total) =>
+                    (int) $total
+            )
+
             ->toArray();
 
+
+        // =====================================================
+        // WARNA CHART
+        // =====================================================
+
         $colors = [
+
             '#3B82F6',
             '#10B981',
             '#F59E0B',
@@ -98,41 +156,74 @@ class SoftwareAssignmentCompanyChart extends ChartWidget
             '#6366F1',
             '#06B6D4',
             '#A855F7',
+            '#0EA5E9',
+            '#22C55E',
+            '#EAB308',
+            '#F43F5E',
+            '#7C3AED',
+            '#DB2777',
+            '#0D9488',
+            '#EA580C',
+
         ];
 
-        while (count($colors) < count($labels)) {
+
+        while (
+            count($colors) < count($labels)
+        ) {
+
             $colors[] = sprintf(
                 '#%06X',
                 mt_rand(0, 0xFFFFFF)
             );
         }
 
+
         return [
+
             'datasets' => [
+
                 [
+
                     'label' => 'Jumlah Pemakai',
+
                     'data' => $data,
+
                     'backgroundColor' => array_slice(
                         $colors,
                         0,
                         count($labels)
                     ),
+
                     'borderColor' => '#FFFFFF',
+
                     'borderWidth' => 2,
+
+                    'hoverOffset' => 12,
+
                 ],
+
             ],
+
             'labels' => $labels,
+
         ];
     }
+
 
     protected function getType(): string
     {
         return 'pie';
     }
 
+
+    // =========================================================
+    // CHART OPTIONS
+    // =========================================================
+
     protected function getOptions(): RawJs
-{
-    return RawJs::make(<<<'JS'
+    {
+        return RawJs::make(<<<'JS'
 
 {
     responsive: true,
@@ -142,11 +233,13 @@ class SoftwareAssignmentCompanyChart extends ChartWidget
     plugins: {
 
         legend: {
+
             display: true,
 
             position: 'right',
 
             labels: {
+
                 usePointStyle: true,
 
                 padding: 15,
@@ -154,10 +247,13 @@ class SoftwareAssignmentCompanyChart extends ChartWidget
                 font: {
                     size: 12
                 }
+
             }
+
         },
 
         tooltip: {
+
             enabled: true,
 
             callbacks: {
@@ -196,8 +292,15 @@ class SoftwareAssignmentCompanyChart extends ChartWidget
                 }
 
             }
+
         }
+
     },
+
+
+    // =========================================================
+    // CLICK CHART
+    // =========================================================
 
     onClick(event, elements, chart)
     {
@@ -205,16 +308,20 @@ class SoftwareAssignmentCompanyChart extends ChartWidget
             return;
         }
 
+
         const index =
             elements[0].index;
 
+
         const software =
             chart.data.labels[index];
+
 
         console.log(
             'SOFTWARE CLICK:',
             software
         );
+
 
         Livewire.dispatch(
             'open-software-assignment-modal',
@@ -224,9 +331,9 @@ class SoftwareAssignmentCompanyChart extends ChartWidget
             }
         );
     }
+
 }
 
 JS);
-}
-
+    }
 }
