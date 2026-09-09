@@ -1,8 +1,11 @@
 <?php
-
 namespace Database\Seeders;
 
+use App\Models\User;
+
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -14,45 +17,58 @@ class RolePermissionSeeder extends Seeder
      * ROLE & PERMISSION SEEDER
      * ==========================================================
      *
-     * Role:
+     * ROLE:
      *
      * 1. super_admin
      * 2. user
+     * 3. staff_it
      *
-     * super_admin:
+     *
+     * SUPER ADMIN:
+     *
      * - Tidak membutuhkan permission satu per satu.
-     * - Akan dibypass melalui Gate::before().
-     * - Otomatis memiliki akses penuh.
+     * - Tidak memiliki permission melalui role_has_permissions.
+     * - Akses penuh diberikan melalui Gate::before().
      *
-     * user:
+     *
+     * USER:
+     *
      * - Tidak memiliki permission awal.
+     * - Tidak memiliki permission melalui role.
      * - Permission diberikan secara individual oleh super_admin.
-     * - Permission user disimpan melalui model_has_permissions.
+     * - Permission individual disimpan melalui
+     * model_has_permissions.
      *
-     * Permission:
+     *
+     * STAFF IT:
+     *
+     * - Memiliki role staff_it.
+     * - Memiliki permission Permintaan IT melalui role.
+     * - Permission disimpan melalui role_has_permissions.
+     *
+     *
+     * PERMISSION:
+     *
      * - Seluruh permission Resource tetap dibuat di tabel
-     *   permissions.
-     * - Tidak ada permission yang diberikan ke role user.
+     * permissions.
+     * - Tidak diberikan kepada super_admin.
+     * - Tidak diberikan kepada user.
+     * - Permission khusus staff_it diberikan melalui role.
      */
     public function run(): void
     {
-        /**
-         * ======================================================
-         * RESET PERMISSION CACHE
-         * ======================================================
-         */
+
         app(
             PermissionRegistrar::class
         )->forgetCachedPermissions();
-
 
         /**
          * ======================================================
          * GUARD
          * ======================================================
          */
-        $guard = 'web';
 
+        $guard = 'web';
 
         /**
          * ======================================================
@@ -62,18 +78,33 @@ class RolePermissionSeeder extends Seeder
 
         $superAdminRole = Role::firstOrCreate(
             [
-                'name' => 'super_admin',
-                'guard_name' => $guard,
+                'name' =>
+                    'super_admin',
+
+                'guard_name' =>
+                    $guard,
             ]
         );
 
         $userRole = Role::firstOrCreate(
             [
-                'name' => 'user',
-                'guard_name' => $guard,
+                'name' =>
+                    'user',
+
+                'guard_name' =>
+                    $guard,
             ]
         );
 
+        $staffItRole = Role::firstOrCreate(
+            [
+                'name' =>
+                    'staff_it',
+
+                'guard_name' =>
+                    $guard,
+            ]
+        );
 
         /**
          * ======================================================
@@ -85,9 +116,12 @@ class RolePermissionSeeder extends Seeder
          *
          * Permission TIDAK diberikan kepada role user.
          *
-         * Permission user nantinya diberikan oleh super_admin
-         * secara individual melalui model_has_permissions.
+         * Permission TIDAK diberikan kepada role super_admin.
+         *
+         * Permission user nantinya diberikan secara individual
+         * melalui model_has_permissions.
          */
+
         $permissions = [
 
             /*
@@ -101,7 +135,6 @@ class RolePermissionSeeder extends Seeder
             'mstasset.update',
             'mstasset.delete',
 
-
             /*
             |--------------------------------------------------------------------------
             | MST DEPARTEMEN
@@ -112,7 +145,6 @@ class RolePermissionSeeder extends Seeder
             'mstdepartemen.create',
             'mstdepartemen.update',
             'mstdepartemen.delete',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -125,7 +157,6 @@ class RolePermissionSeeder extends Seeder
             'mstkaryawan.update',
             'mstkaryawan.delete',
 
-
             /*
             |--------------------------------------------------------------------------
             | MST LOKASI
@@ -136,7 +167,6 @@ class RolePermissionSeeder extends Seeder
             'mstlokasi.create',
             'mstlokasi.update',
             'mstlokasi.delete',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -149,7 +179,6 @@ class RolePermissionSeeder extends Seeder
             'mstperusahaan.update',
             'mstperusahaan.delete',
 
-
             /*
             |--------------------------------------------------------------------------
             | MST RUANGAN
@@ -160,7 +189,6 @@ class RolePermissionSeeder extends Seeder
             'mstruangan.create',
             'mstruangan.update',
             'mstruangan.delete',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -173,7 +201,6 @@ class RolePermissionSeeder extends Seeder
             'mstsambungan.update',
             'mstsambungan.delete',
 
-
             /*
             |--------------------------------------------------------------------------
             | MST SOFTWARE
@@ -184,7 +211,6 @@ class RolePermissionSeeder extends Seeder
             'mstsoftware.create',
             'mstsoftware.update',
             'mstsoftware.delete',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -197,7 +223,6 @@ class RolePermissionSeeder extends Seeder
             'mstsoftwarelicense.update',
             'mstsoftwarelicense.delete',
 
-
             /*
             |--------------------------------------------------------------------------
             | MST VENDOR
@@ -208,7 +233,6 @@ class RolePermissionSeeder extends Seeder
             'mstvendor.create',
             'mstvendor.update',
             'mstvendor.delete',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -221,7 +245,6 @@ class RolePermissionSeeder extends Seeder
             'trxcctvassignment.update',
             'trxcctvassignment.delete',
 
-
             /*
             |--------------------------------------------------------------------------
             | TRX MUTASI ASSET
@@ -232,7 +255,6 @@ class RolePermissionSeeder extends Seeder
             'trxmutasiasset.create',
             'trxmutasiasset.update',
             'trxmutasiasset.delete',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -245,7 +267,6 @@ class RolePermissionSeeder extends Seeder
             'trxpabxassignment.update',
             'trxpabxassignment.delete',
 
-
             /*
             |--------------------------------------------------------------------------
             | TRX RETIRE ASSET
@@ -257,7 +278,6 @@ class RolePermissionSeeder extends Seeder
             'trxretireasset.update',
             'trxretireasset.delete',
 
-
             /*
             |--------------------------------------------------------------------------
             | TRX SERVICE ASSET
@@ -268,7 +288,6 @@ class RolePermissionSeeder extends Seeder
             'trxserviceasset.create',
             'trxserviceasset.update',
             'trxserviceasset.delete',
-
 
             /*
             |--------------------------------------------------------------------------
@@ -283,26 +302,56 @@ class RolePermissionSeeder extends Seeder
 
         ];
 
+        /**
+         * ======================================================
+         * IT REQUEST PERMISSIONS
+         * ======================================================
+         *
+         * Permission khusus modul Permintaan IT.
+         *
+         * Permission ini hanya akan diberikan kepada
+         * role staff_it.
+         */
+
+        $itRequestPermissions = [
+
+            'itrequest.view',
+            'itrequest.create',
+            'itrequest.update',
+            'itrequest.delete',
+
+        ];
 
         /**
          * ======================================================
-         * CREATE PERMISSIONS
+         * CREATE ALL PERMISSIONS
          * ======================================================
          *
          * Permission hanya dibuat di tabel permissions.
          *
-         * Tidak diberikan kepada role user.
+         * Tidak diberikan kepada super_admin.
+         *
+         * Tidak diberikan kepada user.
          */
-        foreach ($permissions as $permissionName) {
+
+        foreach (
+            [
+                ...$permissions,
+                ...$itRequestPermissions,
+            ]
+            as $permissionName
+        ) {
 
             Permission::firstOrCreate(
                 [
-                    'name' => $permissionName,
-                    'guard_name' => $guard,
+                    'name' =>
+                        $permissionName,
+
+                    'guard_name' =>
+                        $guard,
                 ]
             );
         }
-
 
         /**
          * ======================================================
@@ -311,17 +360,13 @@ class RolePermissionSeeder extends Seeder
          *
          * User TIDAK memiliki permission melalui role.
          *
-         * Dengan demikian:
-         *
-         * role_has_permissions
-         *
-         * untuk role "user" tetap kosong.
+         * role_has_permissions untuk user harus kosong.
          *
          * Permission user nantinya diberikan secara individual
-         * melalui model_has_permissions oleh super_admin.
+         * melalui model_has_permissions.
          */
-        $userRole->syncPermissions([]);
 
+        $userRole->syncPermissions([]);
 
         /**
          * ======================================================
@@ -330,34 +375,169 @@ class RolePermissionSeeder extends Seeder
          *
          * super_admin sengaja tidak diberi daftar permission.
          *
-         * Akses super_admin akan dilakukan melalui:
+         * Akses super_admin dilakukan melalui Gate::before().
          *
-         * Gate::before()
-         *
-         * sehingga:
-         *
-         * $user->can(...)
-         *
-         * akan selalu TRUE untuk super_admin.
+         * Dengan demikian role_has_permissions untuk
+         * super_admin tetap kosong.
          */
-        $superAdminRole->syncPermissions([]);
 
+        $superAdminRole->syncPermissions([]);
 
         /**
          * ======================================================
-         * CLEAR CACHE LAGI
+         * STAFF IT
+         * ======================================================
+         *
+         * Staff IT mendapatkan permission Permintaan IT
+         * melalui role.
+         *
+         * Permission masuk ke:
+         *
+         * role_has_permissions
+         *
+         * Bukan:
+         *
+         * model_has_permissions
+         */
+
+        $staffItRole->syncPermissions(
+            $itRequestPermissions
+        );
+
+        /**
+         * ======================================================
+         * CREATE / UPDATE SUPER ADMIN
+         * ======================================================
+         *
+         * Credential dapat diatur melalui .env:
+         *
+         * SEED_SUPER_ADMIN_NAME
+         * SEED_SUPER_ADMIN_EMAIL
+         * SEED_SUPER_ADMIN_PASSWORD
+         */
+
+        $superAdmin = User::updateOrCreate(
+
+            [
+                'email' =>
+                    env(
+                        'SEED_SUPER_ADMIN_EMAIL',
+                        'superadmin@example.com'
+                    ),
+            ],
+
+            [
+                'name' =>
+                    env(
+                        'SEED_SUPER_ADMIN_NAME',
+                        'Super Admin'
+                    ),
+
+                'password' =>
+                    Hash::make(
+                        env(
+                            'SEED_SUPER_ADMIN_PASSWORD',
+                            '12345678'
+                        )
+                    ),
+
+                'email_verified_at' =>
+                    now(),
+            ]
+
+        );
+
+        /**
+         * ======================================================
+         * ASSIGN SUPER ADMIN ROLE
          * ======================================================
          */
+
+        $superAdmin->syncRoles(
+            [$superAdminRole]
+        );
+
+        /**
+         * ======================================================
+         * CREATE / UPDATE USER
+         * ======================================================
+         *
+         * User tidak mendapatkan permission awal.
+         */
+
+        $user = User::updateOrCreate(
+
+            [
+                'email' =>
+                    env(
+                        'SEED_USER_EMAIL',
+                        'user@example.com'
+                    ),
+            ],
+
+            [
+                'name' =>
+                    env(
+                        'SEED_USER_NAME',
+                        'User'
+                    ),
+
+                'password' =>
+                    Hash::make(
+                        env(
+                            'SEED_USER_PASSWORD',
+                            '12345678'
+                        )
+                    ),
+
+                'email_verified_at' =>
+                    now(),
+            ]
+
+        );
+
+        /**
+         * ======================================================
+         * ASSIGN USER ROLE
+         * ======================================================
+         */
+
+        $user->syncRoles(
+            [$userRole]
+        );
+
+        /**
+         * ======================================================
+         * CLEAR DIRECT PERMISSIONS
+         * ======================================================
+         *
+         * User dan super_admin tidak boleh mendapatkan
+         * permission langsung dari seeder ini.
+         *
+         * Permission individual user nantinya diberikan
+         * melalui User Management.
+         */
+
+        $superAdmin->syncPermissions([]);
+
+        $user->syncPermissions([]);
+
+        /**
+         * ======================================================
+         * CLEAR CACHE
+         * ======================================================
+         */
+
         app(
             PermissionRegistrar::class
         )->forgetCachedPermissions();
-
 
         /**
          * ======================================================
          * OUTPUT
          * ======================================================
          */
+
         $this->command?->info(
             'Role dan permission berhasil dibuat.'
         );
@@ -371,11 +551,30 @@ class RolePermissionSeeder extends Seeder
         );
 
         $this->command?->info(
-            'User tidak memiliki permission awal.'
+            'Role: staff_it'
         );
 
         $this->command?->info(
-            'Permission user diberikan secara individual oleh super_admin.'
+            'super_admin tidak memiliki permission melalui role.'
+        );
+
+        $this->command?->info(
+            'user tidak memiliki permission awal.'
+        );
+
+        $this->command?->info(
+            'staff_it memiliki permission Permintaan IT melalui role.'
+        );
+
+        $this->command?->info(
+            'Super Admin berhasil dibuat/diperbarui: ' .
+            $superAdmin->email
+        );
+
+        $this->command?->info(
+            'User berhasil dibuat/diperbarui: ' .
+            $user->email
         );
     }
+
 }

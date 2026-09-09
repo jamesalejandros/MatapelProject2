@@ -4,7 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\AuditLoggable;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class MstKaryawan extends Model
 {
@@ -90,5 +90,13 @@ public function pabxAssignment()
     );
 }
 
+public function user(): HasOne
+{
+    return $this->hasOne(
+        User::class,
+        'NIK',
+        'NIK'
+    );
+}
 
 }

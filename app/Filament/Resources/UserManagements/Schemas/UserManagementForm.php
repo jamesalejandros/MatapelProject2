@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\UserManagements\Schemas;
 
+use App\Models\MstKaryawan;
+
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -35,11 +37,99 @@ class UserManagementForm
                 )
                 ->schema([
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | NIK KARYAWAN
+                    |--------------------------------------------------------------------------
+                    |
+                    | NIK dipilih dari master karyawan.
+                    |
+                    | Format pilihan:
+                    |
+                    | 12345678 - Budi Santoso
+                    |
+                    |--------------------------------------------------------------------------
+                    */
+
+                    Select::make('NIK')
+                        ->label('Karyawan')
+                        ->options(
+                            fn (): array =>
+                                MstKaryawan::query()
+                                    ->orderBy('Nama')
+                                    ->get()
+                                    ->mapWithKeys(
+                                        fn (MstKaryawan $karyawan): array => [
+                                            $karyawan->NIK =>
+                                                $karyawan->NIK
+                                                . ' - '
+                                                . $karyawan->Nama,
+                                        ]
+                                    )
+                                    ->toArray()
+                        )
+                        ->searchable()
+                        ->preload()
+                        ->required()
+                        ->unique(
+                            table: 'users',
+                            column: 'NIK',
+                            ignoreRecord: true
+                        )
+                        ->live()
+                        ->afterStateUpdated(
+                            function (
+                                $state,
+                                callable $set
+                            ): void {
+
+                                if (blank($state)) {
+                                    return;
+                                }
+
+                                $karyawan =
+                                    MstKaryawan::query()
+                                        ->where(
+                                            'NIK',
+                                            $state
+                                        )
+                                        ->first();
+
+                                if ($karyawan) {
+                                    $set(
+                                        'name',
+                                        $karyawan->Nama
+                                    );
+                                }
+                            }
+                        )
+                        ->helperText(
+                            'Pilih karyawan berdasarkan NIK dan nama. Data diambil dari Master Karyawan.'
+                        )
+                        ->columnSpanFull(),
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | NAMA
+                    |--------------------------------------------------------------------------
+                    */
+
                     TextInput::make('name')
                         ->label('Nama')
                         ->required()
                         ->maxLength(255)
-                        ->autofocus(),
+                        ->autofocus()
+                        ->helperText(
+                            'Nama otomatis mengikuti Master Karyawan setelah memilih karyawan.'
+                        ),
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | EMAIL
+                    |--------------------------------------------------------------------------
+                    */
 
                     TextInput::make('email')
                         ->label('Email')
@@ -51,6 +141,13 @@ class UserManagementForm
                             ignoreRecord: true
                         )
                         ->maxLength(255),
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PASSWORD
+                    |--------------------------------------------------------------------------
+                    */
 
                     TextInput::make('password')
                         ->label('Password')
@@ -82,6 +179,38 @@ class UserManagementForm
 
                 ])
                 ->columns(2)
+                ->columnSpanFull(),
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | KEPALA BAGIAN
+            |--------------------------------------------------------------------------
+            */
+
+            Section::make('Kepala Bagian')
+                ->description(
+                    'Tentukan Kepala Bagian yang bertanggung jawab atas user ini.'
+                )
+                ->schema([
+
+                    Select::make('kepala_bagian_id')
+                        ->label('Kepala Bagian')
+                        ->relationship(
+                            'kepalaBagian',
+                            'name'
+                        )
+                        ->searchable([
+                            'name',
+                            'email',
+                        ])
+                        ->preload()
+                        ->required()
+                        ->helperText(
+                            'User harus memiliki Kepala Bagian.'
+                        ),
+
+                ])
                 ->columnSpanFull(),
 
 
@@ -191,29 +320,16 @@ class UserManagementForm
     |--------------------------------------------------------------------------
     | PERMISSION LIST
     |--------------------------------------------------------------------------
-    |
-    | Permission tetap berasal dari tabel "permissions".
-    |
-    | Prefix digunakan hanya untuk membagi tampilan:
-    |
-    | mst*  = Master Data
-    | trx*  = Transaksi
-    |
-    | Urutan action:
-    |
-    | Create
-    | Read
-    | Update
-    | Delete
-    |
-    |--------------------------------------------------------------------------
     */
 
     protected static function permissionList(
         string $prefix
     ): CheckboxList {
 
-        return CheckboxList::make('permissions')
+        return CheckboxList::make(
+            'permissions_' . $prefix
+        )
+
             ->label(false)
 
             ->options(
@@ -248,18 +364,18 @@ class UserManagementForm
                                     $parts[1]
                                     ?? '';
 
-                                /*
-                                |--------------------------------------------------------------------------
-                                | URUTAN CRUD
-                                |--------------------------------------------------------------------------
-                                */
-
                                 $actionOrder = match ($action) {
+
                                     'create' => 1,
-                                    'view'   => 2,
+
+                                    'view' => 2,
+
                                     'update' => 3,
+
                                     'delete' => 4,
-                                    default  => 99,
+
+                                    default => 99,
+
                                 };
 
                                 return [
@@ -287,6 +403,7 @@ class UserManagementForm
                                     $parts[1]
                                     ?? null;
 
+
                                 /*
                                 |--------------------------------------------------------------------------
                                 | NAMA MODUL
@@ -295,20 +412,29 @@ class UserManagementForm
 
                                 $resourceLabel =
                                     str($resource)
+
                                         ->replaceFirst(
                                             'mst',
                                             ''
                                         )
+
                                         ->replaceFirst(
                                             'trx',
                                             ''
                                         )
+
                                         ->replace(
-                                            ['_', '-'],
+                                            [
+                                                '_',
+                                                '-',
+                                            ],
                                             ' '
                                         )
+
                                         ->title()
+
                                         ->toString();
+
 
                                 /*
                                 |--------------------------------------------------------------------------
@@ -332,18 +458,27 @@ class UserManagementForm
                                             'Delete',
 
                                         default =>
-                                            str($action ?? '')
+                                            str(
+                                                $action ?? ''
+                                            )
                                                 ->replace(
-                                                    ['_', '-'],
+                                                    [
+                                                        '_',
+                                                        '-',
+                                                    ],
                                                     ' '
                                                 )
                                                 ->title()
                                                 ->toString(),
+
                                     };
 
+
                                 return [
+
                                     $permission->name =>
                                         "{$resourceLabel} — {$actionLabel}",
+
                                 ];
                             }
                         )

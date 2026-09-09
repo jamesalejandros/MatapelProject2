@@ -7,6 +7,7 @@ use App\Filament\Resources\UserManagements\UserManagementResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
 
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 
@@ -22,20 +23,21 @@ class CreateUserManagement extends CreateRecord
     protected array $selectedPermissions = [];
 
 
-    /**
-     * ==========================================================
-     * BEFORE CREATE
-     * ==========================================================
-     *
-     * Role dan permission tidak disimpan langsung sebagai
-     * kolom users.
-     *
-     * Kita keluarkan dari data user terlebih dahulu.
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | BEFORE CREATE
+    |--------------------------------------------------------------------------
+    */
 
     protected function mutateFormDataBeforeCreate(
         array $data
     ): array {
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE
+        |--------------------------------------------------------------------------
+        */
 
         $this->selectedRole = [
 
@@ -47,24 +49,53 @@ class CreateUserManagement extends CreateRecord
         ];
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | PERMISSION
+        |--------------------------------------------------------------------------
+        */
+
+        $permissions = collect([
+
+            ...(
+                $data['permissions_mst']
+                ?? []
+            ),
+
+            ...(
+                $data['permissions_trx']
+                ?? []
+            ),
+
+        ]);
+
+
         $this->selectedPermissions =
-            collect(
-                $data['permissions'] ?? []
-            )
+            $this->normalizePermissions(
+                $permissions->toArray()
+            );
 
-                ->map(
-                    fn ($permission) =>
-                        (string) $permission
-                )
 
-                ->values()
-
-                ->toArray();
-
+        /*
+        |--------------------------------------------------------------------------
+        | HAPUS FIELD NON-USERS
+        |--------------------------------------------------------------------------
+        |
+        | NIK dan kepala_bagian_id TIDAK dihapus.
+        |
+        | Keduanya adalah kolom valid pada tabel users.
+        |
+        |--------------------------------------------------------------------------
+        */
 
         unset(
+
             $data['role'],
-            $data['permissions']
+
+            $data['permissions_mst'],
+
+            $data['permissions_trx']
+
         );
 
 
@@ -72,22 +103,96 @@ class CreateUserManagement extends CreateRecord
     }
 
 
-    /**
-     * ==========================================================
-     * AFTER CREATE
-     * ==========================================================
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | NORMALIZE PERMISSIONS
+    |--------------------------------------------------------------------------
+    */
+
+    protected function normalizePermissions(
+        array $permissions
+    ): array {
+
+        return collect($permissions)
+
+            ->map(
+                function ($permission) {
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PERMISSION MODEL
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        $permission
+                            instanceof Permission
+                    ) {
+
+                        return $permission->name;
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | DATABASE ID
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        is_numeric($permission)
+                    ) {
+
+                        return Permission::query()
+
+                            ->where(
+                                'guard_name',
+                                'web'
+                            )
+
+                            ->whereKey(
+                                $permission
+                            )
+
+                            ->value(
+                                'name'
+                            );
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PERMISSION NAME
+                    |--------------------------------------------------------------------------
+                    */
+
+                    return (string) $permission;
+                }
+            )
+
+            ->filter()
+
+            ->unique()
+
+            ->values()
+
+            ->toArray();
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | AFTER CREATE
+    |--------------------------------------------------------------------------
+    */
 
     protected function afterCreate(): void
     {
-        /**
-         * ======================================================
-         * SECURITY
-         * ======================================================
-         *
-         * Jangan pernah memberikan super_admin melalui
-         * User Management.
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE
+        |--------------------------------------------------------------------------
+        */
 
         $role =
             collect(
@@ -96,52 +201,63 @@ class CreateUserManagement extends CreateRecord
                 ->first();
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | SECURITY
+        |--------------------------------------------------------------------------
+        */
+
         if (
             $role === 'super_admin'
+            || blank($role)
         ) {
 
             $role = 'user';
         }
 
 
-        /**
-         * ======================================================
-         * ROLE
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | ASSIGN ROLE
+        |--------------------------------------------------------------------------
+        */
 
         $this->record->syncRoles([
+
             $role,
+
         ]);
 
 
-        /**
-         * ======================================================
-         * PERMISSION
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | ASSIGN DIRECT PERMISSIONS
+        |--------------------------------------------------------------------------
+        */
 
         $this->record->syncPermissions(
+
             $this->selectedPermissions
+
         );
 
 
-        /**
-         * ======================================================
-         * CLEAR CACHE
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | CLEAR SPATIE CACHE
+        |--------------------------------------------------------------------------
+        */
 
         app(
             PermissionRegistrar::class
         )->forgetCachedPermissions();
 
 
-        /**
-         * ======================================================
-         * ACTIVITY LOG
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | ACTIVITY LOG
+        |--------------------------------------------------------------------------
+        */
 
         activity('user_management')
 
@@ -161,8 +277,19 @@ class CreateUserManagement extends CreateRecord
                 'user_name' =>
                     $this->record->name,
 
+                'user_nik' =>
+                    $this->record->NIK,
+
                 'user_email' =>
                     $this->record->email,
+
+                'kepala_bagian_id' =>
+                    $this->record->kepala_bagian_id,
+
+                'kepala_bagian_name' =>
+                    $this->record
+                        ->kepalaBagian
+                        ?->name,
 
                 'role' =>
                     $role,
@@ -183,11 +310,11 @@ class CreateUserManagement extends CreateRecord
             );
 
 
-        /**
-         * ======================================================
-         * NOTIFICATION
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | NOTIFICATION
+        |--------------------------------------------------------------------------
+        */
 
         Notification::make()
 
@@ -196,7 +323,7 @@ class CreateUserManagement extends CreateRecord
             )
 
             ->body(
-                'Akun user, role, dan permission berhasil disimpan.'
+                'Akun user, NIK, Kepala Bagian, role, dan permission berhasil disimpan.'
             )
 
             ->success()
@@ -205,11 +332,11 @@ class CreateUserManagement extends CreateRecord
     }
 
 
-    /**
-     * ==========================================================
-     * TITLE
-     * ==========================================================
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | TITLE
+    |--------------------------------------------------------------------------
+    */
 
     public function getTitle(): string
     {

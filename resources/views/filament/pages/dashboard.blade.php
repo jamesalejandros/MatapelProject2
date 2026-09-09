@@ -704,81 +704,87 @@
 
 </button>
 
+{{-- ================================================= --}}
+{{-- IT REQUEST                                       --}}
+{{-- ================================================= --}}
+
+<button
+    type="button"
+    wire:click="openWidget('it_request')"
+    style="
+        width:100%;
+        padding:13px;
+        border:1px solid {{ $activeWidget === 'it_request' ? '#f59e0b' : '#e5e7eb' }};
+        border-radius:10px;
+        background:{{ $activeWidget === 'it_request' ? 'rgba(245,158,11,.08)' : 'white' }};
+        cursor:pointer;
+        text-align:left;
+        transition:all .15s ease;
+    "
+>
+    <div
+        style="
+            display:flex;
+            align-items:center;
+            gap:12px;
+        "
+    >
+
+        <div
+            style="
+                width:40px;
+                height:40px;
+                flex-shrink:0;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                border-radius:9px;
+                background:#dbeafe;
+                color:#2563eb;
+            "
+        >
+            <x-heroicon-o-chart-bar-square class="h-5 w-5" />
+        </div>
+
+        <div style="min-width:0;">
+
+            <div
+                style="
+                    font-size:14px;
+                    font-weight:600;
+                    color:#111827;
+                "
+                class="dark:text-white"
+            >
+                Permintaan IT
+            </div>
+
+            <div
+                style="
+                    margin-top:3px;
+                    font-size:12px;
+                    color:#6b7280;
+                "
+            >
+                Permintaan berdasarkan jenis dan periode
+            </div>
+
+        </div>
+
+    </div>
+
+</button>
 
 
-                    {{-- WARRANTY --}}
 
-                    <button
-                        type="button"
-                        wire:click="openWidget('warranty')"
-                        style="
-                            width:100%;
-                            padding:13px;
-                            border:1px solid {{ $activeWidget === 'warranty' ? '#f59e0b' : '#e5e7eb' }};
-                            border-radius:10px;
-                            background:{{ $activeWidget === 'warranty' ? 'rgba(245,158,11,.08)' : 'white' }};
-                            cursor:pointer;
-                            text-align:left;
-                            transition:all .15s ease;
-                        "
-                    >
 
-                        <div
-                            style="
-                                display:flex;
-                                align-items:center;
-                                gap:12px;
-                            "
-                        >
-
-                            <div
-                                style="
-                                    width:40px;
-                                    height:40px;
-                                    flex-shrink:0;
-                                    display:flex;
-                                    align-items:center;
-                                    justify-content:center;
-                                    border-radius:9px;
-                                    background:#fef9c3;
-                                    color:#ca8a04;
-                                "
-                            >
-                                <x-heroicon-o-shield-check class="h-5 w-5" />
-                            </div>
-
-                            <div style="min-width:0;">
-
-                                <div
-                                    style="
-                                        font-size:14px;
-                                        font-weight:600;
-                                        color:#111827;
-                                    "
-                                    class="dark:text-white"
-                                >
-                                    Warranty
-                                </div>
-
-                                <div
-                                    style="
-                                        margin-top:3px;
-                                        font-size:12px;
-                                        color:#6b7280;
-                                    "
-                                >
-                                    Asset yang mendekati expired
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </button>
+                    
 
                 </div>
 
             </div>
+
+            
 
 
             {{-- ================================================= --}}
@@ -948,6 +954,91 @@
 
     </div>
 
+        {{-- ========================================================= --}}
+    {{-- WARRANTY EXPIRING ASSETS                                 --}}
+    {{-- ========================================================= --}}
+
+    <div
+        style="
+            width:100%;
+            margin-top:24px;
+            background:white;
+            border:1px solid #e5e7eb;
+            border-radius:14px;
+            padding:20px;
+            box-shadow:0 1px 3px rgba(0,0,0,.05);
+            overflow:hidden;
+        "
+        class="dark:bg-gray-900 dark:border-gray-700"
+    >
+
+        {{-- HEADER --}}
+
+        <div
+            style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+                margin-bottom:18px;
+            "
+        >
+
+            <div
+                style="
+                    width:38px;
+                    height:38px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    flex-shrink:0;
+                    border-radius:10px;
+                    background:#fef9c3;
+                    color:#ca8a04;
+                "
+            >
+                <x-heroicon-o-shield-check class="h-5 w-5" />
+            </div>
+
+            <div>
+
+                <h2
+                    style="
+                        margin:0;
+                        font-size:17px;
+                        font-weight:700;
+                        color:#111827;
+                    "
+                    class="dark:text-white"
+                >
+                    Warranty Akan Habis
+                </h2>
+
+                <p
+                    style="
+                        margin:3px 0 0 0;
+                        font-size:13px;
+                        color:#6b7280;
+                    "
+                >
+                    Asset yang masa warranty-nya akan berakhir dalam 1 bulan.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        {{-- WARRANTY TABLE --}}
+
+        @livewire(
+            \App\Filament\Widgets\WarrantyExpiringAssets::class,
+            [],
+            key('dashboard-warranty-expiring-assets')
+        )
+
+    </div>
+
+
 
     {{-- ========================================================= --}}
     {{-- GLOBAL MODAL HOST                                         --}}
@@ -1030,6 +1121,15 @@
     [],
     key('dashboard-modal-pabx')
 )
+
+{{-- IT REQUEST MODAL --}}
+
+@livewire(
+    'it-request-detail-modal',
+    [],
+    key('dashboard-modal-it-request')
+)
+
 
 
 

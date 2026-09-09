@@ -42,6 +42,12 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+        'kepala_bagian' => [
+    'driver' => 'session',
+    'provider' => 'kepala_bagian',
+],
+
     ],
 
     /*
@@ -66,6 +72,12 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
+
+        'kepala_bagian' => [
+    'driver' => 'eloquent',
+    'model' => App\Models\MstKepalaBagian::class,
+],
+
 
         // 'users' => [
         //     'driver' => 'database',

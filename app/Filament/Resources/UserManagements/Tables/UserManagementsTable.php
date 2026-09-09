@@ -21,120 +21,119 @@ class UserManagementsTable
 
         return $table
 
-            /**
-             * ==================================================
-             * QUERY
-             * ==================================================
-             */
+            /*
+            |--------------------------------------------------------------------------
+            | QUERY
+            |--------------------------------------------------------------------------
+            */
 
             ->modifyQueryUsing(
                 fn ($query) =>
                     $query->with([
                         'roles',
                         'permissions',
+                        'kepalaBagian',
+                        'karyawan',
                     ])
             )
 
 
-            /**
-             * ==================================================
-             * COLUMNS
-             * ==================================================
-             */
+            /*
+            |--------------------------------------------------------------------------
+            | COLUMNS
+            |--------------------------------------------------------------------------
+            */
 
             ->columns([
 
-
                 TextColumn::make('name')
-
                     ->label('NAMA USER')
-
                     ->searchable()
+                    ->sortable(),
 
+
+                TextColumn::make('NIK')
+                    ->label('NIK')
+                    ->searchable()
                     ->sortable(),
 
 
                 TextColumn::make('email')
-
                     ->label('EMAIL')
-
                     ->searchable()
-
                     ->sortable(),
 
 
+                TextColumn::make('karyawan.Nama')
+                    ->label('NAMA KARYAWAN')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-'),
+
+
+                TextColumn::make('kepalaBagian.name')
+                    ->label('KEPALA BAGIAN')
+                    ->searchable()
+                    ->sortable()
+                    ->placeholder('-'),
+
+
+                TextColumn::make('kepalaBagian.email')
+                    ->label('EMAIL KEPALA BAGIAN')
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->placeholder('-'),
+
+
                 TextColumn::make('roles.name')
-
                     ->label('ROLE')
-
                     ->badge()
-
                     ->color(
                         fn (string $state): string =>
                             $state === 'super_admin'
                                 ? 'danger'
                                 : 'primary'
                     )
-
                     ->sortable(),
 
 
                 TextColumn::make(
                     'permissions_count'
                 )
-
                     ->label('PERMISSION')
-
                     ->counts('permissions')
-
                     ->badge()
-
                     ->color('success'),
 
 
                 TextColumn::make('created_at')
-
                     ->label('DIBUAT')
-
                     ->dateTime(
                         'd M Y H:i'
                     )
-
                     ->sortable(),
 
 
                 TextColumn::make('updated_at')
-
                     ->label('TERAKHIR DIUBAH')
-
                     ->dateTime(
                         'd M Y H:i'
                     )
-
                     ->sortable(),
 
             ])
 
 
-            /**
-             * ==================================================
-             * RECORD ACTIONS
-             * ==================================================
-             */
+            /*
+            |--------------------------------------------------------------------------
+            | RECORD ACTIONS
+            |--------------------------------------------------------------------------
+            */
 
             ->recordActions([
 
-
-                /**
-                 * ==================================================
-                 * EDIT
-                 * ==================================================
-                 */
-
                 EditAction::make()
-
                     ->label('Edit')
-
                     ->visible(
                         fn ($record): bool =>
                             UserManagementResource::canEdit(
@@ -143,14 +142,7 @@ class UserManagementsTable
                     ),
 
 
-                /**
-                 * ==================================================
-                 * DELETE
-                 * ==================================================
-                 */
-
                 DeleteAction::make()
-
                     ->visible(
                         fn ($record): bool =>
                             UserManagementResource::canDelete(
@@ -161,18 +153,17 @@ class UserManagementsTable
             ])
 
 
-            /**
-             * ==================================================
-             * TOOLBAR
-             * ==================================================
-             */
+            /*
+            |--------------------------------------------------------------------------
+            | TOOLBAR
+            |--------------------------------------------------------------------------
+            */
 
             ->toolbarActions([
 
                 BulkActionGroup::make([
 
                     DeleteBulkAction::make()
-
                         ->visible(
                             fn (): bool =>
                                 auth()->check()
@@ -186,18 +177,19 @@ class UserManagementsTable
             ])
 
 
-            /**
-             * ==================================================
-             * EMPTY STATE
-             * ==================================================
-             */
+            /*
+            |--------------------------------------------------------------------------
+            | EMPTY STATE
+            |--------------------------------------------------------------------------
+            */
 
             ->emptyStateHeading(
                 'Belum ada user'
             )
 
             ->emptyStateDescription(
-                'Belum ada akun user yang tersedia.');
+                'Belum ada akun user yang tersedia.'
+            );
 
     }
 }

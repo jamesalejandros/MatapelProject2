@@ -4,6 +4,8 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Dashboard;
 
+use App\Http\Middleware\RedirectUnauthorizedFilamentUser;
+
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -68,17 +70,6 @@ class AdminPanelProvider extends PanelProvider
             ])
 
 
-            /*
-             * Dashboard analytics sekarang dipanggil
-             * langsung dari Dashboard.php.
-             *
-             * Modal Livewire juga dipasang langsung
-             * di dashboard.blade.php.
-             *
-             * Jadi tidak perlu register sebagai
-             * Filament Dashboard Widget.
-             */
-
             ->widgets([])
 
 
@@ -91,6 +82,22 @@ class AdminPanelProvider extends PanelProvider
                 StartSession::class,
 
                 AuthenticateSession::class,
+
+                /*
+                 * ======================================================
+                 * DASHBOARD ACCESS CHECK
+                 * ======================================================
+                 *
+                 * User:
+                 *
+                 * super_admin  -> boleh
+                 * staff_it     -> boleh
+                 * permission > 0 -> boleh
+                 * permission = 0 -> /permintaan-it
+                 *
+                 */
+
+                RedirectUnauthorizedFilamentUser::class,
 
                 ShareErrorsFromSession::class,
 
@@ -112,6 +119,8 @@ class AdminPanelProvider extends PanelProvider
             ])
 
 
-            ->maxContentWidth(Width::Full);
+            ->maxContentWidth(
+                Width::Full
+            );
     }
 }

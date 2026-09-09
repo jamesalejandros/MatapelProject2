@@ -7,6 +7,7 @@ use App\Filament\Resources\UserManagements\UserManagementResource;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
 
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
 
@@ -28,30 +29,70 @@ class EditUserManagement extends EditRecord
     protected ?string $oldRole = null;
 
 
-    /**
-     * ==========================================================
-     * BEFORE FILL
-     * ==========================================================
-     */
+    protected ?string $oldNIK = null;
+
+
+    protected ?int $oldKepalaBagianId = null;
+
+
+    protected ?string $oldKepalaBagianName = null;
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | BEFORE FILL
+    |--------------------------------------------------------------------------
+    */
 
     protected function mutateFormDataBeforeFill(
         array $data
     ): array {
 
-        /**
-         * ======================================================
-         * ROLE
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | OLD NIK
+        |--------------------------------------------------------------------------
+        */
+
+        $this->oldNIK =
+            $this->record->NIK;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | OLD KEPALA BAGIAN
+        |--------------------------------------------------------------------------
+        */
+
+        $this->oldKepalaBagianId =
+            $this->record->kepala_bagian_id;
+
+
+        $this->oldKepalaBagianName =
+            $this->record
+                ->kepalaBagian
+                ?->name;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE
+        |--------------------------------------------------------------------------
+        */
 
         $this->oldRole =
             $this->record
+
                 ->roles()
+
                 ->where(
                     'guard_name',
                     'web'
                 )
-                ->value('name');
+
+                ->value(
+                    'name'
+                );
 
 
         $data['role'] =
@@ -59,15 +100,11 @@ class EditUserManagement extends EditRecord
             ?? 'user';
 
 
-        /**
-         * ======================================================
-         * DIRECT PERMISSION
-         * ======================================================
-         *
-         * Hanya permission yang langsung dimiliki user.
-         *
-         * Bukan permission dari role.
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | DIRECT PERMISSIONS
+        |--------------------------------------------------------------------------
+        */
 
         $this->oldPermissions =
             $this->record
@@ -83,23 +120,73 @@ class EditUserManagement extends EditRecord
                 ->toArray();
 
 
-        $data['permissions'] =
-            $this->oldPermissions;
+        /*
+        |--------------------------------------------------------------------------
+        | MASTER DATA PERMISSIONS
+        |--------------------------------------------------------------------------
+        */
+
+        $data['permissions_mst'] =
+            collect(
+                $this->oldPermissions
+            )
+
+                ->filter(
+                    fn (string $permission): bool =>
+                        str_starts_with(
+                            $permission,
+                            'mst'
+                        )
+                )
+
+                ->values()
+
+                ->toArray();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION PERMISSIONS
+        |--------------------------------------------------------------------------
+        */
+
+        $data['permissions_trx'] =
+            collect(
+                $this->oldPermissions
+            )
+
+                ->filter(
+                    fn (string $permission): bool =>
+                        str_starts_with(
+                            $permission,
+                            'trx'
+                        )
+                )
+
+                ->values()
+
+                ->toArray();
 
 
         return $data;
     }
 
 
-    /**
-     * ==========================================================
-     * BEFORE SAVE
-     * ==========================================================
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | BEFORE SAVE
+    |--------------------------------------------------------------------------
+    */
 
     protected function mutateFormDataBeforeSave(
         array $data
     ): array {
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE
+        |--------------------------------------------------------------------------
+        */
 
         $this->selectedRole = [
 
@@ -111,26 +198,51 @@ class EditUserManagement extends EditRecord
         ];
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | PERMISSIONS
+        |--------------------------------------------------------------------------
+        */
+
+        $permissions = collect([
+
+            ...(
+                $data['permissions_mst']
+                ?? []
+            ),
+
+            ...(
+                $data['permissions_trx']
+                ?? []
+            ),
+
+        ]);
+
+
         $this->selectedPermissions =
-            collect(
-                $data['permissions'] ?? []
-            )
+            $this->normalizePermissions(
+                $permissions->toArray()
+            );
 
-                ->map(
-                    fn ($permission) =>
-                        (string) $permission
-                )
 
-                ->sort()
-
-                ->values()
-
-                ->toArray();
-
+        /*
+        |--------------------------------------------------------------------------
+        | HAPUS FIELD NON-USERS
+        |--------------------------------------------------------------------------
+        |
+        | NIK dan kepala_bagian_id tetap dipertahankan.
+        |
+        |--------------------------------------------------------------------------
+        */
 
         unset(
+
             $data['role'],
-            $data['permissions']
+
+            $data['permissions_mst'],
+
+            $data['permissions_trx']
+
         );
 
 
@@ -138,19 +250,96 @@ class EditUserManagement extends EditRecord
     }
 
 
-    /**
-     * ==========================================================
-     * AFTER SAVE
-     * ==========================================================
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | NORMALIZE PERMISSIONS
+    |--------------------------------------------------------------------------
+    */
+
+    protected function normalizePermissions(
+        array $permissions
+    ): array {
+
+        return collect($permissions)
+
+            ->map(
+                function ($permission) {
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PERMISSION MODEL
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        $permission
+                            instanceof Permission
+                    ) {
+
+                        return $permission->name;
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | DATABASE ID
+                    |--------------------------------------------------------------------------
+                    */
+
+                    if (
+                        is_numeric($permission)
+                    ) {
+
+                        return Permission::query()
+
+                            ->where(
+                                'guard_name',
+                                'web'
+                            )
+
+                            ->whereKey(
+                                $permission
+                            )
+
+                            ->value(
+                                'name'
+                            );
+                    }
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PERMISSION NAME
+                    |--------------------------------------------------------------------------
+                    */
+
+                    return (string) $permission;
+                }
+            )
+
+            ->filter()
+
+            ->unique()
+
+            ->values()
+
+            ->toArray();
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | AFTER SAVE
+    |--------------------------------------------------------------------------
+    */
 
     protected function afterSave(): void
     {
-        /**
-         * ======================================================
-         * SECURITY
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | SECURITY
+        |--------------------------------------------------------------------------
+        */
 
         if (
             $this->record
@@ -175,18 +364,25 @@ class EditUserManagement extends EditRecord
         }
 
 
-        /**
-         * ======================================================
-         * ROLE
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE
+        |--------------------------------------------------------------------------
+        */
 
         $role =
             collect(
                 $this->selectedRole
             )
+
                 ->first();
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | SECURITY
+        |--------------------------------------------------------------------------
+        */
 
         if (
             $role === 'super_admin'
@@ -197,38 +393,68 @@ class EditUserManagement extends EditRecord
         }
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | SYNC ROLE
+        |--------------------------------------------------------------------------
+        */
+
         $this->record->syncRoles([
+
             $role,
+
         ]);
 
 
-        /**
-         * ======================================================
-         * PERMISSION
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | SYNC DIRECT PERMISSIONS
+        |--------------------------------------------------------------------------
+        */
 
         $this->record->syncPermissions(
+
             $this->selectedPermissions
+
         );
 
 
-        /**
-         * ======================================================
-         * CLEAR CACHE
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | CLEAR CACHE
+        |--------------------------------------------------------------------------
+        */
 
         app(
             PermissionRegistrar::class
         )->forgetCachedPermissions();
 
 
-        /**
-         * ======================================================
-         * OLD / NEW ROLE
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | DATA BARU
+        |--------------------------------------------------------------------------
+        */
+
+        $newNIK =
+            $this->record->NIK;
+
+
+        $newKepalaBagianId =
+            $this->record->kepala_bagian_id;
+
+
+        $newKepalaBagianName =
+            $this->record
+                ->kepalaBagian
+                ?->name;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | OLD / NEW ROLE
+        |--------------------------------------------------------------------------
+        */
 
         $oldRole =
             $this->oldRole;
@@ -238,11 +464,11 @@ class EditUserManagement extends EditRecord
             $role;
 
 
-        /**
-         * ======================================================
-         * OLD / NEW PERMISSION
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | OLD / NEW PERMISSION
+        |--------------------------------------------------------------------------
+        */
 
         $oldPermissions =
             collect(
@@ -256,11 +482,11 @@ class EditUserManagement extends EditRecord
             );
 
 
-        /**
-         * ======================================================
-         * ADDED
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | ADDED PERMISSION
+        |--------------------------------------------------------------------------
+        */
 
         $added =
             $newPermissions
@@ -274,11 +500,11 @@ class EditUserManagement extends EditRecord
                 ->toArray();
 
 
-        /**
-         * ======================================================
-         * REMOVED
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | REMOVED PERMISSION
+        |--------------------------------------------------------------------------
+        */
 
         $removed =
             $oldPermissions
@@ -292,16 +518,46 @@ class EditUserManagement extends EditRecord
                 ->toArray();
 
 
-        /**
-         * ======================================================
-         * ACTIVITY LOG
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | CEK PERUBAHAN
+        |--------------------------------------------------------------------------
+        */
+
+        $nikChanged =
+            $this->oldNIK !== $newNIK;
+
+
+        $kepalaBagianChanged =
+            $this->oldKepalaBagianId
+            !==
+            $newKepalaBagianId;
+
+
+        $roleChanged =
+            $oldRole !== $newRole;
+
+
+        $permissionChanged =
+            count($added) > 0
+            ||
+            count($removed) > 0;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ACTIVITY LOG
+        |--------------------------------------------------------------------------
+        */
 
         if (
-            $oldRole !== $newRole
-            || count($added) > 0
-            || count($removed) > 0
+            $nikChanged
+            ||
+            $kepalaBagianChanged
+            ||
+            $roleChanged
+            ||
+            $permissionChanged
         ) {
 
             activity('user_management')
@@ -316,6 +572,12 @@ class EditUserManagement extends EditRecord
 
                 ->withProperties([
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | USER
+                    |--------------------------------------------------------------------------
+                    */
+
                     'user_id' =>
                         $this->record->id,
 
@@ -325,11 +587,57 @@ class EditUserManagement extends EditRecord
                     'user_email' =>
                         $this->record->email,
 
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | NIK
+                    |--------------------------------------------------------------------------
+                    */
+
+                    'old_nik' =>
+                        $this->oldNIK,
+
+                    'new_nik' =>
+                        $newNIK,
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | KEPALA BAGIAN
+                    |--------------------------------------------------------------------------
+                    */
+
+                    'old_kepala_bagian_id' =>
+                        $this->oldKepalaBagianId,
+
+                    'new_kepala_bagian_id' =>
+                        $newKepalaBagianId,
+
+                    'old_kepala_bagian_name' =>
+                        $this->oldKepalaBagianName,
+
+                    'new_kepala_bagian_name' =>
+                        $newKepalaBagianName,
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | ROLE
+                    |--------------------------------------------------------------------------
+                    */
+
                     'old_role' =>
                         $oldRole,
 
                     'new_role' =>
                         $newRole,
+
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | PERMISSION
+                    |--------------------------------------------------------------------------
+                    */
 
                     'old_permissions' =>
                         $oldPermissions
@@ -347,6 +655,13 @@ class EditUserManagement extends EditRecord
                     'removed' =>
                         $removed,
 
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | REQUEST
+                    |--------------------------------------------------------------------------
+                    */
+
                     'ip_address' =>
                         request()->ip(),
 
@@ -356,16 +671,16 @@ class EditUserManagement extends EditRecord
                 ])
 
                 ->log(
-                    'User role dan permission diperbarui'
+                    'Data user, Kepala Bagian, role dan permission diperbarui'
                 );
         }
 
 
-        /**
-         * ======================================================
-         * NOTIFICATION
-         * ======================================================
-         */
+        /*
+        |--------------------------------------------------------------------------
+        | NOTIFICATION
+        |--------------------------------------------------------------------------
+        */
 
         Notification::make()
 
@@ -374,7 +689,7 @@ class EditUserManagement extends EditRecord
             )
 
             ->body(
-                'Role dan permission user berhasil disimpan.'
+                'Data user, NIK, Kepala Bagian, role, dan permission berhasil disimpan.'
             )
 
             ->success()
@@ -383,11 +698,11 @@ class EditUserManagement extends EditRecord
     }
 
 
-    /**
-     * ==========================================================
-     * TITLE
-     * ==========================================================
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | TITLE
+    |--------------------------------------------------------------------------
+    */
 
     public function getTitle(): string
     {
@@ -396,11 +711,11 @@ class EditUserManagement extends EditRecord
     }
 
 
-    /**
-     * ==========================================================
-     * HEADER ACTIONS
-     * ==========================================================
-     */
+    /*
+    |--------------------------------------------------------------------------
+    | HEADER ACTIONS
+    |--------------------------------------------------------------------------
+    */
 
     protected function getHeaderActions(): array
     {
