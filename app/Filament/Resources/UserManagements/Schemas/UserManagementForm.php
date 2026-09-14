@@ -31,7 +31,9 @@ class UserManagementForm
             |--------------------------------------------------------------------------
             */
 
-            Section::make('Informasi Akun')
+            Section::make(
+                'Informasi Akun'
+            )
                 ->description(
                     'Informasi dasar akun pengguna.'
                 )
@@ -42,29 +44,44 @@ class UserManagementForm
                     | NIK KARYAWAN
                     |--------------------------------------------------------------------------
                     |
-                    | NIK dipilih dari master karyawan.
+                    | NIK dipilih dari Master Karyawan.
                     |
-                    | Format pilihan:
+                    | Setelah NIK dipilih:
                     |
-                    | 12345678 - Budi Santoso
+                    | 1. Nama user otomatis mengikuti Master Karyawan.
+                    | 2. Kepala Bagian ditampilkan berdasarkan
+                    |    mstkaryawan.NIKKepalaBagian.
                     |
-                    |--------------------------------------------------------------------------
                     */
 
-                    Select::make('NIK')
-                        ->label('Karyawan')
+                    Select::make(
+                        'NIK'
+                    )
+                        ->label(
+                            'Karyawan'
+                        )
                         ->options(
                             fn (): array =>
                                 MstKaryawan::query()
-                                    ->orderBy('Nama')
+                                    ->orderBy(
+                                        'Nama'
+                                    )
                                     ->get()
                                     ->mapWithKeys(
-                                        fn (MstKaryawan $karyawan): array => [
-                                            $karyawan->NIK =>
-                                                $karyawan->NIK
-                                                . ' - '
-                                                . $karyawan->Nama,
-                                        ]
+                                        function (
+                                            MstKaryawan $karyawan
+                                        ): array {
+
+                                            return [
+
+                                                $karyawan->NIK =>
+                                                    $karyawan->NIK
+                                                    . ' - '
+                                                    . $karyawan->Nama,
+
+                                            ];
+
+                                        }
                                     )
                                     ->toArray()
                         )
@@ -83,7 +100,10 @@ class UserManagementForm
                                 callable $set
                             ): void {
 
-                                if (blank($state)) {
+                                if (
+                                    blank($state)
+                                ) {
+
                                     return;
                                 }
 
@@ -95,12 +115,26 @@ class UserManagementForm
                                         )
                                         ->first();
 
-                                if ($karyawan) {
+                                if (
+                                    $karyawan
+                                ) {
+
+                                    /*
+                                    |--------------------------------------------------------------------------
+                                    | NAMA
+                                    |--------------------------------------------------------------------------
+                                    |
+                                    | Nama User mengikuti nama di Master Karyawan.
+                                    |
+                                    */
+
                                     $set(
                                         'name',
                                         $karyawan->Nama
                                     );
+
                                 }
+
                             }
                         )
                         ->helperText(
@@ -115,8 +149,12 @@ class UserManagementForm
                     |--------------------------------------------------------------------------
                     */
 
-                    TextInput::make('name')
-                        ->label('Nama')
+                    TextInput::make(
+                        'name'
+                    )
+                        ->label(
+                            'Nama'
+                        )
                         ->required()
                         ->maxLength(255)
                         ->autofocus()
@@ -131,8 +169,12 @@ class UserManagementForm
                     |--------------------------------------------------------------------------
                     */
 
-                    TextInput::make('email')
-                        ->label('Email')
+                    TextInput::make(
+                        'email'
+                    )
+                        ->label(
+                            'Email'
+                        )
                         ->email()
                         ->required()
                         ->unique(
@@ -149,29 +191,41 @@ class UserManagementForm
                     |--------------------------------------------------------------------------
                     */
 
-                    TextInput::make('password')
-                        ->label('Password')
+                    TextInput::make(
+                        'password'
+                    )
+                        ->label(
+                            'Password'
+                        )
                         ->password()
                         ->revealable()
                         ->required(
-                            fn (string $operation): bool =>
+                            fn (
+                                string $operation
+                            ): bool =>
                                 $operation === 'create'
                         )
                         ->rule(
                             Password::defaults()
                         )
                         ->dehydrateStateUsing(
-                            fn (?string $state): ?string =>
+                            fn (
+                                ?string $state
+                            ): ?string =>
                                 filled($state)
                                     ? bcrypt($state)
                                     : null
                         )
                         ->dehydrated(
-                            fn (?string $state): bool =>
+                            fn (
+                                ?string $state
+                            ): bool =>
                                 filled($state)
                         )
                         ->helperText(
-                            fn (string $operation): string =>
+                            fn (
+                                string $operation
+                            ): string =>
                                 $operation === 'create'
                                     ? 'Password wajib diisi.'
                                     : 'Kosongkan jika password tidak ingin diubah.'
@@ -186,29 +240,169 @@ class UserManagementForm
             |--------------------------------------------------------------------------
             | KEPALA BAGIAN
             |--------------------------------------------------------------------------
+            |
+            | READONLY.
+            |
+            | Kepala Bagian TIDAK dikelola dari User Management.
+            |
+            | Sumber data:
+            |
+            | users.NIK
+            |     ↓
+            | mstkaryawan.NIK
+            |     ↓
+            | mstkaryawan.NIKKepalaBagian
+            |     ↓
+            | mstkaryawan.NIK
+            |
+            | Jadi perubahan Kepala Bagian harus dilakukan melalui
+            | Master Karyawan.
+            |
             */
 
-            Section::make('Kepala Bagian')
+            Section::make(
+                'Kepala Bagian'
+            )
                 ->description(
-                    'Tentukan Kepala Bagian yang bertanggung jawab atas user ini.'
+                    'Kepala Bagian mengikuti struktur organisasi pada Master Karyawan dan tidak dapat diubah dari User Management.'
                 )
                 ->schema([
 
-                    Select::make('kepala_bagian_id')
-                        ->label('Kepala Bagian')
-                        ->relationship(
-                            'kepalaBagian',
-                            'name'
+                    TextInput::make(
+                        'kepala_bagian_display'
+                    )
+                        ->label(
+                            'Kepala Bagian'
                         )
-                        ->searchable([
-                            'name',
-                            'email',
-                        ])
-                        ->preload()
-                        ->required()
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | READONLY
+                        |--------------------------------------------------------------------------
+                        */
+
+                        ->readOnly()
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | DEFAULT / DISPLAY
+                        |--------------------------------------------------------------------------
+                        |
+                        | Nilai akan diisi dari:
+                        |
+                        | mstkaryawan.NIKKepalaBagian
+                        |
+                        */
+
+                        ->formatStateUsing(
+                            function (
+                                $state,
+                                $record
+                            ): string {
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | AMBIL NIK KARYAWAN
+                                |--------------------------------------------------------------------------
+                                */
+
+                                $nik =
+                                    $record?->NIK
+                                    ?? null;
+
+                                if (
+                                    blank($nik)
+                                ) {
+
+                                    return '-';
+                                }
+
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | AMBIL MASTER KARYAWAN
+                                |--------------------------------------------------------------------------
+                                */
+
+                                $karyawan =
+                                    MstKaryawan::query()
+                                        ->with([
+                                            'kepalaBagian',
+                                            'kepalaBagian.departemen',
+                                        ])
+                                        ->where(
+                                            'NIK',
+                                            $nik
+                                        )
+                                        ->first();
+
+                                if (
+                                    ! $karyawan
+                                ) {
+
+                                    return '-';
+                                }
+
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | KEPALA BAGIAN
+                                |--------------------------------------------------------------------------
+                                */
+
+                                $kepalaBagian =
+                                    $karyawan
+                                        ->kepalaBagian;
+
+                                if (
+                                    ! $kepalaBagian
+                                ) {
+
+                                    return 'Tidak ada Kepala Bagian';
+                                }
+
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | DEPARTEMEN
+                                |--------------------------------------------------------------------------
+                                */
+
+                                $departemen =
+                                    $kepalaBagian
+                                        ->departemen
+                                        ?->NamaDept
+                                    ?? '-';
+
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | FORMAT
+                                |--------------------------------------------------------------------------
+                                */
+
+                                return
+                                    $kepalaBagian->NIK
+                                    . ' | '
+                                    . (
+                                        $kepalaBagian->Nama
+                                        ?? '-'
+                                    )
+                                    . ' | '
+                                    . $departemen;
+
+                            }
+                        )
+
                         ->helperText(
-                            'User harus memiliki Kepala Bagian.'
-                        ),
+                            'Kepala Bagian ditentukan dari kolom NIKKepalaBagian pada Master Karyawan. Untuk mengubahnya, edit data karyawan pada Master Karyawan.'
+                        )
+
+                        ->dehydrated(
+                            false
+                        )
+
+                        ->columnSpanFull(),
 
                 ])
                 ->columnSpanFull(),
@@ -220,14 +414,20 @@ class UserManagementForm
             |--------------------------------------------------------------------------
             */
 
-            Section::make('Role Pengguna')
+            Section::make(
+                'Role Pengguna'
+            )
                 ->description(
                     'Tentukan jenis pengguna dan tingkat aksesnya.'
                 )
                 ->schema([
 
-                    Select::make('role')
-                        ->label('Role')
+                    Select::make(
+                        'role'
+                    )
+                        ->label(
+                            'Role'
+                        )
                         ->options(
                             fn (): array =>
                                 Role::query()
@@ -240,7 +440,9 @@ class UserManagementForm
                                         '!=',
                                         'super_admin'
                                     )
-                                    ->orderBy('name')
+                                    ->orderBy(
+                                        'name'
+                                    )
                                     ->pluck(
                                         'name',
                                         'name'
@@ -264,7 +466,9 @@ class UserManagementForm
             |--------------------------------------------------------------------------
             */
 
-            Section::make('Hak Akses')
+            Section::make(
+                'Hak Akses'
+            )
                 ->description(
                     'Pilih hak akses pengguna berdasarkan bagian sistem yang dapat digunakan.'
                 )
@@ -276,7 +480,9 @@ class UserManagementForm
                     |--------------------------------------------------------------------------
                     */
 
-                    Section::make('Master Data')
+                    Section::make(
+                        'Master Data'
+                    )
                         ->description(
                             'Hak akses untuk mengelola data utama sistem.'
                         )
@@ -296,7 +502,9 @@ class UserManagementForm
                     |--------------------------------------------------------------------------
                     */
 
-                    Section::make('Transaksi')
+                    Section::make(
+                        'Transaksi'
+                    )
                         ->description(
                             'Hak akses untuk menjalankan dan mengelola transaksi sistem.'
                         )
@@ -313,6 +521,7 @@ class UserManagementForm
                 ->columnSpanFull(),
 
         ]);
+
     }
 
 
@@ -330,7 +539,9 @@ class UserManagementForm
             'permissions_' . $prefix
         )
 
-            ->label(false)
+            ->label(
+                false
+            )
 
             ->options(
                 fn (): array =>
@@ -345,16 +556,18 @@ class UserManagementForm
                             "{$prefix}%"
                         )
                         ->get()
+
                         ->sortBy(
                             function (
                                 Permission $permission
                             ): array {
 
-                                $parts = explode(
-                                    '.',
-                                    $permission->name,
-                                    2
-                                );
+                                $parts =
+                                    explode(
+                                        '.',
+                                        $permission->name,
+                                        2
+                                    );
 
                                 $resource =
                                     $parts[0]
@@ -364,36 +577,50 @@ class UserManagementForm
                                     $parts[1]
                                     ?? '';
 
-                                $actionOrder = match ($action) {
+                                $actionOrder =
+                                    match (
+                                        $action
+                                    ) {
 
-                                    'create' => 1,
+                                        'create' =>
+                                            1,
 
-                                    'view' => 2,
+                                        'view' =>
+                                            2,
 
-                                    'update' => 3,
+                                        'update' =>
+                                            3,
 
-                                    'delete' => 4,
+                                        'delete' =>
+                                            4,
 
-                                    default => 99,
+                                        default =>
+                                            99,
 
-                                };
+                                    };
 
                                 return [
+
                                     $resource,
+
                                     $actionOrder,
+
                                 ];
+
                             }
                         )
+
                         ->mapWithKeys(
                             function (
                                 Permission $permission
                             ): array {
 
-                                $parts = explode(
-                                    '.',
-                                    $permission->name,
-                                    2
-                                );
+                                $parts =
+                                    explode(
+                                        '.',
+                                        $permission->name,
+                                        2
+                                    );
 
                                 $resource =
                                     $parts[0]
@@ -443,7 +670,9 @@ class UserManagementForm
                                 */
 
                                 $actionLabel =
-                                    match ($action) {
+                                    match (
+                                        $action
+                                    ) {
 
                                         'create' =>
                                             'Create',
@@ -480,14 +709,19 @@ class UserManagementForm
                                         "{$resourceLabel} — {$actionLabel}",
 
                                 ];
+
                             }
                         )
                         ->toArray()
             )
 
-            ->columns(4)
+            ->columns(
+                4
+            )
 
-            ->gridDirection('row')
+            ->gridDirection(
+                'row'
+            )
 
             ->searchable()
 
@@ -496,5 +730,6 @@ class UserManagementForm
             ->helperText(
                 'Pilih tindakan yang diperbolehkan untuk pengguna.'
             );
+
     }
 }

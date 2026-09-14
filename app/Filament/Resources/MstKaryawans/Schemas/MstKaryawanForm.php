@@ -1,67 +1,25 @@
 <?php
-
 namespace App\Filament\Resources\MstKaryawans\Schemas;
-
-use Filament\Forms\Components\TextInput;
+use App\Models\MstKaryawan;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
-
-use App\Models\MstPerusahaan;
-use App\Models\MstDepartemen;
-
-
+use Illuminate\Database\Eloquent\Builder;
 class MstKaryawanForm
 {
-
     public static function configure(Schema $schema): Schema
     {
-        return $schema
-            ->components([
-
-
-                TextInput::make('NIK')
-                    ->label('NIK')
-                    ->required()
-                    ->unique(ignoreRecord:true)
-                    ->maxLength(50),
-
-
-
-                TextInput::make('Nama')
-                    ->label('Nama Karyawan')
-                    ->required()
-                    ->maxLength(255),
-
-
-
-                Select::make('IDPerusahaan')
-                    ->label('Perusahaan')
-
-                    ->relationship(
-                        'perusahaan',
-                        'NamaPerusahaan'
-                    )
-
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-
-
-
-                Select::make('IDDept')
-                    ->label('Departemen')
-
-                    ->relationship(
-                        'departemen',
-                        'NamaDept'
-                    )
-
-                    ->searchable()
-                    ->preload()
-                    ->required(),
-
-
-            ]);
+        return $schema->components([ /* |-------------------------------------------------------------------------- | NIK |-------------------------------------------------------------------------- */ TextInput::make('NIK')->label('NIK')->required()->unique(ignoreRecord: true)->maxLength(50), /* |-------------------------------------------------------------------------- | NAMA KARYAWAN |-------------------------------------------------------------------------- */ TextInput::make('Nama')->label('Nama Karyawan')->required()->maxLength(255), /* |-------------------------------------------------------------------------- | PERUSAHAAN |-------------------------------------------------------------------------- */ Select::make('IDPerusahaan')->label('Perusahaan')->relationship('perusahaan', 'NamaPerusahaan')->searchable()->preload()->required(), /* |-------------------------------------------------------------------------- | DEPARTEMEN |-------------------------------------------------------------------------- */ Select::make('IDDept')->label('Departemen')->relationship('departemen', 'NamaDept')->searchable()->preload()->required(), /* |-------------------------------------------------------------------------- | KEPALA BAGIAN |-------------------------------------------------------------------------- | | Self-reference: | | mstkaryawan.NIKKepalaBagian | ↓ | mstkaryawan.NIK | | Contoh: | | Budi | NIK = 002 | NIKKepalaBagian = 001 | | berarti: | | Budi -> kepalaBagian -> Andi | */ Select::make('NIKKepalaBagian')->label('Kepala Bagian') /* |-------------------------------------------------------------------------- | RELATIONSHIP |-------------------------------------------------------------------------- */ ->relationship('kepalaBagian', 'Nama', modifyQueryUsing: function (Builder $query) { /* |-------------------------------------------------------------------------- | EAGER LOAD DEPARTEMEN |-------------------------------------------------------------------------- */
+            $query->with(['departemen',]); /* |-------------------------------------------------------------------------- | AMBIL RECORD YANG SEDANG DIEDIT |-------------------------------------------------------------------------- | | request()->route('record') tidak selalu | berupa object model. Pada kondisi tertentu | dapat berupa string/key. | | Karena itu kita cek terlebih dahulu. | */
+            $routeRecord = request()->route('record');
+            $currentNIK = null; /* |-------------------------------------------------------------------------- | JIKA SUDAH MENJADI MODEL |-------------------------------------------------------------------------- */
+            if ($routeRecord instanceof MstKaryawan) {
+                $currentNIK = $routeRecord->getKey(); } /* |-------------------------------------------------------------------------- | JIKA ROUTE RECORD BERUPA STRING |-------------------------------------------------------------------------- | | Pada edit resource Filament, record | dapat diteruskan sebagai primary key. | */ elseif (is_string($routeRecord) || is_numeric($routeRecord)) {
+                $currentNIK = (string) $routeRecord; } /* |-------------------------------------------------------------------------- | JANGAN TAMPILKAN DIRI SENDIRI |-------------------------------------------------------------------------- */ if (filled($currentNIK)) {
+                $query->where('mstkaryawan.NIK', '!=', $currentNIK); } }) /* |-------------------------------------------------------------------------- | OPTION LABEL |-------------------------------------------------------------------------- | | Format: | | NIK | Nama | Departemen | */ ->getOptionLabelFromRecordUsing(function (MstKaryawan $record): string {
+                    $nik = $record->NIK ?? '-';
+                    $nama = $record->Nama ?? '-';
+                    $departemen = $record->departemen?->NamaDept ?? '-';
+                    return $nik . ' | ' . $nama . ' | ' . $departemen; }) /* |-------------------------------------------------------------------------- | SEARCH |-------------------------------------------------------------------------- */ ->searchable(['NIK', 'Nama',])->preload()->nullable() /* |-------------------------------------------------------------------------- | HELPER TEXT |-------------------------------------------------------------------------- */ ->helperText('Pilih karyawan yang menjadi Kepala Bagian. Kosongkan jika karyawan tidak memiliki Kepala Bagian.')->columnSpanFull(),]);
     }
-
 }

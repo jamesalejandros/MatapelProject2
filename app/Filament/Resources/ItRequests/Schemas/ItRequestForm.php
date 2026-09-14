@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ItRequests\Schemas;
 
+use App\Models\MstAsset;
 use App\Models\User;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
@@ -86,7 +87,7 @@ class ItRequestForm
 
                         /*
                         |--------------------------------------------------------------------------
-                        | JENIS PERMINTAAN - MULTIPLE
+                        | JENIS PERMINTAAN
                         |--------------------------------------------------------------------------
                         */
 
@@ -120,7 +121,7 @@ class ItRequestForm
 
                         /*
                         |--------------------------------------------------------------------------
-                        | ASSET IT - MULTIPLE
+                        | ASSET IT
                         |--------------------------------------------------------------------------
                         */
 
@@ -132,7 +133,12 @@ class ItRequestForm
                             )
                             ->relationship(
                                 'assets',
-                                'NoAssetIT'
+                                'NoAssetIT',
+                                modifyQueryUsing: function (
+                                    Builder $query
+                                ) {
+                                    $query->with('karyawan');
+                                }
                             )
                             ->getOptionLabelFromRecordUsing(
                                 function (
@@ -141,15 +147,78 @@ class ItRequestForm
                                     return
                                         ($record->NoAssetIT ?? '-')
                                         . ' | '
-                                        . ($record->Nama ?? '-');
+                                        . ($record->Nama ?? '-')
+                                        . ' | '
+                                        . ($record->karyawan?->Nama ?? '-');
                                 }
                             )
-                            ->searchable([
-                                'NoAssetIT',
-                                'NoAssetSAP',
-                                'Nama',
-                                'SN',
-                            ])
+                            ->searchable()
+                            ->getSearchResultsUsing(
+                                function (
+                                    string $search
+                                ): array {
+                                    return MstAsset::query()
+                                        ->with('karyawan')
+                                        ->where(
+                                            function (
+                                                Builder $query
+                                            ) use ($search) {
+
+                                                $query
+                                                    ->where(
+                                                        'mstasset.NoAssetIT',
+                                                        'like',
+                                                        "%{$search}%"
+                                                    )
+                                                    ->orWhere(
+                                                        'mstasset.Nama',
+                                                        'like',
+                                                        "%{$search}%"
+                                                    )
+                                                    ->orWhere(
+                                                        'mstasset.NIK',
+                                                        'like',
+                                                        "%{$search}%"
+                                                    )
+                                                    ->orWhereHas(
+                                                        'karyawan',
+                                                        function (
+                                                            Builder $query
+                                                        ) use ($search) {
+
+                                                            $query->where(
+                                                                'mstkaryawan.Nama',
+                                                                'like',
+                                                                "%{$search}%"
+                                                            );
+                                                        }
+                                                    );
+                                            }
+                                        )
+                                        ->limit(50)
+                                        ->get()
+                                        ->mapWithKeys(
+                                            function (
+                                                $asset
+                                            ) {
+                                                return [
+                                                    $asset->NoAssetIT =>
+                                                        ($asset->NoAssetIT ?? '-')
+                                                        . ' | '
+                                                        . ($asset->Nama ?? '-')
+                                                        . ' | '
+                                                        . (
+                                                            $asset
+                                                                ->karyawan
+                                                                ?->Nama
+                                                            ?? '-'
+                                                        ),
+                                                ];
+                                            }
+                                        )
+                                        ->toArray();
+                                }
+                            )
                             ->preload()
                             ->multiple()
                             ->nullable()
@@ -244,6 +313,7 @@ class ItRequestForm
                             ->helperText(
                                 'Bagian terkait tidak dapat diubah dari halaman Admin.'
                             ),
+
                     ])
                     ->columns(2),
 
@@ -260,8 +330,20 @@ class ItRequestForm
 
                         /*
                         |--------------------------------------------------------------------------
-                        | KEPALA BAGIAN
+                        | KEPALA BAGIAN / APPROVER
                         |--------------------------------------------------------------------------
+                        |
+                        | Struktur terbaru:
+                        |
+                        | ItRequest
+                        |   -> approval
+                        |       -> approver
+                        |           -> User
+                        |
+                        | Jadi TIDAK menggunakan:
+                        |
+                        | $record->approval->kepalaBagian
+                        |
                         */
 
                         TextInput::make(
@@ -271,17 +353,33 @@ class ItRequestForm
                                 'Kepala Bagian'
                             )
                             ->formatStateUsing(
-                                function ($state, $record) {
-                                    return
+                                function (
+                                    $state,
+                                    $record
+                                ): string {
+
+                                    $approver =
                                         $record
                                             ?->approval
-                                            ?->kepalaBagian
-                                            ?->name
-                                        ?? $record
-                                            ?->pemohon
-                                            ?->kepalaBagian
-                                            ?->name
+                                            ?->approver;
+
+                                    if (!$approver) {
+                                        return '-';
+                                    }
+
+                                    $nik =
+                                        $approver->NIK
                                         ?? '-';
+
+                                    $nama =
+                                        $approver
+                                            ->karyawan
+                                            ?->Nama
+                                        ?? $approver->name
+                                        ?? '-';
+
+                                    return
+                                        "{$nik} | {$nama}";
                                 }
                             )
                             ->disabled()
@@ -300,10 +398,17 @@ class ItRequestForm
                                 'Status Approval'
                             )
                             ->formatStateUsing(
-                                function ($state, $record) {
+                                function (
+                                    $state,
+                                    $record
+                                ): string {
+
                                     return match (
-                                        $record?->approval?->status
+                                        $record
+                                            ?->approval
+                                            ?->status
                                     ) {
+
                                         'pending' =>
                                             'Menunggu Persetujuan',
 
@@ -315,6 +420,7 @@ class ItRequestForm
 
                                         default =>
                                             'Belum Ada',
+
                                     };
                                 }
                             )
@@ -334,7 +440,11 @@ class ItRequestForm
                                 'Tanggal Persetujuan'
                             )
                             ->formatStateUsing(
-                                function ($state, $record) {
+                                function (
+                                    $state,
+                                    $record
+                                ): string {
+
                                     return
                                         $record
                                             ?->approval
@@ -361,7 +471,11 @@ class ItRequestForm
                                 'Catatan Kepala Bagian'
                             )
                             ->formatStateUsing(
-                                function ($state, $record) {
+                                function (
+                                    $state,
+                                    $record
+                                ): string {
+
                                     return
                                         $record
                                             ?->approval
@@ -453,6 +567,7 @@ class ItRequestForm
                                     Select $component,
                                     $state
                                 ): void {
+
                                     if (
                                         blank($state)
                                         &&
@@ -499,19 +614,7 @@ class ItRequestForm
                                     'Dibatalkan',
                             ])
                             ->required()
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | OTOMATIS TANGGAL SELESAI
-                            |--------------------------------------------------------------------------
-                            |
-                            | Ketika Admin memilih status "Selesai",
-                            | TanggalSelesai otomatis menjadi waktu sekarang.
-                            |
-                            */
-
                             ->live()
-
                             ->afterStateUpdated(
                                 function (
                                     $state,
@@ -526,7 +629,6 @@ class ItRequestForm
                                             now()
                                         );
                                     }
-
                                 }
                             ),
 
@@ -581,9 +683,11 @@ class ItRequestForm
                         |
                         | Read-only.
                         |
-                        | Admin hanya dapat melihat status serah terima
-                        | dan tanggal serah terima. Nilai tidak dikirim
-                        | kembali dari form.
+                        | Nilai diambil langsung dari:
+                        |
+                        | it_requests.SerahTerima
+                        |
+                        | Tidak dikirim kembali ketika form disubmit.
                         |
                         */
 
@@ -597,12 +701,11 @@ class ItRequestForm
                                 function (
                                     $state,
                                     $record
-                                ) {
+                                ): string {
 
                                     return $record?->SerahTerima
                                         ? 'Sudah Serah Terima'
                                         : 'Belum Serah Terima';
-
                                 }
                             )
                             ->disabled()
@@ -612,6 +715,9 @@ class ItRequestForm
                         |--------------------------------------------------------------------------
                         | TANGGAL SERAH TERIMA
                         |--------------------------------------------------------------------------
+                        |
+                        | Read-only.
+                        |
                         */
 
                         DateTimePicker::make(
@@ -626,6 +732,7 @@ class ItRequestForm
 
                     ])
                     ->columns(2),
+
             ]);
     }
 }

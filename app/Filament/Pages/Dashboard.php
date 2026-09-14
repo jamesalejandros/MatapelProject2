@@ -11,14 +11,12 @@ use App\Filament\Widgets\AssetStatusChart;
 use App\Filament\Widgets\ServiceYearChart;
 use App\Filament\Widgets\SoftwareAssignmentCompanyChart;
 use App\Filament\Widgets\ItRequestTypeChart;
-
 use App\Filament\Widgets\PabxLocationChart;
 use App\Filament\Widgets\SoftwareLicenseExpirationReminder;
 
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Model;
-
 
 class Dashboard extends Page
 {
@@ -46,20 +44,37 @@ class Dashboard extends Page
 
     /*
     |--------------------------------------------------------------------------
+    | SUPER ADMIN CHECK
+    |--------------------------------------------------------------------------
+    |
+    | HANYA super_admin yang boleh melihat isi Dashboard.
+    |
+    | User lain tetap BOLEH masuk ke halaman Dashboard,
+    | tetapi Blade akan menampilkan halaman kosong.
+    |
+    */
+
+    public function isSuperAdmin(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole('super_admin');
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
     | DASHBOARD ACCESS
     |--------------------------------------------------------------------------
     |
-    | Dashboard dapat diakses oleh:
+    | Jangan batasi Dashboard hanya untuk super_admin di sini.
     |
-    | 1. super_admin
-    | 2. staff_it
-    | 3. user yang mempunyai minimal 1 permission
-    |
-    | User tanpa permission:
-    |
-    | - tidak dapat membuka Dashboard
-    | - tidak ditampilkan menu Dashboard
-    | - diarahkan oleh middleware Panel ke /permintaan-it
+    | Method ini mengatur apakah halaman Dashboard boleh diakses.
+    | Sedangkan isi Dashboard dikontrol menggunakan isSuperAdmin().
     |
     */
 
@@ -128,10 +143,18 @@ class Dashboard extends Page
     |--------------------------------------------------------------------------
     | OPEN ANALYTICS
     |--------------------------------------------------------------------------
+    |
+    | HANYA super_admin yang boleh membuka analytics.
+    |
     */
 
     public function openWidget(string $widget): void
     {
+        if (! $this->isSuperAdmin()) {
+            return;
+        }
+
+
         $allowedWidgets = [
             'status',
             'company',
@@ -141,7 +164,7 @@ class Dashboard extends Page
             'service',
             'software',
             'pabx',
-    'it_request',
+            'it_request',
         ];
 
 
@@ -166,6 +189,10 @@ class Dashboard extends Page
 
     public function closeWidget(): void
     {
+        if (! $this->isSuperAdmin()) {
+            return;
+        }
+
         $this->activeWidget = null;
     }
 
@@ -178,6 +205,20 @@ class Dashboard extends Page
 
     public function getWidgetClass(): ?string
     {
+        /*
+        |--------------------------------------------------------------------------
+        | SECURITY
+        |--------------------------------------------------------------------------
+        |
+        | Non super_admin tidak boleh mendapatkan class widget.
+        |
+        */
+
+        if (! $this->isSuperAdmin()) {
+            return null;
+        }
+
+
         return match ($this->activeWidget) {
 
             'status' =>
@@ -201,7 +242,6 @@ class Dashboard extends Page
             'software' =>
                 SoftwareAssignmentCompanyChart::class,
 
-
             'pabx' =>
                 PabxLocationChart::class,
 
@@ -222,6 +262,11 @@ class Dashboard extends Page
 
     public function getWidgetTitle(): string
     {
+        if (! $this->isSuperAdmin()) {
+            return '';
+        }
+
+
         return match ($this->activeWidget) {
 
             'status' =>
@@ -244,7 +289,6 @@ class Dashboard extends Page
 
             'software' =>
                 'Software Assignment per Company',
-
 
             'pabx' =>
                 'PABX Berdasarkan Lokasi',

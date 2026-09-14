@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers\KepalaBagian;
 
 use App\Http\Controllers\Controller;
@@ -12,19 +11,56 @@ use Illuminate\View\View;
 
 class ItRequestApprovalController extends Controller
 {
+/*
+|--------------------------------------------------------------------------
+| INDEX
+|--------------------------------------------------------------------------
+|
+| Menampilkan semua request dari user yang berada
+| di bawah Kepala Bagian yang sedang login.
+|
+| Semua user menggunakan guard "web".
+| Kepala Bagian dibedakan berdasarkan role:
+| "kepala_bagian".
+|
+*/
+
+public function index(Request $request): View
+{
+    $kepalaBagian = auth()->user();
+
     /*
     |--------------------------------------------------------------------------
-    | INDEX
+    | PASTIKAN USER SUDAH LOGIN
     |--------------------------------------------------------------------------
-    |
-    | Menampilkan semua request dari user yang berada
-    | di bawah Kepala Bagian yang sedang login.
-    |
     */
 
-    public function index(Request $request): View
-{
-    $kepalaBagian = auth('kepala_bagian')->user();
+    if (!$kepalaBagian) {
+        abort(401);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN ROLE
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$kepalaBagian->hasRole('kepala_bagian')) {
+        abort(403, 'Anda tidak memiliki akses sebagai Kepala Bagian.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN TERHUBUNG DENGAN KARYAWAN
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$kepalaBagian->NIK || !$kepalaBagian->karyawan) {
+        abort(
+            403,
+            'Akun Kepala Bagian belum terhubung dengan data karyawan.'
+        );
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -63,34 +99,37 @@ class ItRequestApprovalController extends Controller
 
     $direction = $validated['direction'] ?? 'desc';
 
-
     /*
     |--------------------------------------------------------------------------
-    | QUERY
+    | QUERY REQUEST
     |--------------------------------------------------------------------------
     */
 
     $query = ItRequest::query()
         ->with([
             'pemohon.karyawan.departemen',
-            'pemohon.kepalaBagian',
+            'pemohon.karyawan.kepalaBagian.user',
             'jenisPermintaan',
             'assets',
             'relatedUsers.karyawan.departemen',
-            'approval',
+            'approval.approver.karyawan',
         ])
+
+        /*
+        |--------------------------------------------------------------------------
+        | HANYA REQUEST DARI BAWAHAN KEPALA BAGIAN
+        |--------------------------------------------------------------------------
+        */
+
         ->whereHas(
-            'pemohon',
+            'pemohon.karyawan',
             function ($query) use ($kepalaBagian) {
-
                 $query->where(
-                    'kepala_bagian_id',
-                    $kepalaBagian->id
+                    'NIKKepalaBagian',
+                    $kepalaBagian->NIK
                 );
-
             }
         );
-
 
     /*
     |--------------------------------------------------------------------------
@@ -99,93 +138,101 @@ class ItRequestApprovalController extends Controller
     */
 
     if (filled($search)) {
-
         $query->where(function ($query) use ($search) {
 
-            $query->where(
-                'NoRequest',
-                'like',
-                "%{$search}%"
-            )
+            $query
+                ->where(
+                    'NoRequest',
+                    'like',
+                    "%{$search}%"
+                )
 
-            ->orWhere(
-                'Permintaan',
-                'like',
-                "%{$search}%"
-            )
+                ->orWhere(
+                    'Permintaan',
+                    'like',
+                    "%{$search}%"
+                )
 
-            ->orWhereHas(
-                'pemohon',
-                function ($query) use ($search) {
+                ->orWhereHas(
+                    'pemohon',
+                    function ($query) use ($search) {
 
-                    $query->where(
-                        'name',
-                        'like',
-                        "%{$search}%"
-                    )
+                        $query
+                            ->where(
+                                'name',
+                                'like',
+                                "%{$search}%"
+                            )
 
-                    ->orWhere(
-                        'NIK',
-                        'like',
-                        "%{$search}%"
-                    )
-
-                    ->orWhereHas(
-                        'karyawan',
-                        function ($query) use ($search) {
-
-                            $query->where(
-                                'Nama',
+                            ->orWhere(
+                                'NIK',
                                 'like',
                                 "%{$search}%"
                             )
 
                             ->orWhereHas(
-                                'departemen',
+                                'karyawan',
                                 function ($query) use ($search) {
 
-                                    $query->where(
-                                        'NamaDept',
-                                        'like',
-                                        "%{$search}%"
-                                    );
+                                    $query
+                                        ->where(
+                                            'Nama',
+                                            'like',
+                                            "%{$search}%"
+                                        )
 
+                                        ->orWhere(
+                                            'NIK',
+                                            'like',
+                                            "%{$search}%"
+                                        )
+
+                                        ->orWhereHas(
+                                            'departemen',
+                                            function ($query) use ($search) {
+
+                                                $query->where(
+                                                    'NamaDept',
+                                                    'like',
+                                                    "%{$search}%"
+                                                );
+                                            }
+                                        );
                                 }
                             );
-
-                        }
-                    );
-
-                }
-            );
-
+                    }
+                );
         });
-
     }
-
 
     /*
     |--------------------------------------------------------------------------
     | FILTER STATUS APPROVAL
     |--------------------------------------------------------------------------
+    |
+    | Approval harus milik Kepala Bagian yang sedang login.
+    |
     */
 
     if (filled($status)) {
-
         $query->whereHas(
             'approval',
-            function ($query) use ($status) {
-
-                $query->where(
-                    'status',
-                    $status
-                );
-
+            function ($query) use (
+                $status,
+                $kepalaBagian
+            ) {
+                $query
+                    ->where(
+                        'status',
+                        $status
+                    )
+                    ->where(
+                        'approver_id',
+                        $kepalaBagian->id
+                    );
             }
         );
-
     }
-
 
     /*
     |--------------------------------------------------------------------------
@@ -198,7 +245,6 @@ class ItRequestApprovalController extends Controller
         $direction
     );
 
-
     /*
     |--------------------------------------------------------------------------
     | PAGINATION
@@ -209,6 +255,11 @@ class ItRequestApprovalController extends Controller
         ->paginate(15)
         ->withQueryString();
 
+    /*
+    |--------------------------------------------------------------------------
+    | VIEW
+    |--------------------------------------------------------------------------
+    */
 
     return view(
         'kepala_bagian.it_requests.index',
@@ -216,219 +267,459 @@ class ItRequestApprovalController extends Controller
     );
 }
 
+/*
+|--------------------------------------------------------------------------
+| SHOW
+|--------------------------------------------------------------------------
+*/
+
+public function show(
+    ItRequest $itRequest
+): View {
+    $kepalaBagian = auth()->user();
 
     /*
     |--------------------------------------------------------------------------
-    | SHOW
+    | PASTIKAN LOGIN
     |--------------------------------------------------------------------------
     */
 
-    public function show(ItRequest $itRequest): View
-    {
-        $kepalaBagian = auth('kepala_bagian')->user();
+    if (!$kepalaBagian) {
+        abort(401);
+    }
 
-        /*
-        |--------------------------------------------------------------------------
-        | PASTIKAN REQUEST MILIK BAWAHANNYA
-        |--------------------------------------------------------------------------
-        */
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN ROLE
+    |--------------------------------------------------------------------------
+    */
 
-        $isOwner = $itRequest
-            ->pemohon()
-            ->where(
-                'kepala_bagian_id',
-                $kepalaBagian->id
-            )
-            ->exists();
-
-        if (!$isOwner) {
-            abort(403);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | LOAD RELATIONS
-        |--------------------------------------------------------------------------
-        */
-
-        $itRequest->load([
-            'pemohon.karyawan.departemen',
-            'pemohon.kepalaBagian',
-            'jenisPermintaan',
-            'assets',
-            'relatedUsers.karyawan.departemen',
-            'penyelesai.karyawan',
-            'approval.kepalaBagian',
-        ]);
-
-        return view(
-            'kepala_bagian.it_requests.show',
-            compact('itRequest')
+    if (!$kepalaBagian->hasRole('kepala_bagian')) {
+        abort(
+            403,
+            'Anda tidak memiliki akses sebagai Kepala Bagian.'
         );
     }
 
     /*
     |--------------------------------------------------------------------------
-    | APPROVE
+    | PASTIKAN TERHUBUNG DENGAN KARYAWAN
     |--------------------------------------------------------------------------
     */
 
-    public function approve(
-        Request $request,
-        ItRequest $itRequest
-    ): RedirectResponse {
-        $validated = $request->validate([
+    if (!$kepalaBagian->NIK || !$kepalaBagian->karyawan) {
+        abort(
+            403,
+            'Akun Kepala Bagian belum terhubung dengan data karyawan.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN REQUEST MILIK BAWAHANNYA
+    |--------------------------------------------------------------------------
+    */
+
+    $isOwner = $itRequest
+        ->pemohon()
+        ->whereHas(
+            'karyawan',
+            function ($query) use ($kepalaBagian) {
+                $query->where(
+                    'NIKKepalaBagian',
+                    $kepalaBagian->NIK
+                );
+            }
+        )
+        ->exists();
+
+    if (!$isOwner) {
+        abort(
+            403,
+            'Anda tidak memiliki akses ke permintaan ini.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOAD RELATIONS
+    |--------------------------------------------------------------------------
+    |
+    | Approval hanya diambil untuk Kepala Bagian yang sedang login.
+    |
+    */
+
+    $itRequest->load([
+        'pemohon.karyawan.departemen',
+        'pemohon.karyawan.kepalaBagian.user',
+        'jenisPermintaan',
+        'assets',
+        'relatedUsers.karyawan.departemen',
+        'penyelesai.karyawan',
+    ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOAD APPROVAL MILIK KEPALA BAGIAN LOGIN
+    |--------------------------------------------------------------------------
+    */
+
+    $itRequest->setRelation(
+        'approval',
+        $itRequest->approval()
+            ->where(
+                'approver_id',
+                $kepalaBagian->id
+            )
+            ->with([
+                'approver.karyawan',
+            ])
+            ->first()
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | VIEW
+    |--------------------------------------------------------------------------
+    */
+
+    return view(
+        'kepala_bagian.it_requests.show',
+        compact('itRequest')
+    );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| APPROVE
+|--------------------------------------------------------------------------
+*/
+
+public function approve(
+    Request $request,
+    ItRequest $itRequest
+): RedirectResponse {
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDASI
+    |--------------------------------------------------------------------------
+    */
+
+    $validated = $request->validate([
+        'catatan' => [
+            'nullable',
+            'string',
+            'max:65535',
+        ],
+    ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | USER LOGIN
+    |--------------------------------------------------------------------------
+    */
+
+    $kepalaBagian = auth()->user();
+
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN LOGIN
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$kepalaBagian) {
+        abort(401);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN ROLE
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$kepalaBagian->hasRole('kepala_bagian')) {
+        abort(403);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN TERHUBUNG DENGAN KARYAWAN
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$kepalaBagian->NIK || !$kepalaBagian->karyawan) {
+        abort(
+            403,
+            'Akun Kepala Bagian belum terhubung dengan data karyawan.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN REQUEST MILIK BAWAHANNYA
+    |--------------------------------------------------------------------------
+    */
+
+    $isOwner = $itRequest
+        ->pemohon()
+        ->whereHas(
+            'karyawan',
+            function ($query) use ($kepalaBagian) {
+                $query->where(
+                    'NIKKepalaBagian',
+                    $kepalaBagian->NIK
+                );
+            }
+        )
+        ->exists();
+
+    if (!$isOwner) {
+        abort(403);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | AMBIL APPROVAL
+    |--------------------------------------------------------------------------
+    */
+
+    $approval = ItRequestApproval::query()
+        ->where(
+            'it_request_id',
+            $itRequest->IDRequest
+        )
+        ->where(
+            'approver_id',
+            $kepalaBagian->id
+        )
+        ->first();
+
+    if (!$approval) {
+        abort(
+            403,
+            'Approval untuk Kepala Bagian ini tidak ditemukan.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CEK STATUS
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $approval->status !==
+        ItRequestApproval::STATUS_PENDING
+    ) {
+        return back()->with(
+            'error',
+            'Request ini sudah diproses sebelumnya.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TRANSACTION
+    |--------------------------------------------------------------------------
+    */
+
+    DB::transaction(function () use (
+        $approval,
+        $itRequest,
+        $validated
+    ) {
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE APPROVAL
+        |--------------------------------------------------------------------------
+        */
+
+        $approval->update([
+            'status' =>
+                ItRequestApproval::STATUS_APPROVED,
+
+            'catatan' =>
+                $validated['catatan'] ?? null,
+
+            'approved_at' =>
+                now(),
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE STATUS REQUEST
+        |--------------------------------------------------------------------------
+        */
+
+        $itRequest->update([
+            'Status' => 'disetujui',
+        ]);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | REDIRECT
+    |--------------------------------------------------------------------------
+    */
+
+    return redirect()
+        ->route(
+            'kepala-bagian.it-requests.show',
+            $itRequest
+        )
+        ->with(
+            'success',
+            'Permintaan IT berhasil disetujui.'
+        );
+}
+
+/*
+|--------------------------------------------------------------------------
+| REJECT
+|--------------------------------------------------------------------------
+*/
+
+public function reject(
+    Request $request,
+    ItRequest $itRequest
+): RedirectResponse {
+    /*
+    |--------------------------------------------------------------------------
+    | VALIDASI
+    |--------------------------------------------------------------------------
+    */
+
+    $validated = $request->validate(
+        [
             'catatan' => [
-                'nullable',
+                'required',
                 'string',
                 'max:65535',
             ],
-        ]);
+        ],
+        [
+            'catatan.required' =>
+                'Catatan penolakan wajib diisi.',
+        ]
+    );
 
-        $kepalaBagian = auth('kepala_bagian')->user();
+    /*
+    |--------------------------------------------------------------------------
+    | USER LOGIN
+    |--------------------------------------------------------------------------
+    */
 
-        /*
-        |--------------------------------------------------------------------------
-        | AMBIL APPROVAL
-        |--------------------------------------------------------------------------
-        */
+    $kepalaBagian = auth()->user();
 
-        $approval = ItRequestApproval::query()
-            ->where(
-                'it_request_id',
-                $itRequest->IDRequest
-            )
-            ->where(
-                'kepala_bagian_id',
-                $kepalaBagian->id
-            )
-            ->first();
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN LOGIN
+    |--------------------------------------------------------------------------
+    */
 
-        if (!$approval) {
-            abort(403);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | CEK STATUS
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            $approval->status !==
-            ItRequestApproval::STATUS_PENDING
-        ) {
-            return back()->with(
-                'error',
-                'Request ini sudah diproses sebelumnya.'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE APPROVAL
-        |--------------------------------------------------------------------------
-        */
-
-        DB::transaction(function () use (
-            $approval,
-            $itRequest,
-            $validated
-        ) {
-            $approval->update([
-                'status' => ItRequestApproval::STATUS_APPROVED,
-                'catatan' => $validated['catatan'] ?? null,
-                'approved_at' => now(),
-            ]);
-
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE STATUS REQUEST
-            |--------------------------------------------------------------------------
-            |
-            | Request sekarang sudah disetujui Kepala Bagian
-            | dan siap diproses Staff IT.
-            |
-            */
-
-            $itRequest->update([
-                'Status' => 'disetujui',
-            ]);
-        });
-
-        return redirect()
-            ->route(
-                'kepala-bagian.it-requests.show',
-                $itRequest
-            )
-            ->with(
-                'success',
-                'Permintaan IT berhasil disetujui.'
-            );
+    if (!$kepalaBagian) {
+        abort(401);
     }
 
     /*
     |--------------------------------------------------------------------------
-    | REJECT
+    | PASTIKAN ROLE
     |--------------------------------------------------------------------------
     */
 
-    public function reject(
-        Request $request,
-        ItRequest $itRequest
-    ): RedirectResponse {
-        $validated = $request->validate(
-            [
-                'catatan' => [
-                    'required',
-                    'string',
-                    'max:65535',
-                ],
-            ],
-            [
-                'catatan.required' =>
-                    'Catatan penolakan wajib diisi.',
-            ]
+    if (!$kepalaBagian->hasRole('kepala_bagian')) {
+        abort(403);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN TERHUBUNG DENGAN KARYAWAN
+    |--------------------------------------------------------------------------
+    */
+
+    if (!$kepalaBagian->NIK || !$kepalaBagian->karyawan) {
+        abort(
+            403,
+            'Akun Kepala Bagian belum terhubung dengan data karyawan.'
         );
+    }
 
-        $kepalaBagian = auth('kepala_bagian')->user();
+    /*
+    |--------------------------------------------------------------------------
+    | PASTIKAN REQUEST MILIK BAWAHANNYA
+    |--------------------------------------------------------------------------
+    */
 
-        /*
-        |--------------------------------------------------------------------------
-        | AMBIL APPROVAL
-        |--------------------------------------------------------------------------
-        */
+    $isOwner = $itRequest
+        ->pemohon()
+        ->whereHas(
+            'karyawan',
+            function ($query) use ($kepalaBagian) {
+                $query->where(
+                    'NIKKepalaBagian',
+                    $kepalaBagian->NIK
+                );
+            }
+        )
+        ->exists();
 
-        $approval = ItRequestApproval::query()
-            ->where(
-                'it_request_id',
-                $itRequest->IDRequest
-            )
-            ->where(
-                'kepala_bagian_id',
-                $kepalaBagian->id
-            )
-            ->first();
+    if (!$isOwner) {
+        abort(403);
+    }
 
-        if (!$approval) {
-            abort(403);
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | AMBIL APPROVAL
+    |--------------------------------------------------------------------------
+    */
 
-        /*
-        |--------------------------------------------------------------------------
-        | CEK STATUS
-        |--------------------------------------------------------------------------
-        */
+    $approval = ItRequestApproval::query()
+        ->where(
+            'it_request_id',
+            $itRequest->IDRequest
+        )
+        ->where(
+            'approver_id',
+            $kepalaBagian->id
+        )
+        ->first();
 
-        if (
-            $approval->status !==
-            ItRequestApproval::STATUS_PENDING
-        ) {
-            return back()->with(
-                'error',
-                'Request ini sudah diproses sebelumnya.'
-            );
-        }
+    if (!$approval) {
+        abort(
+            403,
+            'Approval untuk Kepala Bagian ini tidak ditemukan.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CEK STATUS
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $approval->status !==
+        ItRequestApproval::STATUS_PENDING
+    ) {
+        return back()->with(
+            'error',
+            'Request ini sudah diproses sebelumnya.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | TRANSACTION
+    |--------------------------------------------------------------------------
+    */
+
+    DB::transaction(function () use (
+        $approval,
+        $itRequest,
+        $validated
+    ) {
 
         /*
         |--------------------------------------------------------------------------
@@ -436,36 +727,43 @@ class ItRequestApprovalController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        DB::transaction(function () use (
-            $approval,
-            $itRequest,
-            $validated
-        ) {
-            $approval->update([
-                'status' => ItRequestApproval::STATUS_REJECTED,
-                'catatan' => $validated['catatan'],
-                'approved_at' => now(),
-            ]);
+        $approval->update([
+            'status' =>
+                ItRequestApproval::STATUS_REJECTED,
 
-            /*
-            |--------------------------------------------------------------------------
-            | UPDATE STATUS REQUEST
-            |--------------------------------------------------------------------------
-            */
+            'catatan' =>
+                $validated['catatan'],
 
-            $itRequest->update([
-                'Status' => 'ditolak',
-            ]);
-        });
+            'approved_at' =>
+                now(),
+        ]);
 
-        return redirect()
-            ->route(
-                'kepala-bagian.it-requests.show',
-                $itRequest
-            )
-            ->with(
-                'success',
-                'Permintaan IT berhasil ditolak.'
-            );
-    }
+        /*
+        |--------------------------------------------------------------------------
+        | UPDATE STATUS REQUEST
+        |--------------------------------------------------------------------------
+        */
+
+        $itRequest->update([
+            'Status' => 'ditolak',
+        ]);
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | REDIRECT
+    |--------------------------------------------------------------------------
+    */
+
+    return redirect()
+        ->route(
+            'kepala-bagian.it-requests.show',
+            $itRequest
+        )
+        ->with(
+            'success',
+            'Permintaan IT berhasil ditolak.'
+        );
+}
+
 }

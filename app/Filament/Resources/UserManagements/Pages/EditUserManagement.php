@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\UserManagements\Pages;
 
 use App\Filament\Resources\UserManagements\UserManagementResource;
+use App\Models\MstKaryawan;
 
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\EditRecord;
@@ -32,10 +33,30 @@ class EditUserManagement extends EditRecord
     protected ?string $oldNIK = null;
 
 
-    protected ?int $oldKepalaBagianId = null;
+    /*
+    |--------------------------------------------------------------------------
+    | OLD KEPALA BAGIAN
+    |--------------------------------------------------------------------------
+    |
+    | Kepala Bagian sekarang berasal dari:
+    |
+    | users.NIK
+    |      ↓
+    | mstkaryawan.NIK
+    |      ↓
+    | mstkaryawan.NIKKepalaBagian
+    |      ↓
+    | mstkaryawan.NIK
+    |
+    */
+
+    protected ?string $oldKepalaBagianNIK = null;
 
 
     protected ?string $oldKepalaBagianName = null;
+
+
+    protected ?string $oldKepalaBagianEmail = null;
 
 
     /*
@@ -60,18 +81,50 @@ class EditUserManagement extends EditRecord
 
         /*
         |--------------------------------------------------------------------------
+        | AMBIL KARYAWAN
+        |--------------------------------------------------------------------------
+        |
+        | User terhubung ke MstKaryawan melalui NIK.
+        |
+        */
+
+        $karyawan =
+            MstKaryawan::query()
+                ->with([
+                    'kepalaBagian',
+                    'kepalaBagian.user',
+                    'departemen',
+                    'perusahaan',
+                ])
+                ->where(
+                    'NIK',
+                    $this->record->NIK
+                )
+                ->first();
+
+
+        /*
+        |--------------------------------------------------------------------------
         | OLD KEPALA BAGIAN
         |--------------------------------------------------------------------------
         */
 
-        $this->oldKepalaBagianId =
-            $this->record->kepala_bagian_id;
+        $this->oldKepalaBagianNIK =
+            $karyawan
+                ?->NIKKepalaBagian;
 
 
         $this->oldKepalaBagianName =
-            $this->record
-                ->kepalaBagian
-                ?->name;
+            $karyawan
+                ?->kepalaBagian
+                ?->Nama;
+
+
+        $this->oldKepalaBagianEmail =
+            $karyawan
+                ?->kepalaBagian
+                ?->user
+                ?->email;
 
 
         /*
@@ -168,6 +221,24 @@ class EditUserManagement extends EditRecord
                 ->toArray();
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | KEPALA BAGIAN
+        |--------------------------------------------------------------------------
+        |
+        | TIDAK mengisi:
+        |
+        | kepala_bagian_id
+        |
+        | karena field tersebut sudah tidak digunakan.
+        |
+        | Kepala Bagian dikelola langsung pada:
+        |
+        | mstkaryawan.NIKKepalaBagian
+        |
+        */
+
+
         return $data;
     }
 
@@ -230,9 +301,11 @@ class EditUserManagement extends EditRecord
         | HAPUS FIELD NON-USERS
         |--------------------------------------------------------------------------
         |
-        | NIK dan kepala_bagian_id tetap dipertahankan.
+        | role dan permission hanya digunakan oleh form
+        | dan tidak disimpan langsung ke users.
         |
-        |--------------------------------------------------------------------------
+        | Kepala Bagian juga bukan kolom users.
+        |
         */
 
         unset(
@@ -241,9 +314,43 @@ class EditUserManagement extends EditRecord
 
             $data['permissions_mst'],
 
-            $data['permissions_trx']
+            $data['permissions_trx'],
+
+            $data['kepala_bagian_id']
 
         );
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NAMA MENGIKUTI MASTER KARYAWAN
+        |--------------------------------------------------------------------------
+        |
+        | Jika NIK berubah, nama user mengikuti master karyawan.
+        |
+        */
+
+        if (
+            filled($data['NIK'] ?? null)
+        ) {
+
+            $karyawan =
+                MstKaryawan::query()
+                    ->where(
+                        'NIK',
+                        $data['NIK']
+                    )
+                    ->first();
+
+
+            if ($karyawan) {
+
+                $data['name'] =
+                    $karyawan->Nama;
+
+            }
+
+        }
 
 
         return $data;
@@ -432,7 +539,7 @@ class EditUserManagement extends EditRecord
 
         /*
         |--------------------------------------------------------------------------
-        | DATA BARU
+        | DATA USER BARU
         |--------------------------------------------------------------------------
         */
 
@@ -440,14 +547,49 @@ class EditUserManagement extends EditRecord
             $this->record->NIK;
 
 
-        $newKepalaBagianId =
-            $this->record->kepala_bagian_id;
+        /*
+        |--------------------------------------------------------------------------
+        | AMBIL DATA KARYAWAN TERBARU
+        |--------------------------------------------------------------------------
+        */
+
+        $karyawan =
+            MstKaryawan::query()
+                ->with([
+                    'kepalaBagian',
+                    'kepalaBagian.user',
+                    'departemen',
+                    'perusahaan',
+                ])
+                ->where(
+                    'NIK',
+                    $newNIK
+                )
+                ->first();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA KEPALA BAGIAN BARU
+        |--------------------------------------------------------------------------
+        */
+
+        $newKepalaBagianNIK =
+            $karyawan
+                ?->NIKKepalaBagian;
 
 
         $newKepalaBagianName =
-            $this->record
-                ->kepalaBagian
-                ?->name;
+            $karyawan
+                ?->kepalaBagian
+                ?->Nama;
+
+
+        $newKepalaBagianEmail =
+            $karyawan
+                ?->kepalaBagian
+                ?->user
+                ?->email;
 
 
         /*
@@ -520,7 +662,7 @@ class EditUserManagement extends EditRecord
 
         /*
         |--------------------------------------------------------------------------
-        | CEK PERUBAHAN
+        | CEK PERUBAHAN NIK
         |--------------------------------------------------------------------------
         */
 
@@ -528,15 +670,33 @@ class EditUserManagement extends EditRecord
             $this->oldNIK !== $newNIK;
 
 
-        $kepalaBagianChanged =
-            $this->oldKepalaBagianId
-            !==
-            $newKepalaBagianId;
+        /*
+        |--------------------------------------------------------------------------
+        | CEK PERUBAHAN KEPALA BAGIAN
+        |--------------------------------------------------------------------------
+        */
 
+        $kepalaBagianChanged =
+            $this->oldKepalaBagianNIK
+            !==
+            $newKepalaBagianNIK;
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | ROLE CHANGED
+        |--------------------------------------------------------------------------
+        */
 
         $roleChanged =
             $oldRole !== $newRole;
 
+
+        /*
+        |--------------------------------------------------------------------------
+        | PERMISSION CHANGED
+        |--------------------------------------------------------------------------
+        */
 
         $permissionChanged =
             count($added) > 0
@@ -607,17 +767,23 @@ class EditUserManagement extends EditRecord
                     |--------------------------------------------------------------------------
                     */
 
-                    'old_kepala_bagian_id' =>
-                        $this->oldKepalaBagianId,
+                    'old_kepala_bagian_nik' =>
+                        $this->oldKepalaBagianNIK,
 
-                    'new_kepala_bagian_id' =>
-                        $newKepalaBagianId,
+                    'new_kepala_bagian_nik' =>
+                        $newKepalaBagianNIK,
 
                     'old_kepala_bagian_name' =>
                         $this->oldKepalaBagianName,
 
                     'new_kepala_bagian_name' =>
                         $newKepalaBagianName,
+
+                    'old_kepala_bagian_email' =>
+                        $this->oldKepalaBagianEmail,
+
+                    'new_kepala_bagian_email' =>
+                        $newKepalaBagianEmail,
 
 
                     /*
@@ -658,6 +824,23 @@ class EditUserManagement extends EditRecord
 
                     /*
                     |--------------------------------------------------------------------------
+                    | MASTER KARYAWAN
+                    |--------------------------------------------------------------------------
+                    */
+
+                    'departemen' =>
+                        $karyawan
+                            ?->departemen
+                            ?->NamaDept,
+
+                    'perusahaan' =>
+                        $karyawan
+                            ?->perusahaan
+                            ?->NamaPerusahaan,
+
+
+                    /*
+                    |--------------------------------------------------------------------------
                     | REQUEST
                     |--------------------------------------------------------------------------
                     */
@@ -682,6 +865,11 @@ class EditUserManagement extends EditRecord
         |--------------------------------------------------------------------------
         */
 
+        $kepalaBagianText =
+            $newKepalaBagianName
+            ?? 'Belum ditentukan';
+
+
         Notification::make()
 
             ->title(
@@ -689,7 +877,9 @@ class EditUserManagement extends EditRecord
             )
 
             ->body(
-                'Data user, NIK, Kepala Bagian, role, dan permission berhasil disimpan.'
+                'Data user berhasil diperbarui. Kepala Bagian: '
+                . $kepalaBagianText
+                . '.'
             )
 
             ->success()

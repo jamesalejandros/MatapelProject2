@@ -18,6 +18,9 @@ class MstKepalaBagianResource extends BaseResource
 {
     protected static ?string $model = MstKepalaBagian::class;
 
+    protected static bool $shouldRegisterNavigation = false;
+
+
     protected static string $permissionPrefix =
         'mstkepalabagian';
 

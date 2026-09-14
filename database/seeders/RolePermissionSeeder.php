@@ -1,4 +1,5 @@
 <?php
+
 namespace Database\Seeders;
 
 use App\Models\User;
@@ -22,12 +23,13 @@ class RolePermissionSeeder extends Seeder
      * 1. super_admin
      * 2. user
      * 3. staff_it
+     * 4. kepala_bagian
      *
      *
      * SUPER ADMIN:
      *
      * - Tidak membutuhkan permission satu per satu.
-     * - Tidak memiliki permission melalui role_has_permissions.
+     * - Tidak memiliki permission melalui role.
      * - Akses penuh diberikan melalui Gate::before().
      *
      *
@@ -37,7 +39,7 @@ class RolePermissionSeeder extends Seeder
      * - Tidak memiliki permission melalui role.
      * - Permission diberikan secara individual oleh super_admin.
      * - Permission individual disimpan melalui
-     * model_has_permissions.
+     *   model_has_permissions.
      *
      *
      * STAFF IT:
@@ -47,17 +49,25 @@ class RolePermissionSeeder extends Seeder
      * - Permission disimpan melalui role_has_permissions.
      *
      *
+     * KEPALA BAGIAN:
+     *
+     * - Memiliki role kepala_bagian.
+     * - Memiliki permission untuk melihat approval.
+     * - Memiliki permission untuk menyetujui request.
+     * - Memiliki permission untuk menolak request.
+     *
+     *
      * PERMISSION:
      *
      * - Seluruh permission Resource tetap dibuat di tabel
-     * permissions.
+     *   permissions.
      * - Tidak diberikan kepada super_admin.
      * - Tidak diberikan kepada user.
      * - Permission khusus staff_it diberikan melalui role.
+     * - Permission khusus kepala_bagian diberikan melalui role.
      */
     public function run(): void
     {
-
         app(
             PermissionRegistrar::class
         )->forgetCachedPermissions();
@@ -100,6 +110,22 @@ class RolePermissionSeeder extends Seeder
             [
                 'name' =>
                     'staff_it',
+
+                'guard_name' =>
+                    $guard,
+            ]
+        );
+
+        /**
+         * ======================================================
+         * KEPALA BAGIAN ROLE
+         * ======================================================
+         */
+
+        $kepalaBagianRole = Role::firstOrCreate(
+            [
+                'name' =>
+                    'kepala_bagian',
 
                 'guard_name' =>
                     $guard,
@@ -324,6 +350,39 @@ class RolePermissionSeeder extends Seeder
 
         /**
          * ======================================================
+         * IT REQUEST APPROVAL PERMISSIONS
+         * ======================================================
+         *
+         * Permission khusus untuk Kepala Bagian.
+         *
+         * Permission ini digunakan oleh controller:
+         *
+         * App\Http\Controllers\KepalaBagian\
+         * ItRequestApprovalController
+         *
+         * VIEW:
+         *
+         * - Melihat daftar request bawahannya.
+         *
+         * APPROVE:
+         *
+         * - Menyetujui request bawahannya.
+         *
+         * REJECT:
+         *
+         * - Menolak request bawahannya.
+         */
+
+        $kepalaBagianPermissions = [
+
+            'itrequest.approval.view',
+            'itrequest.approval.approve',
+            'itrequest.approval.reject',
+
+        ];
+
+        /**
+         * ======================================================
          * CREATE ALL PERMISSIONS
          * ======================================================
          *
@@ -338,6 +397,7 @@ class RolePermissionSeeder extends Seeder
             [
                 ...$permissions,
                 ...$itRequestPermissions,
+                ...$kepalaBagianPermissions,
             ]
             as $permissionName
         ) {
@@ -402,6 +462,27 @@ class RolePermissionSeeder extends Seeder
 
         $staffItRole->syncPermissions(
             $itRequestPermissions
+        );
+
+        /**
+         * ======================================================
+         * KEPALA BAGIAN
+         * ======================================================
+         *
+         * Kepala Bagian mendapatkan permission approval
+         * melalui role.
+         *
+         * Permission masuk ke:
+         *
+         * role_has_permissions
+         *
+         * Bukan:
+         *
+         * model_has_permissions
+         */
+
+        $kepalaBagianRole->syncPermissions(
+            $kepalaBagianPermissions
         );
 
         /**
@@ -555,6 +636,10 @@ class RolePermissionSeeder extends Seeder
         );
 
         $this->command?->info(
+            'Role: kepala_bagian'
+        );
+
+        $this->command?->info(
             'super_admin tidak memiliki permission melalui role.'
         );
 
@@ -567,6 +652,10 @@ class RolePermissionSeeder extends Seeder
         );
 
         $this->command?->info(
+            'kepala_bagian memiliki permission approval Permintaan IT melalui role.'
+        );
+
+        $this->command?->info(
             'Super Admin berhasil dibuat/diperbarui: ' .
             $superAdmin->email
         );
@@ -576,5 +665,4 @@ class RolePermissionSeeder extends Seeder
             $user->email
         );
     }
-
 }

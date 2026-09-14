@@ -7,65 +7,90 @@
 @php
 /*
 |--------------------------------------------------------------------------
-| HELPER STATUS
-|--------------------------------------------------------------------------
+
+HELPER STATUS
 */
 
 $getStatusClass = function (?string $status): string {
-    return match (strtolower($status ?? '')) {
-        'selesai',
-        'completed',
-        'done' =>
-            'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+return match (strtolower($status ?? '')) {
+'selesai',
+'completed',
+'done' =>
+'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
 
-        'disetujui',
-        'approved' =>
-            'bg-indigo-50 text-indigo-700 ring-indigo-600/20',
+    'disetujui',
+    'approved' =>
+        'bg-indigo-50 text-indigo-700 ring-indigo-600/20',
 
-        'diproses',
-        'process',
-        'processing',
-        'in_progress' =>
-            'bg-blue-50 text-blue-700 ring-blue-600/20',
+    'diproses',
+    'process',
+    'processing',
+    'in_progress' =>
+        'bg-blue-50 text-blue-700 ring-blue-600/20',
 
-        'ditolak',
-        'rejected',
-        'cancelled' =>
-            'bg-red-50 text-red-700 ring-red-600/20',
+    'ditolak',
+    'rejected',
+    'cancelled' =>
+        'bg-red-50 text-red-700 ring-red-600/20',
 
-        'diajukan',
-        'pending' =>
-            'bg-amber-50 text-amber-700 ring-amber-600/20',
+    'diajukan',
+    'pending' =>
+        'bg-amber-50 text-amber-700 ring-amber-600/20',
 
-        default =>
-            'bg-slate-50 text-slate-700 ring-slate-600/20',
-    };
+    default =>
+        'bg-slate-50 text-slate-700 ring-slate-600/20',
+};
+
 };
 
 $getStatusLabel = function (?string $status): string {
-    return match (strtolower($status ?? '')) {
-        'selesai',
-        'completed',
-        'done' => 'Selesai',
+return match (strtolower($status ?? '')) {
+'selesai',
+'completed',
+'done' => 'Selesai',
 
-        'disetujui',
-        'approved' => 'Disetujui',
+    'disetujui',
+    'approved' => 'Disetujui',
 
-        'diproses',
-        'process',
-        'processing',
-        'in_progress' => 'Diproses',
+    'diproses',
+    'process',
+    'processing',
+    'in_progress' => 'Diproses',
 
-        'ditolak',
-        'rejected',
-        'cancelled' => 'Ditolak',
+    'ditolak',
+    'rejected',
+    'cancelled' => 'Ditolak',
 
-        'diajukan',
-        'pending' => 'Diajukan',
+    'diajukan',
+    'pending' => 'Diajukan',
 
-        default => ucfirst($status ?? 'Menunggu'),
-    };
+    default => ucfirst($status ?? 'Menunggu'),
 };
+
+};
+
+/*
+|--------------------------------------------------------------------------
+
+USER LOGIN
+*/
+
+$currentUser = auth()->user();
+
+/*
+|--------------------------------------------------------------------------
+
+ROLE ACCESS
+
+|
+| staff_it dan super_admin dapat melihat seluruh request.
+|
+*/
+
+$isFullAccessUser = $currentUser->hasAnyRole([
+'staff_it',
+'super_admin',
+]);
 
 @endphp
 
@@ -73,53 +98,88 @@ $getStatusLabel = function (?string $status): string {
 FLASH MESSAGE
 ============================================================= --}}
 
-<!-- @if (session('success'))
-<div
-    class="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 shadow-sm"
-    role="alert"
->
+@if (session('success'))
 
-    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
+<div class="mb-6 flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800 shadow-sm" role="alert" >
+<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-600">
 
-        <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-            stroke-width="2"
-        >
-            <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M5 13l4 4L19 7"
-            />
-        </svg>
-
-    </div>
-
-    <div class="min-w-0">
-
-        <p class="text-sm font-semibold">
-            Berhasil
-        </p>
-
-        <p class="mt-0.5 text-sm text-emerald-700">
-            {{ session('success') }}
-        </p>
-
-    </div>
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M5 13l4 4L19 7"
+        />
+    </svg>
 
 </div>
 
-@endif -->
+<div class="min-w-0">
+
+    <p class="text-sm font-semibold">
+        Berhasil
+    </p>
+
+    <p class="mt-0.5 text-sm text-emerald-700">
+        {{ session('success') }}
+    </p>
+
+</div>
+
+</div>
+@endif
 
 @if (session('error'))
 
-<div
-    class="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800 shadow-sm"
-    role="alert"
->
+<div class="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800 shadow-sm" role="alert" >
+<div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
+
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-5 w-5"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2"
+    >
+        <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M12 9v3.75m0 3.75h.008v.008H12V16.5zm9-4.5a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+    </svg>
+
+</div>
+
+<div class="min-w-0">
+
+    <p class="text-sm font-semibold">
+        Tidak dapat memproses permintaan
+    </p>
+
+    <p class="mt-0.5 text-sm text-red-700">
+        {{ session('error') }}
+    </p>
+
+</div>
+
+</div>
+@endif
+
+{{-- ============================================================
+VALIDATION ERROR
+============================================================= --}}
+
+@if ($errors->any())
+
+<div class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 shadow-sm" role="alert" >
+<div class="flex items-start gap-3">
 
     <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
 
@@ -140,78 +200,29 @@ FLASH MESSAGE
 
     </div>
 
-    <div class="min-w-0">
+    <div>
 
-        <p class="text-sm font-semibold">
-            Tidak dapat memproses permintaan
+        <p class="text-sm font-semibold text-red-800">
+            Terdapat kesalahan
         </p>
 
-        <p class="mt-0.5 text-sm text-red-700">
-            {{ session('error') }}
-        </p>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+
+            @foreach ($errors->all() as $error)
+
+                <li>
+                    {{ $error }}
+                </li>
+
+            @endforeach
+
+        </ul>
 
     </div>
 
 </div>
 
-@endif
-
-{{-- ============================================================
-VALIDATION ERROR
-============================================================= --}}
-
-@if ($errors->any())
-
-<div
-    class="mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 shadow-sm"
-    role="alert"
->
-
-    <div class="flex items-start gap-3">
-
-        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-600">
-
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2"
-            >
-                <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    d="M12 9v3.75m0 3.75h.008v.008H12V16.5zm9-4.5a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-            </svg>
-
-        </div>
-
-        <div>
-
-            <p class="text-sm font-semibold text-red-800">
-                Terdapat kesalahan
-            </p>
-
-            <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
-
-                @foreach ($errors->all() as $error)
-
-                    <li>
-                        {{ $error }}
-                    </li>
-
-                @endforeach
-
-            </ul>
-
-        </div>
-
-    </div>
-
 </div>
-
 @endif
 
 {{-- ============================================================
@@ -243,11 +254,27 @@ HEADER
     </div>
 
     <h1 class="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-        Permintaan IT Saya
+
+        @if ($isFullAccessUser)
+            Daftar Permintaan IT
+        @else
+            Permintaan IT Saya
+        @endif
+
     </h1>
 
     <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">
-        Pantau seluruh permintaan IT yang telah Anda ajukan beserta status penyelesaiannya.
+
+        @if ($isFullAccessUser)
+
+            Pantau seluruh permintaan IT yang masuk beserta status, pemohon, dan proses penyelesaiannya.
+
+        @else
+
+            Pantau seluruh permintaan IT yang Anda ajukan atau permintaan yang melibatkan Anda.
+
+        @endif
+
     </p>
 
 </div>
@@ -282,7 +309,7 @@ SUMMARY
 ============================================================= --}}
 
 <div class="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-{{-- Total Request --}}
+{{-- TOTAL REQUEST --}}
 
 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
@@ -323,7 +350,7 @@ SUMMARY
 
 </div>
 
-{{-- Halaman --}}
+{{-- HALAMAN --}}
 
 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
 
@@ -364,7 +391,7 @@ SUMMARY
 
 </div>
 
-{{-- Akun Pemohon --}}
+{{-- USER LOGIN --}}
 
 <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:col-span-2 lg:col-span-1">
 
@@ -373,11 +400,19 @@ SUMMARY
         <div class="min-w-0">
 
             <p class="text-sm font-medium text-slate-500">
-                Akun Pemohon
+
+                @if ($isFullAccessUser)
+                    Akun Petugas
+                @else
+                    Akun Pemohon
+                @endif
+
             </p>
 
             <p class="mt-1 max-w-48 truncate text-sm font-bold text-slate-900">
-                {{ auth()->user()->karyawan?->Nama ?? auth()->user()->name }}
+
+                {{ $currentUser->karyawan?->Nama ?? $currentUser->name }}
+
             </p>
 
         </div>
@@ -411,7 +446,7 @@ DAFTAR PERMINTAAN
 ============================================================= --}}
 
 <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-{{-- Section Header --}}
+{{-- SECTION HEADER --}}
 
 <div class="flex flex-col gap-3 border-b border-slate-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
 
@@ -422,7 +457,17 @@ DAFTAR PERMINTAAN
         </h2>
 
         <p class="mt-1 text-xs text-slate-500">
-            Seluruh permintaan IT yang dapat Anda akses.
+
+            @if ($isFullAccessUser)
+
+                Seluruh permintaan IT yang dapat Anda kelola.
+
+            @else
+
+                Permintaan yang Anda ajukan atau yang melibatkan Anda sebagai user terkait.
+
+            @endif
+
         </p>
 
     </div>
@@ -432,7 +477,13 @@ DAFTAR PERMINTAAN
         <span class="inline-flex h-2 w-2 rounded-full bg-amber-500"></span>
 
         <span>
-            Request berstatus <strong class="font-semibold text-slate-700">Diajukan</strong> masih dapat diedit atau dihapus.
+
+            Request berstatus
+            <strong class="font-semibold text-slate-700">
+                Diajukan
+            </strong>
+            masih dapat diedit atau dihapus oleh pemohon.
+
         </span>
 
     </div>
@@ -451,55 +502,37 @@ DAFTAR PERMINTAAN
 
             <tr>
 
-                {{-- NO REQUEST --}}
-
                 <th class="whitespace-nowrap px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     No Request
                 </th>
-
-                {{-- PEMOHON --}}
 
                 <th class="whitespace-nowrap px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Pemohon
                 </th>
 
-                {{-- JENIS --}}
-
                 <th class="whitespace-nowrap px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Jenis
                 </th>
-
-                {{-- PERMINTAAN --}}
 
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Permintaan
                 </th>
 
-                {{-- ASSET --}}
-
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Asset
                 </th>
-
-                {{-- USER TERKAIT --}}
 
                 <th class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     User Terkait
                 </th>
 
-                {{-- STATUS --}}
-
                 <th class="whitespace-nowrap px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Status
                 </th>
 
-                {{-- TANGGAL --}}
-
                 <th class="whitespace-nowrap px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Tanggal
                 </th>
-
-                {{-- AKSI --}}
 
                 <th class="whitespace-nowrap px-6 py-4 text-right text-xs font-semibold uppercase tracking-wider text-slate-500">
                     Aksi
@@ -515,7 +548,15 @@ DAFTAR PERMINTAAN
 
                 @php
 
-                    $status = strtolower($request->Status ?? '');
+                    /*
+                    |--------------------------------------------------------------------------
+                    | STATUS
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $status = strtolower(
+                        (string) ($request->Status ?? '')
+                    );
 
                     /*
                     |--------------------------------------------------------------------------
@@ -534,13 +575,16 @@ DAFTAR PERMINTAAN
 
                     /*
                     |--------------------------------------------------------------------------
-                    | HANYA PEMOHON + STATUS DIAJUKAN
+                    | PERMISSION
                     |--------------------------------------------------------------------------
+                    |
+                    | Hanya pemohon asli yang boleh edit/delete.
+                    |
                     */
 
                     $isPemohon =
                         (int) $request->UserPemohonID ===
-                        (int) auth()->id();
+                        (int) $currentUser->id;
 
                     $canModify =
                         $isPemohon &&
@@ -548,16 +592,12 @@ DAFTAR PERMINTAAN
 
                     /*
                     |--------------------------------------------------------------------------
-                    | STATUS SELESAI + SERAH TERIMA
+                    | STATUS SELESAI
                     |--------------------------------------------------------------------------
                     */
 
-                    $statusRequest = strtolower(
-                        (string) ($request->Status ?? '')
-                    );
-
                     $isSelesai = in_array(
-                        $statusRequest,
+                        $status,
                         [
                             'selesai',
                             'completed',
@@ -566,8 +606,28 @@ DAFTAR PERMINTAAN
                         true
                     );
 
+                    /*
+                    |--------------------------------------------------------------------------
+                    | SERAH TERIMA
+                    |--------------------------------------------------------------------------
+                    |
+                    | Gunakan boolean cast secara aman.
+                    |
+                    */
+
                     $isSudahSerahTerima =
-                        $request->SerahTerima === true;
+                        (bool) $request->SerahTerima;
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | BOLEH SERAH TERIMA
+                    |--------------------------------------------------------------------------
+                    */
+
+                    $canSerahTerima =
+                        $isSelesai &&
+                        !$isSudahSerahTerima &&
+                        $isPemohon;
 
                 @endphp
 
@@ -768,9 +828,11 @@ DAFTAR PERMINTAAN
                                 <span
                                     class="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200"
                                 >
+
                                     <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
 
                                     Sudah Diterima
+
                                 </span>
 
                             @else
@@ -778,9 +840,11 @@ DAFTAR PERMINTAAN
                                 <span
                                     class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-200"
                                 >
+
                                     <span class="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
 
                                     Menunggu Serah Terima
+
                                 </span>
 
                             @endif
@@ -855,7 +919,8 @@ DAFTAR PERMINTAAN
 
                             </a>
 
-                            {{-- EDIT --}}
+                            {{-- EDIT + DELETE --}}
+                            {{-- HANYA PEMOHON DAN STATUS DIAJUKAN --}}
 
                             @if ($canModify)
 
@@ -890,8 +955,6 @@ DAFTAR PERMINTAAN
                                     </span>
 
                                 </a>
-
-                                {{-- DELETE --}}
 
                                 <form
                                     method="POST"
@@ -934,53 +997,53 @@ DAFTAR PERMINTAAN
 
                             @else
 
-                                {{-- STATUS TIDAK DAPAT DIUBAH --}}
+                                {{-- REQUEST MILIK USER TETAPI SUDAH DIPROSES --}}
 
-                                <span
-                                    title="{{ $isPemohon ? 'Permintaan sudah diproses dan tidak dapat diubah.' : 'Anda hanya terdaftar sebagai user terkait.' }}"
-                                    class="inline-flex h-9 w-9 cursor-help items-center justify-center rounded-lg bg-slate-50 text-slate-400 ring-1 ring-inset ring-slate-200"
-                                >
+                                @if ($isPemohon)
 
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        class="h-4 w-4"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        stroke-width="2"
+                                    <span
+                                        title="Permintaan sudah diproses dan tidak dapat diubah."
+                                        class="inline-flex h-9 w-9 cursor-help items-center justify-center rounded-lg bg-slate-50 text-slate-400 ring-1 ring-inset ring-slate-200"
                                     >
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            d="M12 9v3.75m0 3.75h.008v.008H12V16.5z"
-                                        />
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                        />
-                                    </svg>
 
-                                    <span class="sr-only">
-                                        Tidak dapat diubah
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            class="h-4 w-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            stroke-width="2"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M12 9v3.75m0 3.75h.008v.008H12V16.5z"
+                                            />
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                            />
+                                        </svg>
+
+                                        <span class="sr-only">
+                                            Tidak dapat diubah
+                                        </span>
+
                                     </span>
 
-                                </span>
+                                @endif
 
                             @endif
 
                             {{-- SERAH TERIMA --}}
 
-                            @if (
-                                $isSelesai
-                                && !$isSudahSerahTerima
-                                && $isPemohon
-                            )
+                            @if ($canSerahTerima)
 
                                 <a
                                     href="{{ route('it-requests.show', $request) }}"
-                                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100 hover:text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                                     title="Konfirmasi serah terima"
+                                    class="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 shadow-sm transition hover:bg-emerald-100 hover:text-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                                 >
 
                                     <svg
@@ -1014,7 +1077,7 @@ DAFTAR PERMINTAAN
 
                 <tr>
 
-                    <td colspan="10" class="px-6 py-16 text-center">
+                    <td colspan="9" class="px-6 py-16 text-center">
 
                         <div class="mx-auto flex max-w-sm flex-col items-center">
 
@@ -1044,7 +1107,13 @@ DAFTAR PERMINTAAN
                             </h3>
 
                             <p class="mt-1 text-sm text-slate-500">
-                                Anda belum memiliki permintaan IT.
+
+                                @if ($isFullAccessUser)
+                                    Belum ada permintaan IT yang tersedia.
+                                @else
+                                    Anda belum memiliki permintaan IT.
+                                @endif
+
                             </p>
 
                             <a
@@ -1095,7 +1164,15 @@ DAFTAR PERMINTAAN
 
         @php
 
-            $status = strtolower($request->Status ?? '');
+            /*
+            |--------------------------------------------------------------------------
+            | STATUS
+            |--------------------------------------------------------------------------
+            */
+
+            $status = strtolower(
+                (string) ($request->Status ?? '')
+            );
 
             /*
             |--------------------------------------------------------------------------
@@ -1120,7 +1197,7 @@ DAFTAR PERMINTAAN
 
             $isPemohon =
                 (int) $request->UserPemohonID ===
-                (int) auth()->id();
+                (int) $currentUser->id;
 
             $canModify =
                 $isPemohon &&
@@ -1128,16 +1205,12 @@ DAFTAR PERMINTAAN
 
             /*
             |--------------------------------------------------------------------------
-            | STATUS SELESAI + SERAH TERIMA
+            | STATUS SELESAI
             |--------------------------------------------------------------------------
             */
 
-            $statusRequest = strtolower(
-                (string) ($request->Status ?? '')
-            );
-
             $isSelesai = in_array(
-                $statusRequest,
+                $status,
                 [
                     'selesai',
                     'completed',
@@ -1146,14 +1219,25 @@ DAFTAR PERMINTAAN
                 true
             );
 
+            /*
+            |--------------------------------------------------------------------------
+            | SERAH TERIMA
+            |--------------------------------------------------------------------------
+            */
+
             $isSudahSerahTerima =
-                $request->SerahTerima === true;
+                (bool) $request->SerahTerima;
+
+            $canSerahTerima =
+                $isSelesai &&
+                !$isSudahSerahTerima &&
+                $isPemohon;
 
         @endphp
 
         <div class="p-5 transition hover:bg-slate-50">
 
-            {{-- Header Card --}}
+            {{-- HEADER CARD --}}
 
             <div class="flex items-start justify-between gap-4">
 
@@ -1179,8 +1263,11 @@ DAFTAR PERMINTAAN
                         <span
                             class="inline-flex shrink-0 items-center rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200"
                         >
+
                             <span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+
                             Sudah Diterima
+
                         </span>
 
                     @else
@@ -1188,8 +1275,11 @@ DAFTAR PERMINTAAN
                         <span
                             class="inline-flex shrink-0 items-center rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 ring-1 ring-inset ring-amber-200"
                         >
+
                             <span class="mr-1.5 h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+
                             Menunggu Serah Terima
+
                         </span>
 
                     @endif
@@ -1210,9 +1300,7 @@ DAFTAR PERMINTAAN
 
             </div>
 
-            {{-- ====================================================
-                PEMOHON
-            ===================================================== --}}
+            {{-- PEMOHON --}}
 
             <div class="mt-4 rounded-xl border border-violet-100 bg-violet-50/50 p-3">
 
@@ -1266,7 +1354,7 @@ DAFTAR PERMINTAAN
 
             </div>
 
-            {{-- Jenis --}}
+            {{-- JENIS --}}
 
             <div class="mt-4">
 
@@ -1296,7 +1384,7 @@ DAFTAR PERMINTAAN
 
             </div>
 
-            {{-- Permintaan --}}
+            {{-- PERMINTAAN --}}
 
             <div class="mt-4">
 
@@ -1310,7 +1398,7 @@ DAFTAR PERMINTAAN
 
             </div>
 
-            {{-- Asset --}}
+            {{-- ASSET --}}
 
             <div class="mt-4">
 
@@ -1340,7 +1428,7 @@ DAFTAR PERMINTAAN
 
             </div>
 
-            {{-- User Terkait --}}
+            {{-- USER TERKAIT --}}
 
             <div class="mt-4">
 
@@ -1414,9 +1502,9 @@ DAFTAR PERMINTAAN
 
                 </a>
 
-                @if ($canModify)
+                {{-- EDIT --}}
 
-                    {{-- EDIT --}}
+                @if ($canModify)
 
                     <a
                         href="{{ route('it-requests.edit', $request) }}"
@@ -1490,6 +1578,38 @@ DAFTAR PERMINTAAN
 
             </div>
 
+            {{-- SERAH TERIMA MOBILE --}}
+
+            @if ($canSerahTerima)
+
+                <a
+                    href="{{ route('it-requests.show', $request) }}"
+                    class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100 hover:text-emerald-800"
+                >
+
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="h-4 w-4"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        stroke-width="2"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M5 13l4 4L19 7"
+                        />
+                    </svg>
+
+                    Konfirmasi Serah Terima
+
+                </a>
+
+            @endif
+
+            {{-- INFO STATUS --}}
+
             @if ($canModify)
 
                 <div class="mt-3 flex items-start gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-xs text-amber-700">
@@ -1515,7 +1635,9 @@ DAFTAR PERMINTAAN
                     </svg>
 
                     <span>
-                        Permintaan masih berstatus <strong>Diajukan</strong>, sehingga Anda masih dapat mengubah atau menghapusnya.
+                        Permintaan masih berstatus
+                        <strong>Diajukan</strong>,
+                        sehingga Anda masih dapat mengubah atau menghapusnya.
                     </span>
 
                 </div>
@@ -1562,7 +1684,13 @@ DAFTAR PERMINTAAN
             </h3>
 
             <p class="mt-1 text-sm text-slate-500">
-                Anda belum memiliki permintaan IT.
+
+                @if ($isFullAccessUser)
+                    Belum ada permintaan IT yang tersedia.
+                @else
+                    Anda belum memiliki permintaan IT.
+                @endif
+
             </p>
 
         </div>

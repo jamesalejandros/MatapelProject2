@@ -28,29 +28,42 @@ class ItRequestController extends Controller
         $query = ItRequest::query()
             ->with([
                 'pemohon.karyawan.departemen',
+                'pemohon.karyawan.kepalaBagian.user',
                 'penyelesai.karyawan',
                 'jenisPermintaan',
                 'assets',
                 'relatedUsers.karyawan.departemen',
-                'approval.kepalaBagian',
+                'approval.approver.karyawan',
             ]);
 
         if (!$user->hasAnyRole([
             'staff_it',
             'super_admin',
         ])) {
+
             $query->where(function ($query) use ($user) {
 
-                // Request sendiri
+                /*
+                |--------------------------------------------------------------------------
+                | REQUEST SENDIRI
+                |--------------------------------------------------------------------------
+                */
+
                 $query->where(
                     'UserPemohonID',
                     $user->id
                 );
 
-                // Request dimana user menjadi related user
+                /*
+                |--------------------------------------------------------------------------
+                | REQUEST DIMANA USER MENJADI RELATED USER
+                |--------------------------------------------------------------------------
+                */
+
                 $query->orWhereHas(
                     'relatedUsers',
                     function ($query) use ($user) {
+
                         $query->where(
                             'users.id',
                             $user->id
@@ -92,7 +105,7 @@ class ItRequestController extends Controller
             ->whereNotNull('NIK')
             ->with([
                 'karyawan.departemen',
-                'kepalaBagian',
+                'karyawan.kepalaBagian.user',
             ])
             ->orderBy('name')
             ->get();
@@ -116,13 +129,38 @@ class ItRequestController extends Controller
     public function store(
         StoreItRequestRequest $request
     ): RedirectResponse {
+
         $validated = $request->validated();
 
         $user = $request->user();
 
-        $kepalaBagian = $user->kepalaBagian;
+        /*
+        |--------------------------------------------------------------------------
+        | AMBIL KEPALA BAGIAN
+        |--------------------------------------------------------------------------
+        |
+        | Tidak lagi:
+        |
+        | $user->kepala_bagian_id
+        |
+        | Melainkan:
+        |
+        | users
+        |   ↓
+        | mstkaryawan
+        |   ↓
+        | NIKKepalaBagian
+        |   ↓
+        | mstkaryawan
+        |   ↓
+        | users
+        |
+        */
+
+        $kepalaBagian = $user->kepalaBagian();
 
         if (!$kepalaBagian) {
+
             return back()
                 ->withInput()
                 ->withErrors([
@@ -132,12 +170,36 @@ class ItRequestController extends Controller
                 ]);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | PASTIKAN KEPALA BAGIAN MEMILIKI ROLE
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$kepalaBagian->hasRole('kepala_bagian')) {
+
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'Permintaan' =>
+                        'Kepala Bagian Anda belum memiliki role Kepala Bagian. ' .
+                        'Silakan hubungi Super Admin.',
+                ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TRANSACTION
+        |--------------------------------------------------------------------------
+        */
+
         $requestModel = DB::transaction(
             function () use (
                 $validated,
                 $user,
                 $kepalaBagian
             ) {
+
                 $requestModel = ItRequest::create([
                     'NoRequest' =>
                         'TEMP-' . uniqid(),
@@ -155,6 +217,12 @@ class ItRequestController extends Controller
                         'diajukan',
                 ]);
 
+                /*
+                |--------------------------------------------------------------------------
+                | GENERATE NO REQUEST
+                |--------------------------------------------------------------------------
+                */
+
                 $requestModel->update([
                     'NoRequest' =>
                         'IT-' .
@@ -168,33 +236,66 @@ class ItRequestController extends Controller
                         ),
                 ]);
 
-                // Jenis permintaan
+                /*
+                |--------------------------------------------------------------------------
+                | JENIS PERMINTAAN
+                |--------------------------------------------------------------------------
+                */
+
                 $requestModel
                     ->jenisPermintaan()
                     ->sync(
                         $validated['jenis_permintaan']
                     );
 
-                // Asset
+                /*
+                |--------------------------------------------------------------------------
+                | ASSET
+                |--------------------------------------------------------------------------
+                */
+
                 $requestModel
                     ->assets()
                     ->sync(
                         $validated['assets'] ?? []
                     );
 
-                // User terkait
+                /*
+                |--------------------------------------------------------------------------
+                | USER TERKAIT
+                |--------------------------------------------------------------------------
+                */
+
+                $relatedUsers = collect(
+                    $validated['related_users'] ?? []
+                )
+                    ->reject(
+                        fn ($id) =>
+                            (int) $id === (int) $user->id
+                    )
+                    ->values()
+                    ->all();
+
                 $requestModel
                     ->relatedUsers()
                     ->sync(
-                        $validated['related_users'] ?? []
+                        $relatedUsers
                     );
 
-                // Approval Kepala Bagian
+                /*
+                |--------------------------------------------------------------------------
+                | APPROVAL KEPALA BAGIAN
+                |--------------------------------------------------------------------------
+                |
+                | Sekarang approval menyimpan users.id.
+                |
+                */
+
                 ItRequestApproval::create([
                     'it_request_id' =>
                         $requestModel->IDRequest,
 
-                    'kepala_bagian_id' =>
+                    'approver_id' =>
                         $kepalaBagian->id,
 
                     'status' =>
@@ -231,14 +332,21 @@ class ItRequestController extends Controller
     public function show(
         ItRequest $itRequest
     ): View {
+
         $user = auth()->user();
 
         $allowed =
-            $itRequest->UserPemohonID === $user->id
+            (int) $itRequest->UserPemohonID ===
+            (int) $user->id
+
             ||
+
             $itRequest
                 ->relatedUsers()
-                ->where('users.id', $user->id)
+                ->where(
+                    'users.id',
+                    $user->id
+                )
                 ->exists();
 
         if (
@@ -256,13 +364,6 @@ class ItRequestController extends Controller
         |--------------------------------------------------------------------------
         | CEK PEMOHON + STATUS UNTUK EDIT / DELETE
         |--------------------------------------------------------------------------
-        |
-        | Sama persis dengan logic pada index:
-        |
-        | Hanya pemohon asli
-        | DAN
-        | status masih "diajukan"
-        |
         */
 
         $isPemohon =
@@ -275,14 +376,20 @@ class ItRequestController extends Controller
                 (string) $itRequest->Status
             ) === 'diajukan';
 
+        /*
+        |--------------------------------------------------------------------------
+        | LOAD RELATIONS
+        |--------------------------------------------------------------------------
+        */
+
         $itRequest->load([
             'pemohon.karyawan.departemen',
-            'pemohon.kepalaBagian',
+            'pemohon.karyawan.kepalaBagian.user',
             'penyelesai.karyawan',
             'jenisPermintaan',
             'assets',
             'relatedUsers.karyawan.departemen',
-            'approval.kepalaBagian',
+            'approval.approver.karyawan',
         ]);
 
         return view(
@@ -302,17 +409,16 @@ class ItRequestController extends Controller
     | Hanya PEMOHON asli yang boleh mengakses halaman edit.
     |
     | Syarat:
+    |
     | 1. User login adalah pemohon.
     | 2. Status request harus "diajukan".
-    |
-    | User terkait TIDAK memiliki akses edit.
-    | Staff IT dan Super Admin juga tidak otomatis memiliki akses edit.
     |
     */
 
     public function edit(
         ItRequest $itRequest
     ): View {
+
         $user = auth()->user();
 
         /*
@@ -331,10 +437,6 @@ class ItRequestController extends Controller
         |--------------------------------------------------------------------------
         | CEK STATUS
         |--------------------------------------------------------------------------
-        |
-        | Hanya request dengan status "diajukan"
-        | yang dapat diedit.
-        |
         */
 
         if (
@@ -350,7 +452,7 @@ class ItRequestController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | AMBIL DATA FORM
+        | DATA FORM
         |--------------------------------------------------------------------------
         */
 
@@ -372,14 +474,14 @@ class ItRequestController extends Controller
             )
             ->with([
                 'karyawan.departemen',
-                'kepalaBagian',
+                'karyawan.kepalaBagian.user',
             ])
             ->orderBy('name')
             ->get();
 
         /*
         |--------------------------------------------------------------------------
-        | LOAD RELATION YANG DIPERLUKAN
+        | LOAD RELATION
         |--------------------------------------------------------------------------
         */
 
@@ -404,15 +506,13 @@ class ItRequestController extends Controller
     |--------------------------------------------------------------------------
     | UPDATE
     |--------------------------------------------------------------------------
-    |
-    | Hanya PEMOHON asli dan hanya ketika status "diajukan".
-    |
     */
 
     public function update(
         StoreItRequestRequest $request,
         ItRequest $itRequest
     ): RedirectResponse {
+
         $user = $request->user();
 
         /*
@@ -431,14 +531,6 @@ class ItRequestController extends Controller
         |--------------------------------------------------------------------------
         | CEK STATUS
         |--------------------------------------------------------------------------
-        |
-        | Tidak boleh mengubah request yang sudah:
-        | - disetujui
-        | - ditolak
-        | - diproses
-        | - selesai
-        | - atau status lainnya.
-        |
         */
 
         if (
@@ -446,6 +538,7 @@ class ItRequestController extends Controller
                 (string) $itRequest->Status
             ) !== 'diajukan'
         ) {
+
             return back()
                 ->with(
                     'error',
@@ -463,7 +556,7 @@ class ItRequestController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | UPDATE DALAM TRANSACTION
+        | TRANSACTION
         |--------------------------------------------------------------------------
         */
 
@@ -487,20 +580,8 @@ class ItRequestController extends Controller
                     'Keterangan' =>
                         $validated['Keterangan'] ?? null,
 
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Pastikan pemohon tidak pernah berubah
-                    |--------------------------------------------------------------------------
-                    */
-
                     'UserPemohonID' =>
                         $user->id,
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | Status tetap diajukan
-                    |--------------------------------------------------------------------------
-                    */
 
                     'Status' =>
                         'diajukan',
@@ -508,7 +589,7 @@ class ItRequestController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | UPDATE JENIS PERMINTAAN
+                | JENIS PERMINTAAN
                 |--------------------------------------------------------------------------
                 */
 
@@ -520,7 +601,7 @@ class ItRequestController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | UPDATE ASSET
+                | ASSET
                 |--------------------------------------------------------------------------
                 */
 
@@ -532,19 +613,13 @@ class ItRequestController extends Controller
 
                 /*
                 |--------------------------------------------------------------------------
-                | UPDATE USER TERKAIT
+                | USER TERKAIT
                 |--------------------------------------------------------------------------
                 */
 
-                /*
-                | User pemohon sendiri tidak dimasukkan
-                | sebagai related user.
-                */
-
-                $relatedUsers =
-                    collect(
-                        $validated['related_users'] ?? []
-                    )
+                $relatedUsers = collect(
+                    $validated['related_users'] ?? []
+                )
                     ->reject(
                         fn ($id) =>
                             (int) $id === (int) $user->id
@@ -572,137 +647,108 @@ class ItRequestController extends Controller
     }
 
     /*
-|--------------------------------------------------------------------------
-| SERAH TERIMA
-|--------------------------------------------------------------------------
-|
-| Pemohon melakukan konfirmasi bahwa request sudah diterima.
-|
-| Syarat:
-|
-| 1. User harus login.
-| 2. User harus merupakan pemohon asli.
-| 3. Status request harus selesai.
-| 4. Request belum pernah dikonfirmasi sebelumnya.
-|
-| TanggalSerahTerima tidak berasal dari form.
-| Sistem otomatis mengisi dengan now().
-|
-*/
-
-public function serahTerima(
-    ItRequest $itRequest
-): RedirectResponse {
-    $user = auth()->user();
-
-    /*
     |--------------------------------------------------------------------------
-    | CEK PEMOHON
+    | SERAH TERIMA
     |--------------------------------------------------------------------------
-    |
-    | Hanya user yang membuat request yang boleh melakukan
-    | konfirmasi serah terima.
-    |
     */
 
-    if (
-        (int) $itRequest->UserPemohonID !==
-        (int) $user->id
-    ) {
-        abort(
-            403,
-            'Anda tidak memiliki hak untuk melakukan konfirmasi serah terima pada permintaan ini.'
-        );
-    }
+    public function serahTerima(
+        ItRequest $itRequest
+    ): RedirectResponse {
 
-    /*
-    |--------------------------------------------------------------------------
-    | CEK STATUS
-    |--------------------------------------------------------------------------
-    |
-    | Serah terima hanya dapat dilakukan apabila request
-    | sudah selesai.
-    |
-    */
+        $user = auth()->user();
 
-    if (
-        !in_array(
-            strtolower((string) $itRequest->Status),
-            [
-                'selesai',
-                'completed',
-                'done',
-            ],
-            true
-        )
-    ) {
-        return back()
+        /*
+        |--------------------------------------------------------------------------
+        | CEK PEMOHON
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            (int) $itRequest->UserPemohonID !==
+            (int) $user->id
+        ) {
+            abort(
+                403,
+                'Anda tidak memiliki hak untuk melakukan konfirmasi serah terima pada permintaan ini.'
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEK STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !in_array(
+                strtolower((string) $itRequest->Status),
+                [
+                    'selesai',
+                    'completed',
+                    'done',
+                ],
+                true
+            )
+        ) {
+
+            return back()
+                ->with(
+                    'error',
+                    'Serah terima hanya dapat dilakukan setelah permintaan berstatus selesai.'
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEK SUDAH SERAH TERIMA
+        |--------------------------------------------------------------------------
+        */
+
+        if ($itRequest->SerahTerima === true) {
+
+            return back()
+                ->with(
+                    'error',
+                    'Permintaan ini sudah dikonfirmasi serah terima sebelumnya.'
+                );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SIMPAN
+        |--------------------------------------------------------------------------
+        */
+
+        $itRequest->update([
+            'SerahTerima' =>
+                true,
+
+            'TanggalSerahTerima' =>
+                now(),
+        ]);
+
+        return redirect()
+            ->route(
+                'it-requests.show',
+                $itRequest
+            )
             ->with(
-                'error',
-                'Serah terima hanya dapat dilakukan setelah permintaan berstatus selesai.'
+                'success',
+                'Serah terima berhasil dikonfirmasi. Terima kasih.'
             );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | CEK SUDAH SERAH TERIMA
-    |--------------------------------------------------------------------------
-    |
-    | Mencegah request dikonfirmasi berkali-kali.
-    |
-    */
-
-    if ($itRequest->SerahTerima === true) {
-        return back()
-            ->with(
-                'error',
-                'Permintaan ini sudah dikonfirmasi serah terima sebelumnya.'
-            );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | SIMPAN SERAH TERIMA
-    |--------------------------------------------------------------------------
-    |
-    | Tidak ada tanggal dari input user.
-    |
-    | Sistem otomatis:
-    |
-    | SerahTerima        = true
-    | TanggalSerahTerima = now()
-    |
-    */
-
-    $itRequest->update([
-        'SerahTerima' => true,
-        'TanggalSerahTerima' => now(),
-    ]);
-
-    return redirect()
-        ->route(
-            'it-requests.show',
-            $itRequest
-        )
-        ->with(
-            'success',
-            'Serah terima berhasil dikonfirmasi. Terima kasih.'
-        );
-}
-
 
     /*
     |--------------------------------------------------------------------------
     | DESTROY
     |--------------------------------------------------------------------------
-    |
-    | Hanya PEMOHON asli dan hanya ketika status "diajukan".
-    |
     */
 
     public function destroy(
         ItRequest $itRequest
     ): RedirectResponse {
+
         $user = auth()->user();
 
         /*
@@ -728,6 +774,7 @@ public function serahTerima(
                 (string) $itRequest->Status
             ) !== 'diajukan'
         ) {
+
             return back()
                 ->with(
                     'error',
@@ -746,12 +793,8 @@ public function serahTerima(
 
                 /*
                 |--------------------------------------------------------------------------
-                | Hapus relasi terlebih dahulu
+                | HAPUS RELASI PIVOT
                 |--------------------------------------------------------------------------
-                |
-                | Ini penting apabila tabel pivot tidak menggunakan
-                | foreign key cascade.
-                |
                 */
 
                 $itRequest
@@ -768,7 +811,7 @@ public function serahTerima(
 
                 /*
                 |--------------------------------------------------------------------------
-                | Hapus approval
+                | HAPUS APPROVAL
                 |--------------------------------------------------------------------------
                 */
 
@@ -781,7 +824,7 @@ public function serahTerima(
 
                 /*
                 |--------------------------------------------------------------------------
-                | Hapus request utama
+                | HAPUS REQUEST
                 |--------------------------------------------------------------------------
                 */
 

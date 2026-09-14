@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\UserManagements\Pages;
 
 use App\Filament\Resources\UserManagements\UserManagementResource;
+use App\Models\MstKaryawan;
 
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\CreateRecord;
@@ -32,6 +33,84 @@ class CreateUserManagement extends CreateRecord
     protected function mutateFormDataBeforeCreate(
         array $data
     ): array {
+
+        /*
+        |--------------------------------------------------------------------------
+        | VALIDASI NIK
+        |--------------------------------------------------------------------------
+        |
+        | NIK harus berasal dari master karyawan.
+        |
+        */
+
+        if (
+            blank($data['NIK'] ?? null)
+        ) {
+
+            Notification::make()
+                ->title('Karyawan wajib dipilih')
+                ->body(
+                    'Silakan pilih karyawan terlebih dahulu.'
+                )
+                ->danger()
+                ->send();
+
+            return $data;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | AMBIL KARYAWAN
+        |--------------------------------------------------------------------------
+        */
+
+        $karyawan =
+            MstKaryawan::query()
+                ->with([
+                    'kepalaBagian',
+                    'departemen',
+                    'perusahaan',
+                ])
+                ->where(
+                    'NIK',
+                    $data['NIK']
+                )
+                ->first();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | KARYAWAN TIDAK DITEMUKAN
+        |--------------------------------------------------------------------------
+        */
+
+        if (! $karyawan) {
+
+            Notification::make()
+                ->title('Karyawan tidak ditemukan')
+                ->body(
+                    'NIK yang dipilih tidak ditemukan pada Master Karyawan.'
+                )
+                ->danger()
+                ->send();
+
+            return $data;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | NAMA USER
+        |--------------------------------------------------------------------------
+        |
+        | Nama user mengikuti nama karyawan.
+        |
+        */
+
+        $data['name'] =
+            $karyawan->Nama;
+
 
         /*
         |--------------------------------------------------------------------------
@@ -78,14 +157,20 @@ class CreateUserManagement extends CreateRecord
 
         /*
         |--------------------------------------------------------------------------
-        | HAPUS FIELD NON-USERS
+        | HAPUS FIELD FORM NON-USERS
         |--------------------------------------------------------------------------
         |
-        | NIK dan kepala_bagian_id TIDAK dihapus.
+        | Field berikut hanya digunakan oleh form:
         |
-        | Keduanya adalah kolom valid pada tabel users.
+        | - role
+        | - permissions_mst
+        | - permissions_trx
         |
-        |--------------------------------------------------------------------------
+        | Kepala Bagian TIDAK dihapus dari mstKaryawan karena
+        | sekarang Kepala Bagian disimpan melalui:
+        |
+        | mstkaryawan.NIKKepalaBagian
+        |
         */
 
         unset(
@@ -94,7 +179,19 @@ class CreateUserManagement extends CreateRecord
 
             $data['permissions_mst'],
 
-            $data['permissions_trx']
+            $data['permissions_trx'],
+
+            /*
+            |--------------------------------------------------------------------------
+            | KEPALA BAGIAN LAMA
+            |--------------------------------------------------------------------------
+            |
+            | Jika masih ada field ini dari form/cache lama,
+            | jangan sampai masuk ke users.
+            |
+            */
+
+            $data['kepala_bagian_id']
 
         );
 
@@ -255,6 +352,48 @@ class CreateUserManagement extends CreateRecord
 
         /*
         |--------------------------------------------------------------------------
+        | AMBIL KARYAWAN + KEPALA BAGIAN
+        |--------------------------------------------------------------------------
+        |
+        | Kepala Bagian sekarang berasal dari:
+        |
+        | users.NIK
+        |      ↓
+        | mstkaryawan.NIK
+        |      ↓
+        | mstkaryawan.NIKKepalaBagian
+        |      ↓
+        | mstkaryawan.NIK
+        |
+        */
+
+        $karyawan =
+            MstKaryawan::query()
+                ->with([
+                    'kepalaBagian',
+                    'departemen',
+                    'perusahaan',
+                ])
+                ->where(
+                    'NIK',
+                    $this->record->NIK
+                )
+                ->first();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DATA KEPALA BAGIAN
+        |--------------------------------------------------------------------------
+        */
+
+        $kepalaBagian =
+            $karyawan
+                ?->kepalaBagian;
+
+
+        /*
+        |--------------------------------------------------------------------------
         | ACTIVITY LOG
         |--------------------------------------------------------------------------
         */
@@ -283,13 +422,43 @@ class CreateUserManagement extends CreateRecord
                 'user_email' =>
                     $this->record->email,
 
-                'kepala_bagian_id' =>
-                    $this->record->kepala_bagian_id,
+                /*
+                |--------------------------------------------------------------------------
+                | KEPALA BAGIAN
+                |--------------------------------------------------------------------------
+                |
+                | Tidak lagi menggunakan:
+                |
+                | users.kepala_bagian_id
+                |
+                | tetapi:
+                |
+                | mstkaryawan.NIKKepalaBagian
+                |
+                */
+
+                'kepala_bagian_nik' =>
+                    $karyawan
+                        ?->NIKKepalaBagian,
 
                 'kepala_bagian_name' =>
-                    $this->record
-                        ->kepalaBagian
-                        ?->name,
+                    $kepalaBagian
+                        ?->Nama,
+
+                'kepala_bagian_email' =>
+                    $kepalaBagian
+                        ?->user
+                        ?->email,
+
+                'departemen' =>
+                    $karyawan
+                        ?->departemen
+                        ?->NamaDept,
+
+                'perusahaan' =>
+                    $karyawan
+                        ?->perusahaan
+                        ?->NamaPerusahaan,
 
                 'role' =>
                     $role,
@@ -316,6 +485,12 @@ class CreateUserManagement extends CreateRecord
         |--------------------------------------------------------------------------
         */
 
+        $kepalaBagianText =
+            $kepalaBagian
+                ?->Nama
+            ?? 'Belum ditentukan';
+
+
         Notification::make()
 
             ->title(
@@ -323,7 +498,9 @@ class CreateUserManagement extends CreateRecord
             )
 
             ->body(
-                'Akun user, NIK, Kepala Bagian, role, dan permission berhasil disimpan.'
+                'Akun user berhasil dibuat. Kepala Bagian: '
+                . $kepalaBagianText
+                . '.'
             )
 
             ->success()

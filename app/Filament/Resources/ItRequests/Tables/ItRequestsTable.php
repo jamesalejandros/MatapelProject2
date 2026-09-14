@@ -73,6 +73,22 @@ class ItRequestsTable
             |--------------------------------------------------------------------------
             | EAGER LOAD
             |--------------------------------------------------------------------------
+            |
+            | Struktur relasi terbaru:
+            |
+            | PEMOHON:
+            | User
+            |   -> karyawan
+            |       -> departemen
+            |       -> lokasi
+            |       -> kepalaBagian
+            |           -> user
+            |
+            | APPROVAL:
+            | ItRequestApproval
+            |   -> approver
+            |       -> karyawan
+            |
             */
 
             ->modifyQueryUsing(
@@ -87,8 +103,23 @@ class ItRequestsTable
                         */
 
                         'pemohon.karyawan.departemen',
+
                         'pemohon.karyawan.lokasi',
-                        'pemohon.kepalaBagian',
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | KEPALA BAGIAN PEMOHON
+                        |--------------------------------------------------------------------------
+                        |
+                        | Tidak lagi menggunakan:
+                        |
+                        | pemohon.kepalaBagian
+                        |
+                        | karena kepalaBagian() pada User bukan relationship.
+                        |
+                        */
+
+                        'pemohon.karyawan.kepalaBagian.user',
 
                         /*
                         |--------------------------------------------------------------------------
@@ -124,11 +155,20 @@ class ItRequestsTable
 
                         /*
                         |--------------------------------------------------------------------------
-                        | APPROVAL KEPALA BAGIAN
+                        | APPROVAL
                         |--------------------------------------------------------------------------
+                        |
+                        | ItRequestApproval sekarang menggunakan:
+                        |
+                        | approver_id
+                        |
+                        | sehingga relasi yang benar adalah:
+                        |
+                        | approval.approver
+                        |
                         */
 
-                        'approval.kepalaBagian',
+                        'approval.approver.karyawan',
 
                     ]);
 
@@ -140,12 +180,12 @@ class ItRequestsTable
             | GLOBAL SEARCH
             |--------------------------------------------------------------------------
             |
-            | Search manual agar:
+            | Search mencakup:
             |
             | - No Request
             | - Pemohon
-            | - NIK
-            | - Email
+            | - NIK Pemohon
+            | - Email Pemohon
             | - Departemen
             | - Jenis Permintaan
             | - Permintaan
@@ -153,9 +193,8 @@ class ItRequestsTable
             | - Asset
             | - Bagian Terkait
             | - Kepala Bagian
+            | - Approver
             | - Penyelesai
-            |
-            | semuanya bisa dicari.
             |
             */
 
@@ -233,6 +272,25 @@ class ItRequestsTable
                                                 );
 
                                         }
+                                    );
+
+                                }
+                            );
+
+                            /*
+                            |--------------------------------------------------------------------------
+                            | NAMA KARYAWAN PEMOHON
+                            |--------------------------------------------------------------------------
+                            */
+
+                            $query->orWhereHas(
+                                'pemohon.karyawan',
+                                function ($query) use ($search) {
+
+                                    $query->where(
+                                        'mstkaryawan.Nama',
+                                        'like',
+                                        "%{$search}%"
                                     );
 
                                 }
@@ -381,16 +439,93 @@ class ItRequestsTable
                             |--------------------------------------------------------------------------
                             | KEPALA BAGIAN
                             |--------------------------------------------------------------------------
+                            |
+                            | Struktur terbaru:
+                            |
+                            | it_requests
+                            |   -> pemohon
+                            |       -> karyawan
+                            |           -> kepalaBagian
+                            |               -> user
+                            |
+                            | Tidak menggunakan:
+                            |
+                            | pemohon.kepalaBagian
+                            |
+                            | karena User::kepalaBagian() bukan relationship.
+                            |
                             */
 
                             $query->orWhereHas(
-                                'pemohon.kepalaBagian',
+                                'pemohon.karyawan.kepalaBagian',
                                 function ($query) use ($search) {
 
                                     $query->where(
-                                        'mstkepalabagian.name',
+                                        'mstkaryawan.Nama',
                                         'like',
                                         "%{$search}%"
+                                    )
+                                    ->orWhere(
+                                        'mstkaryawan.NIK',
+                                        'like',
+                                        "%{$search}%"
+                                    )
+                                    ->orWhereHas(
+                                        'user',
+                                        function ($userQuery) use ($search) {
+
+                                            $userQuery->where(
+                                                'users.name',
+                                                'like',
+                                                "%{$search}%"
+                                            )
+                                            ->orWhere(
+                                                'users.email',
+                                                'like',
+                                                "%{$search}%"
+                                            );
+
+                                        }
+                                    );
+
+                                }
+                            );
+
+                            /*
+                            |--------------------------------------------------------------------------
+                            | APPROVER
+                            |--------------------------------------------------------------------------
+                            |
+                            | Search berdasarkan user yang benar-benar
+                            | melakukan approval.
+                            |
+                            */
+
+                            $query->orWhereHas(
+                                'approval.approver',
+                                function ($query) use ($search) {
+
+                                    $query->where(
+                                        function ($query) use ($search) {
+
+                                            $query
+                                                ->where(
+                                                    'users.name',
+                                                    'like',
+                                                    "%{$search}%"
+                                                )
+                                                ->orWhere(
+                                                    'users.NIK',
+                                                    'like',
+                                                    "%{$search}%"
+                                                )
+                                                ->orWhere(
+                                                    'users.email',
+                                                    'like',
+                                                    "%{$search}%"
+                                                );
+
+                                        }
                                     );
 
                                 }
@@ -641,44 +776,33 @@ class ItRequestsTable
                 */
 
                 TextColumn::make(
-                    'jenisPermintaan'
+                    'jenis_permintaan_display'
                 )
 
                     ->label('JENIS')
 
-                    ->formatStateUsing(
-                        function (
-                            $state,
-                            $record
-                        ) {
+                    ->state(
+                        function ($record) {
 
                             if (
                                 ! $record->jenisPermintaan
                                 ||
-                                $record
-                                    ->jenisPermintaan
-                                    ->isEmpty()
+                                $record->jenisPermintaan->isEmpty()
                             ) {
-
                                 return '-';
-
                             }
 
                             return
                                 $record
                                     ->jenisPermintaan
-                                    ->map(
-                                        function ($jenis) {
-
-                                            return
-                                                $jenis->name
-                                                ??
-                                                '-';
-
-                                        }
+                                    ->pluck('name')
+                                    ->filter(
+                                        fn ($name) =>
+                                            filled($name)
                                     )
-                                    ->filter()
-                                    ->implode(', ');
+                                    ->unique()
+                                    ->values()
+                                    ->implode(' | ');
 
                         }
                     )
@@ -769,9 +893,7 @@ class ItRequestsTable
                                 ||
                                 $record->assets->isEmpty()
                             ) {
-
                                 return '-';
-
                             }
 
                             return
@@ -793,10 +915,8 @@ class ItRequestsTable
                                             if (
                                                 $namaAsset === ''
                                             ) {
-
                                                 return
                                                     $noAsset;
-
                                             }
 
                                             return
@@ -886,9 +1006,7 @@ class ItRequestsTable
                                     ->relatedUsers
                                     ->isEmpty()
                             ) {
-
                                 return '-';
-
                             }
 
                             return
@@ -984,10 +1102,18 @@ class ItRequestsTable
                 |--------------------------------------------------------------------------
                 | KEPALA BAGIAN
                 |--------------------------------------------------------------------------
+                |
+                | Struktur terbaru:
+                |
+                | pemohon
+                |   -> karyawan
+                |       -> kepalaBagian
+                |           -> user
+                |
                 */
 
                 TextColumn::make(
-                    'pemohon.kepalaBagian.name'
+                    'pemohon.karyawan.kepalaBagian.user.name'
                 )
 
                     ->label('KEPALA BAGIAN')
@@ -998,13 +1124,36 @@ class ItRequestsTable
                             $record
                         ) {
 
-                            return
+                            $kepalaBagian =
                                 $record
                                     ->pemohon
-                                    ?->kepalaBagian
+                                    ?->karyawan
+                                    ?->kepalaBagian;
+
+                            if (! $kepalaBagian) {
+                                return '-';
+                            }
+
+                            $nama =
+                                $kepalaBagian
+                                    ->Nama
+                                ??
+                                $kepalaBagian
+                                    ->user
                                     ?->name
                                 ??
                                 '-';
+
+                            $nik =
+                                $kepalaBagian
+                                    ->NIK
+                                ??
+                                '-';
+
+                            return
+                                $nama
+                                . ' | NIK: '
+                                . $nik;
 
                         }
                     )
@@ -1016,13 +1165,51 @@ class ItRequestsTable
                         ): void {
 
                             $query->whereHas(
-                                'pemohon.kepalaBagian',
+                                'pemohon.karyawan.kepalaBagian',
                                 function ($query) use ($search) {
 
                                     $query->where(
-                                        'mstkepalabagian.name',
-                                        'like',
-                                        "%{$search}%"
+                                        function ($query) use ($search) {
+
+                                            $query
+                                                ->where(
+                                                    'mstkaryawan.Nama',
+                                                    'like',
+                                                    "%{$search}%"
+                                                )
+                                                ->orWhere(
+                                                    'mstkaryawan.NIK',
+                                                    'like',
+                                                    "%{$search}%"
+                                                );
+
+                                        }
+                                    )
+                                    ->orWhereHas(
+                                        'user',
+                                        function ($userQuery) use ($search) {
+
+                                            $userQuery->where(
+                                                function (
+                                                    $userQuery
+                                                ) use ($search) {
+
+                                                    $userQuery
+                                                        ->where(
+                                                            'users.name',
+                                                            'like',
+                                                            "%{$search}%"
+                                                        )
+                                                        ->orWhere(
+                                                            'users.email',
+                                                            'like',
+                                                            "%{$search}%"
+                                                        );
+
+                                                }
+                                            );
+
+                                        }
                                     );
 
                                 }
@@ -1031,7 +1218,7 @@ class ItRequestsTable
                         }
                     )
 
-                    ->width('220px')
+                    ->width('240px')
 
                     ->wrap()
 
@@ -1117,13 +1304,140 @@ class ItRequestsTable
 
                 /*
                 |--------------------------------------------------------------------------
-                | PENYELESAI
+                | APPROVER
+                |--------------------------------------------------------------------------
+                |
+                | User yang benar-benar melakukan approval.
+                |
+                */
+
+                TextColumn::make(
+                    'approval.approver.name'
+                )
+
+                    ->label(
+                        'APPROVER'
+                    )
+
+                    ->formatStateUsing(
+                        function (
+                            $state,
+                            $record
+                        ) {
+
+                            $approver =
+                                $record
+                                    ->approval
+                                    ?->approver;
+
+                            if (! $approver) {
+                                return '-';
+                            }
+
+                            $nama =
+                                $approver
+                                    ->karyawan
+                                    ?->Nama
+                                ??
+                                $approver
+                                    ->name
+                                ??
+                                '-';
+
+                            $nik =
+                                $approver
+                                    ->NIK
+                                ??
+                                '-';
+
+                            return
+                                $nama
+                                . ' | NIK: '
+                                . $nik;
+
+                        }
+                    )
+
+                    ->searchable(
+                        query: function (
+                            $query,
+                            string $search
+                        ): void {
+
+                            $query->whereHas(
+                                'approval.approver',
+                                function ($query) use ($search) {
+
+                                    $query->where(
+                                        function ($query) use ($search) {
+
+                                            $query
+                                                ->where(
+                                                    'users.name',
+                                                    'like',
+                                                    "%{$search}%"
+                                                )
+                                                ->orWhere(
+                                                    'users.NIK',
+                                                    'like',
+                                                    "%{$search}%"
+                                                )
+                                                ->orWhere(
+                                                    'users.email',
+                                                    'like',
+                                                    "%{$search}%"
+                                                );
+
+                                        }
+                                    );
+
+                                }
+                            );
+
+                        }
+                    )
+
+                    ->width('240px')
+
+                    ->wrap()
+
+                    ->lineClamp(5),
+
+                /*
+                |--------------------------------------------------------------------------
+                | TANGGAL APPROVAL
                 |--------------------------------------------------------------------------
                 */
 
                 TextColumn::make(
-                    'penyelesai.name'
+                    'approval.approved_at'
                 )
+
+                    ->label(
+                        'TANGGAL APPROVAL'
+                    )
+
+                    ->dateTime(
+                        'd/m/Y H:i'
+                    )
+
+                    ->placeholder('-')
+
+                    ->sortable()
+
+                    ->width('190px')
+
+                    ->wrap()
+
+                    ->lineClamp(5),
+
+                /*
+                |--------------------------------------------------------------------------
+                | PENYELESAI
+                |--------------------------------------------------------------------------
+                */
+
+                TextColumn::make('penyelesai.name')
 
                     ->label('PENYELESAI')
 
@@ -1296,17 +1610,13 @@ class ItRequestsTable
                             if (
                                 $record->SerahTerima === true
                             ) {
-
                                 return 'Sudah Diterima';
-
                             }
 
                             if (
                                 $record->isSelesai()
                             ) {
-
                                 return 'Menunggu Serah Terima';
-
                             }
 
                             return 'Belum';
@@ -1323,17 +1633,13 @@ class ItRequestsTable
                             if (
                                 $record->SerahTerima === true
                             ) {
-
                                 return 'success';
-
                             }
 
                             if (
                                 $record->isSelesai()
                             ) {
-
                                 return 'warning';
-
                             }
 
                             return 'gray';
@@ -1444,8 +1750,7 @@ class ItRequestsTable
                 | FILTER JENIS PERMINTAAN
                 |--------------------------------------------------------------------------
                 |
-                | Menggunakan whereHas karena JenisPermintaan adalah
-                | relasi many-to-many.
+                | JenisPermintaan adalah many-to-many.
                 |
                 */
 
@@ -1468,8 +1773,8 @@ class ItRequestsTable
                         'data' =>
                             'Data',
 
-                        'lain_lain' =>
-                            'Lain-lain',
+                        'lainnya' =>
+                            'Lainnya',
 
                     ])
 
@@ -1513,10 +1818,9 @@ class ItRequestsTable
                 | FILTER APPROVAL KEPALA BAGIAN
                 |--------------------------------------------------------------------------
                 |
-                | Approval merupakan relasi.
+                | Approval berada di tabel:
                 |
-                | Filter menggunakan whereHas agar tidak bergantung
-                | pada kolom approval_status di it_requests.
+                | it_request_approvals
                 |
                 */
 
@@ -1592,9 +1896,6 @@ class ItRequestsTable
 
                         'diajukan' =>
                             'Diajukan',
-
-                        'disetujui' =>
-                            'Disetujui',
 
                         'diproses' =>
                             'Diproses',
@@ -1678,9 +1979,6 @@ class ItRequestsTable
                             |--------------------------------------------------------------------------
                             | SUDAH DITERIMA
                             |--------------------------------------------------------------------------
-                            |
-                            | Nilai SerahTerima = 1.
-                            |
                             */
 
                             if (
@@ -1700,15 +1998,6 @@ class ItRequestsTable
                             |--------------------------------------------------------------------------
                             | BELUM / MENUNGGU SERAH TERIMA
                             |--------------------------------------------------------------------------
-                            |
-                            | Data yang belum serah terima bisa berupa:
-                            |
-                            | - NULL
-                            | - string kosong ''
-                            | - 0
-                            |
-                            | Jadi semuanya dimasukkan ke filter ini.
-                            |
                             */
 
                             if (

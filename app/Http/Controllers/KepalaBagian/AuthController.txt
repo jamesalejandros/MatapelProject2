@@ -1,0 +1,140 @@
+<?php
+
+namespace App\Http\Controllers\KepalaBagian;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
+
+class AuthController extends Controller
+{
+    /*
+    |--------------------------------------------------------------------------
+    | SHOW LOGIN
+    |--------------------------------------------------------------------------
+    */
+
+    public function showLogin(): View
+    {
+        return view('kepala_bagian.auth.login');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGIN
+    |--------------------------------------------------------------------------
+    |
+    | Kepala Bagian sekarang login menggunakan tabel users.
+    |
+    | Pembeda Kepala Bagian bukan lagi guard,
+    | melainkan role "kepala_bagian".
+    |
+    */
+
+    public function login(Request $request): RedirectResponse
+    {
+        $credentials = $request->validate([
+            'email' => [
+                'required',
+                'email',
+            ],
+
+            'password' => [
+                'required',
+                'string',
+            ],
+        ]);
+
+        $remember = $request->boolean('remember');
+
+        /*
+        |--------------------------------------------------------------------------
+        | AUTHENTICATE MELALUI WEB GUARD
+        |--------------------------------------------------------------------------
+        */
+
+        if (!Auth::guard('web')->attempt($credentials, $remember)) {
+            throw ValidationException::withMessages([
+                'email' =>
+                    'Email atau password salah.',
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | AMBIL USER
+        |--------------------------------------------------------------------------
+        */
+
+        $user = Auth::guard('web')->user();
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEK ROLE
+        |--------------------------------------------------------------------------
+        */
+
+        if (!$user->hasRole('kepala_bagian')) {
+
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' =>
+                    'Akun Anda bukan Kepala Bagian.',
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEK NIK
+        |--------------------------------------------------------------------------
+        |
+        | Kepala Bagian harus terhubung dengan data karyawan.
+        |
+        */
+
+        if (!$user->NIK || !$user->karyawan) {
+
+            Auth::guard('web')->logout();
+
+            throw ValidationException::withMessages([
+                'email' =>
+                    'Akun Kepala Bagian belum terhubung dengan data karyawan.',
+            ]);
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | REGENERATE SESSION
+        |--------------------------------------------------------------------------
+        */
+
+        $request->session()->regenerate();
+
+        return redirect()->intended(
+            route('kepala-bagian.it-requests.index')
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGOUT
+    |--------------------------------------------------------------------------
+    */
+
+    public function logout(Request $request): RedirectResponse
+    {
+        Auth::guard('web')->logout();
+
+        $request->session()->invalidate();
+
+        $request->session()->regenerateToken();
+
+        return redirect()->route(
+            'kepala-bagian.login'
+        );
+    }
+}

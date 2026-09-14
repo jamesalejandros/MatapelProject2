@@ -43,12 +43,6 @@ class ItRequest extends Model
 
         'TanggalSelesai' => 'datetime',
 
-        /*
-        |--------------------------------------------------------------------------
-        | SERAH TERIMA
-        |--------------------------------------------------------------------------
-        */
-
         'SerahTerima' => 'boolean',
 
         'TanggalSerahTerima' => 'datetime',
@@ -88,9 +82,6 @@ class ItRequest extends Model
     |--------------------------------------------------------------------------
     | JENIS PERMINTAAN
     |--------------------------------------------------------------------------
-    |
-    | Satu request dapat memiliki banyak jenis permintaan.
-    |
     */
 
     public function jenisPermintaan(): BelongsToMany
@@ -109,9 +100,6 @@ class ItRequest extends Model
     |--------------------------------------------------------------------------
     | ASSET
     |--------------------------------------------------------------------------
-    |
-    | Satu request dapat memiliki banyak asset.
-    |
     */
 
     public function assets(): BelongsToMany
@@ -149,7 +137,7 @@ class ItRequest extends Model
     | APPROVAL
     |--------------------------------------------------------------------------
     |
-    | Saat ini satu request memiliki satu approval Kepala Bagian.
+    | Satu request memiliki satu approval.
     |
     */
 

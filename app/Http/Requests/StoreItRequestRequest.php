@@ -12,6 +12,8 @@ class StoreItRequestRequest extends FormRequest
      * ==========================================================
      * AUTHORIZE
      * ==========================================================
+     *
+     * User harus memiliki izin membuat ItRequest.
      */
     public function authorize(): bool
     {
@@ -26,10 +28,14 @@ class StoreItRequestRequest extends FormRequest
     public function rules(): array
     {
         return [
+
             /*
             |--------------------------------------------------------------------------
             | JENIS PERMINTAAN
             |--------------------------------------------------------------------------
+            |
+            | Field ini dikirim sebagai array ID jenis permintaan.
+            |
             */
 
             'jenis_permintaan' => [
@@ -39,6 +45,7 @@ class StoreItRequestRequest extends FormRequest
             ],
 
             'jenis_permintaan.*' => [
+                'required',
                 'integer',
                 'distinct',
                 Rule::exists('mstjenispermintaan', 'id')
@@ -47,10 +54,14 @@ class StoreItRequestRequest extends FormRequest
                     }),
             ],
 
+
             /*
             |--------------------------------------------------------------------------
-            | ISI REQUEST
+            | PERMINTAAN
             |--------------------------------------------------------------------------
+            |
+            | Isi utama permintaan IT.
+            |
             */
 
             'Permintaan' => [
@@ -59,10 +70,14 @@ class StoreItRequestRequest extends FormRequest
                 'max:65535',
             ],
 
+
             /*
             |--------------------------------------------------------------------------
             | KETERANGAN
             |--------------------------------------------------------------------------
+            |
+            | Keterangan tambahan bersifat opsional.
+            |
             */
 
             'Keterangan' => [
@@ -71,10 +86,16 @@ class StoreItRequestRequest extends FormRequest
                 'max:65535',
             ],
 
+
             /*
             |--------------------------------------------------------------------------
             | ASSET
             |--------------------------------------------------------------------------
+            |
+            | Asset bersifat opsional.
+            |
+            | Nilai yang dikirim adalah NoAssetIT, bukan ID mstasset.
+            |
             */
 
             'assets' => [
@@ -83,15 +104,22 @@ class StoreItRequestRequest extends FormRequest
             ],
 
             'assets.*' => [
+                'required',
                 'string',
                 'distinct',
                 Rule::exists('mstasset', 'NoAssetIT'),
             ],
 
+
             /*
             |--------------------------------------------------------------------------
             | RELATED USERS
             |--------------------------------------------------------------------------
+            |
+            | User terkait bersifat opsional.
+            |
+            | Hanya user yang mempunyai NIK yang diperbolehkan.
+            |
             */
 
             'related_users' => [
@@ -100,6 +128,7 @@ class StoreItRequestRequest extends FormRequest
             ],
 
             'related_users.*' => [
+                'required',
                 'integer',
                 'distinct',
                 Rule::exists('users', 'id')
@@ -116,35 +145,106 @@ class StoreItRequestRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'jenis_permintaan.required'
-                => 'Jenis permintaan wajib dipilih.',
 
-            'jenis_permintaan.array'
-                => 'Format jenis permintaan tidak valid.',
+            /*
+            |--------------------------------------------------------------------------
+            | JENIS PERMINTAAN
+            |--------------------------------------------------------------------------
+            */
 
-            'jenis_permintaan.min'
-                => 'Minimal satu jenis permintaan harus dipilih.',
+            'jenis_permintaan.required' =>
+                'Jenis permintaan wajib dipilih.',
 
-            'jenis_permintaan.*.exists'
-                => 'Jenis permintaan yang dipilih tidak valid atau sudah tidak aktif.',
+            'jenis_permintaan.array' =>
+                'Format jenis permintaan tidak valid.',
 
-            'Permintaan.required'
-                => 'Permintaan wajib diisi.',
+            'jenis_permintaan.min' =>
+                'Minimal satu jenis permintaan harus dipilih.',
 
-            'Keterangan.string'
-                => 'Keterangan harus berupa teks.',
+            'jenis_permintaan.*.required' =>
+                'Jenis permintaan wajib dipilih.',
 
-            'assets.array'
-                => 'Format asset tidak valid.',
+            'jenis_permintaan.*.integer' =>
+                'ID jenis permintaan tidak valid.',
 
-            'assets.*.exists'
-                => 'Asset IT yang dipilih tidak ditemukan.',
+            'jenis_permintaan.*.distinct' =>
+                'Jenis permintaan tidak boleh dipilih lebih dari satu kali.',
 
-            'related_users.array'
-                => 'Format user terkait tidak valid.',
+            'jenis_permintaan.*.exists' =>
+                'Jenis permintaan yang dipilih tidak valid atau sudah tidak aktif.',
 
-            'related_users.*.exists'
-                => 'User terkait tidak valid.',
+
+            /*
+            |--------------------------------------------------------------------------
+            | PERMINTAAN
+            |--------------------------------------------------------------------------
+            */
+
+            'Permintaan.required' =>
+                'Permintaan wajib diisi.',
+
+            'Permintaan.string' =>
+                'Permintaan harus berupa teks.',
+
+            'Permintaan.max' =>
+                'Permintaan terlalu panjang.',
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | KETERANGAN
+            |--------------------------------------------------------------------------
+            */
+
+            'Keterangan.string' =>
+                'Keterangan harus berupa teks.',
+
+            'Keterangan.max' =>
+                'Keterangan terlalu panjang.',
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | ASSET
+            |--------------------------------------------------------------------------
+            */
+
+            'assets.array' =>
+                'Format asset tidak valid.',
+
+            'assets.*.required' =>
+                'Asset yang dipilih tidak valid.',
+
+            'assets.*.string' =>
+                'Nomor asset harus berupa teks.',
+
+            'assets.*.distinct' =>
+                'Asset tidak boleh dipilih lebih dari satu kali.',
+
+            'assets.*.exists' =>
+                'Asset IT yang dipilih tidak ditemukan.',
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | RELATED USERS
+            |--------------------------------------------------------------------------
+            */
+
+            'related_users.array' =>
+                'Format user terkait tidak valid.',
+
+            'related_users.*.required' =>
+                'User terkait tidak valid.',
+
+            'related_users.*.integer' =>
+                'ID user terkait tidak valid.',
+
+            'related_users.*.distinct' =>
+                'User terkait tidak boleh dipilih lebih dari satu kali.',
+
+            'related_users.*.exists' =>
+                'User terkait tidak valid atau belum memiliki NIK.',
         ];
     }
 }
