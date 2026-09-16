@@ -72,13 +72,6 @@ class CctvAssignmentRelationManager extends RelationManager
                 |--------------------------------------------------------------------------
                 | JENIS CCTV
                 |--------------------------------------------------------------------------
-                |
-                | Database tetap menggunakan VARCHAR / STRING.
-                |
-                | Pilihan pada form:
-                | - IP
-                | - Analog
-                |
                 */
 
                 Select::make('Jenis')
@@ -109,15 +102,9 @@ class CctvAssignmentRelationManager extends RelationManager
 
                     ->label('Tanggal Pasang')
 
-                    ->native(false)
-
-                    ->displayFormat('d/m/Y')
-
-                    ->format('Y-m-d')
-
-                    ->suffixIcon('heroicon-m-calendar-days')
-
-                    ->nullable(),
+                    ->required()
+    ->displayFormat('d M Y')
+    ->format('Y-m-d'),
 
 
 
@@ -202,7 +189,11 @@ class CctvAssignmentRelationManager extends RelationManager
                 function ($query) {
 
                     $query->with([
+
                         'asset',
+
+                        'asset.lokasi',
+
                     ]);
 
                 }
@@ -266,10 +257,10 @@ class CctvAssignmentRelationManager extends RelationManager
 
                 /*
                 |--------------------------------------------------------------------------
-                | IP ADDRESS
+                | LOKASI
                 |--------------------------------------------------------------------------
                 |
-                | Diambil dari:
+                | Sumber:
                 |
                 | trxcctvassignment
                 |       ↓
@@ -277,8 +268,32 @@ class CctvAssignmentRelationManager extends RelationManager
                 |       ↓
                 | mstasset
                 |       ↓
-                | IPAddress
+                | IDLokasi
+                |       ↓
+                | mstlokasi
+                |       ↓
+                | NamaLokasi
                 |
+                */
+
+                TextColumn::make('asset.lokasi.NamaLokasi')
+
+                    ->label('LOKASI')
+
+                    ->placeholder('-')
+
+                    ->searchable()
+
+                    ->sortable()
+
+                    ->wrap(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | IP ADDRESS
+                |--------------------------------------------------------------------------
                 */
 
                 TextColumn::make('asset.IPAddress')
@@ -342,7 +357,6 @@ class CctvAssignmentRelationManager extends RelationManager
                     ->date('d/m/Y')
 
                     ->placeholder('-')
-                    
 
                     ->sortable(),
 

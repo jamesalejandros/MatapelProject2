@@ -64,9 +64,7 @@ class ItRequestForm
                                 'name'
                             )
                             ->getOptionLabelFromRecordUsing(
-                                function (
-                                    User $record
-                                ): string {
+                                function (User $record): string {
                                     return
                                         ($record->NIK ?? '-')
                                         . ' | '
@@ -102,9 +100,7 @@ class ItRequestForm
                                 'name'
                             )
                             ->getOptionLabelFromRecordUsing(
-                                function (
-                                    $record
-                                ): string {
+                                function ($record): string {
                                     return
                                         $record->Nama
                                         ?? $record->name
@@ -134,16 +130,12 @@ class ItRequestForm
                             ->relationship(
                                 'assets',
                                 'NoAssetIT',
-                                modifyQueryUsing: function (
-                                    Builder $query
-                                ) {
+                                modifyQueryUsing: function (Builder $query) {
                                     $query->with('karyawan');
                                 }
                             )
                             ->getOptionLabelFromRecordUsing(
-                                function (
-                                    $record
-                                ): string {
+                                function ($record): string {
                                     return
                                         ($record->NoAssetIT ?? '-')
                                         . ' | '
@@ -154,15 +146,11 @@ class ItRequestForm
                             )
                             ->searchable()
                             ->getSearchResultsUsing(
-                                function (
-                                    string $search
-                                ): array {
+                                function (string $search): array {
                                     return MstAsset::query()
                                         ->with('karyawan')
                                         ->where(
-                                            function (
-                                                Builder $query
-                                            ) use ($search) {
+                                            function (Builder $query) use ($search) {
 
                                                 $query
                                                     ->where(
@@ -182,9 +170,7 @@ class ItRequestForm
                                                     )
                                                     ->orWhereHas(
                                                         'karyawan',
-                                                        function (
-                                                            Builder $query
-                                                        ) use ($search) {
+                                                        function (Builder $query) use ($search) {
 
                                                             $query->where(
                                                                 'mstkaryawan.Nama',
@@ -198,9 +184,7 @@ class ItRequestForm
                                         ->limit(50)
                                         ->get()
                                         ->mapWithKeys(
-                                            function (
-                                                $asset
-                                            ) {
+                                            function ($asset) {
                                                 return [
                                                     $asset->NoAssetIT =>
                                                         ($asset->NoAssetIT ?? '-')
@@ -210,7 +194,7 @@ class ItRequestForm
                                                         . (
                                                             $asset
                                                                 ->karyawan
-                                                                ?->Nama
+                                                                    ?->Nama
                                                             ?? '-'
                                                         ),
                                                 ];
@@ -278,9 +262,7 @@ class ItRequestForm
                                 'name'
                             )
                             ->getOptionLabelFromRecordUsing(
-                                function (
-                                    User $record
-                                ): string {
+                                function (User $record): string {
                                     $nik =
                                         $record->NIK
                                         ?? '-';
@@ -293,11 +275,11 @@ class ItRequestForm
                                         $record
                                             ->karyawan
                                             ?->departemen
-                                            ?->NamaDept
+                                                ?->NamaDept
                                         ?? $record
                                             ->karyawan
                                             ?->departemen
-                                            ?->NamaDepartemen
+                                                ?->NamaDepartemen
                                         ?? '-';
 
                                     return
@@ -353,15 +335,12 @@ class ItRequestForm
                                 'Kepala Bagian'
                             )
                             ->formatStateUsing(
-                                function (
-                                    $state,
-                                    $record
-                                ): string {
+                                function ($state, $record): string {
 
                                     $approver =
                                         $record
                                             ?->approval
-                                            ?->approver;
+                                                ?->approver;
 
                                     if (!$approver) {
                                         return '-';
@@ -374,7 +353,7 @@ class ItRequestForm
                                     $nama =
                                         $approver
                                             ->karyawan
-                                            ?->Nama
+                                                ?->Nama
                                         ?? $approver->name
                                         ?? '-';
 
@@ -398,14 +377,11 @@ class ItRequestForm
                                 'Status Approval'
                             )
                             ->formatStateUsing(
-                                function (
-                                    $state,
-                                    $record
-                                ): string {
+                                function ($state, $record): string {
 
                                     return match (
-                                        $record
-                                            ?->approval
+                                    $record
+                                        ?->approval
                                             ?->status
                                     ) {
 
@@ -440,16 +416,13 @@ class ItRequestForm
                                 'Tanggal Persetujuan'
                             )
                             ->formatStateUsing(
-                                function (
-                                    $state,
-                                    $record
-                                ): string {
+                                function ($state, $record): string {
 
                                     return
                                         $record
                                             ?->approval
                                             ?->approved_at
-                                            ?->format(
+                                                ?->format(
                                                 'd/m/Y H:i'
                                             )
                                         ?? '-';
@@ -471,15 +444,12 @@ class ItRequestForm
                                 'Catatan Kepala Bagian'
                             )
                             ->formatStateUsing(
-                                function (
-                                    $state,
-                                    $record
-                                ): string {
+                                function ($state, $record): string {
 
                                     return
                                         $record
                                             ?->approval
-                                            ?->catatan
+                                                ?->catatan
                                         ?? '-';
                                 }
                             )
@@ -518,36 +488,30 @@ class ItRequestForm
                                 'penyelesai',
                                 'name',
                                 modifyQueryUsing:
-                                    function (
-                                        Builder $query
-                                    ) {
-                                        $query->whereHas(
-                                            'roles',
-                                            function (
-                                                $roleQuery
-                                            ) {
-                                                $roleQuery->whereIn(
-                                                    'name',
-                                                    [
-                                                        'super_admin',
-                                                        'staff_it',
-                                                    ]
-                                                );
-                                            }
-                                        );
-                                    }
+                                function (Builder $query) {
+                                    $query->whereHas(
+                                        'roles',
+                                        function ($roleQuery) {
+                                            $roleQuery->whereIn(
+                                                'name',
+                                                [
+                                                    'super_admin',
+                                                    'staff_it',
+                                                ]
+                                            );
+                                        }
+                                    );
+                                }
                             )
                             ->getOptionLabelFromRecordUsing(
-                                function (
-                                    User $record
-                                ): string {
+                                function (User $record): string {
                                     return
                                         ($record->NIK ?? '-')
                                         . ' | '
                                         . (
                                             $record
                                                 ->karyawan
-                                                ?->Nama
+                                                    ?->Nama
                                             ?? $record->name
                                         );
                                 }
@@ -559,14 +523,11 @@ class ItRequestForm
                             ])
                             ->preload()
                             ->default(
-                                fn (): ?int =>
+                                fn(): ?int =>
                                     auth()->id()
                             )
                             ->afterStateHydrated(
-                                function (
-                                    Select $component,
-                                    $state
-                                ): void {
+                                function (Select $component, $state): void {
 
                                     if (
                                         blank($state)
@@ -616,10 +577,7 @@ class ItRequestForm
                             ->required()
                             ->live()
                             ->afterStateUpdated(
-                                function (
-                                    $state,
-                                    callable $set
-                                ): void {
+                                function ($state, callable $set): void {
 
                                     if (
                                         $state === 'selesai'
@@ -647,16 +605,25 @@ class ItRequestForm
                             ->nullable(),
 
                         /*
-                        |--------------------------------------------------------------------------
-                        | TANGGAL SELESAI
-                        |--------------------------------------------------------------------------
-                        */
+|--------------------------------------------------------------------------
+| TANGGAL SELESAI
+|--------------------------------------------------------------------------
+*/
 
-                        DateTimePicker::make(
+                        DatePicker::make(
                             'TanggalSelesai'
                         )
                             ->label(
                                 'Tanggal Selesai'
+                            )
+                            ->default(
+                                fn() => now()
+                            )
+                            ->format(
+                                'Y-m-d'
+                            )
+                            ->displayFormat(
+                                'd M Y'
                             )
                             ->nullable(),
 
@@ -698,10 +665,7 @@ class ItRequestForm
                                 'Serah Terima'
                             )
                             ->formatStateUsing(
-                                function (
-                                    $state,
-                                    $record
-                                ): string {
+                                function ($state, $record): string {
 
                                     return $record?->SerahTerima
                                         ? 'Sudah Serah Terima'

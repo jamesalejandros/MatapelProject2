@@ -116,14 +116,9 @@ class TrxCctvAssignmentForm
 
                     ->label('Tanggal Pasang')
 
-                    ->native(false)
-
-                    ->displayFormat('d/m/Y')
-
-                    ->format('Y-m-d')
-                    ->suffixIcon('heroicon-m-calendar-days')
-
-                    ->nullable(),
+                    ->required()
+    ->displayFormat('d M Y')
+    ->format('Y-m-d'),
 
 
                 /*

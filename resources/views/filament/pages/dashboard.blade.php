@@ -914,6 +914,77 @@
 
                         </button>
 
+                        {{-- CCTV --}}
+
+<button
+    type="button"
+    wire:click="openWidget('cctv')"
+    style="
+        width:100%;
+        padding:13px;
+        border:1px solid {{ $activeWidget === 'cctv' ? '#f59e0b' : '#e5e7eb' }};
+        border-radius:10px;
+        background:{{ $activeWidget === 'cctv' ? 'rgba(245,158,11,.08)' : 'white' }};
+        cursor:pointer;
+        text-align:left;
+        transition:all .15s ease;
+    "
+>
+    <div
+        style="
+            display:flex;
+            align-items:center;
+            gap:12px;
+        "
+    >
+
+        <div
+            style="
+                width:40px;
+                height:40px;
+                flex-shrink:0;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                border-radius:9px;
+                background:#dbeafe;
+                color:#2563eb;
+            "
+        >
+            <x-heroicon-o-video-camera class="h-5 w-5" />
+        </div>
+
+        <div style="min-width:0;">
+
+            <div
+                style="
+                    font-size:14px;
+                    font-weight:600;
+                    color:#111827;
+                "
+                class="dark:text-white"
+            >
+                CCTV
+            </div>
+
+            <div
+                style="
+                    margin-top:3px;
+                    font-size:12px;
+                    color:#6b7280;
+                "
+            >
+                Distribusi CCTV berdasarkan jenis
+            </div>
+
+        </div>
+
+    </div>
+
+</button>
+
+
+
                     </div>
 
                 </div>
@@ -1261,6 +1332,18 @@
             [],
             key('dashboard-modal-it-request')
         )
+
+        {{-- ===================================================== --}}
+{{-- CCTV ASSIGNMENT MODAL                                --}}
+{{-- ===================================================== --}}
+
+@livewire(
+    'cctv-assignment-modal',
+    [],
+    key('dashboard-modal-cctv')
+)
+
+
 
     @endif
 

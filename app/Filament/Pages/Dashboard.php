@@ -13,6 +13,7 @@ use App\Filament\Widgets\SoftwareAssignmentCompanyChart;
 use App\Filament\Widgets\ItRequestTypeChart;
 use App\Filament\Widgets\PabxLocationChart;
 use App\Filament\Widgets\SoftwareLicenseExpirationReminder;
+use App\Filament\Widgets\CctvAssignmentChart;
 
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -165,6 +166,7 @@ class Dashboard extends Page
             'software',
             'pabx',
             'it_request',
+            'cctv',
         ];
 
 
@@ -248,6 +250,9 @@ class Dashboard extends Page
             'it_request' =>
                 ItRequestTypeChart::class,
 
+            'cctv' =>
+                CctvAssignmentChart::class,
+
             default =>
                 null,
         };
@@ -295,6 +300,9 @@ class Dashboard extends Page
 
             'it_request' =>
                 'Permintaan IT Berdasarkan Jenis Permintaan',
+
+            'cctv' =>
+                'CCTV Assignment',
 
             default =>
                 'Dashboard Analytics',

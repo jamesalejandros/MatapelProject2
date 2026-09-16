@@ -38,6 +38,12 @@ class TrxCctvAssignmentsTable
              * ======================================================
              * EAGER LOAD
              * ======================================================
+             *
+             * CCTV Assignment
+             *     ↓
+             * asset
+             *     ↓
+             * lokasi
              */
 
             ->modifyQueryUsing(
@@ -45,6 +51,7 @@ class TrxCctvAssignmentsTable
 
                     $query->with([
                         'asset',
+                        'asset.lokasi',
                     ]);
 
                 }
@@ -103,6 +110,26 @@ class TrxCctvAssignmentsTable
 
                         }
                     )
+
+                    ->searchable()
+
+                    ->sortable()
+
+                    ->wrap(),
+
+
+
+                /*
+                |--------------------------------------------------------------------------
+                | LOKASI
+                |--------------------------------------------------------------------------
+                */
+
+                TextColumn::make('asset.lokasi.NamaLokasi')
+
+                    ->label('LOKASI')
+
+                    ->placeholder('-')
 
                     ->searchable()
 
