@@ -13,21 +13,40 @@ class CctvAssignmentModal extends Component
 
     /**
      * ==========================================================
-     * JENIS CCTV
+     * LOKASI CCTV
      * ==========================================================
      *
-     * Jenis berasal dari:
+     * Lokasi berasal dari:
      *
-     *     slice chart yang diklik
+     *     mstasset.IDLokasi
      *
-     * Contoh:
+     * yang terhubung dengan:
      *
-     *     IP
-     *     Analog
+     *     trxcctvassignment.NoAssetIT
      *
-     * Modal hanya menggunakan Jenis sebagai filter.
+     *     ->
+     *
+     *     mstasset.NoAssetIT
+     *
+     *     ->
+     *
+     *     mstasset.IDLokasi
+     *
+     *     ->
+     *
+     *     mstlokasi.IDLokasi
      */
-    public ?string $jenis = 'all';
+    public ?string $locationId = 'all';
+
+
+    /**
+     * ==========================================================
+     * NAMA LOKASI
+     * ==========================================================
+     *
+     * Digunakan untuk ditampilkan pada header modal.
+     */
+    public ?string $locationName = 'Semua Lokasi';
 
 
     /**
@@ -41,17 +60,27 @@ class CctvAssignmentModal extends Component
      *
      * Parameter:
      *
-     *     jenis
+     *     locationId
+     *     locationName
      */
     #[On('open-cctv-assignment-detail-modal')]
     public function open(
-        $jenis = 'all'
+        $locationId = 'all',
+        $locationName = 'Semua Lokasi'
     ): void {
 
-        $this->jenis =
-            $jenis !== null
-                ? (string) $jenis
+        $this->locationId =
+            $locationId !== null
+                ? (string) $locationId
                 : 'all';
+
+
+        $this->locationName =
+            $locationName !== null &&
+            $locationName !== ''
+                ? (string) $locationName
+                : 'Semua Lokasi';
+
 
         $this->show = true;
     }
@@ -66,27 +95,29 @@ class CctvAssignmentModal extends Component
     {
         $this->show = false;
 
-        $this->jenis = 'all';
+        $this->locationId = 'all';
+
+        $this->locationName = 'Semua Lokasi';
     }
 
 
     /**
      * ==========================================================
-     * NAMA JENIS
+     * NAMA LOKASI
      * ==========================================================
      */
-    public function getJenisNameProperty(): string
+    public function getLocationNameProperty(): string
     {
         if (
-            $this->jenis === null ||
-            $this->jenis === 'all'
+            $this->locationId === null ||
+            $this->locationId === 'all'
         ) {
 
-            return 'Semua Jenis';
+            return 'Semua Lokasi';
         }
 
 
-        return $this->jenis;
+        return $this->locationName ?? 'Lokasi';
     }
 
 
@@ -99,9 +130,19 @@ class CctvAssignmentModal extends Component
      *
      *     trxcctvassignment
      *
+     * Relasi lokasi:
+     *
+     *     trxcctvassignment.NoAssetIT
+     *         ->
+     *     mstasset.NoAssetIT
+     *         ->
+     *     mstasset.IDLokasi
+     *         ->
+     *     mstlokasi.IDLokasi
+     *
      * Filter:
      *
-     *     Jenis CCTV
+     *     Lokasi CCTV
      *
      * Relationship detail:
      *
@@ -109,13 +150,6 @@ class CctvAssignmentModal extends Component
      *     asset.perusahaan
      *     asset.lokasi
      *     asset.karyawan
-     *
-     * Catatan:
-     *
-     * Lokasi hanya ditampilkan sebagai informasi detail
-     * dari asset.
-     *
-     * Lokasi BUKAN filter CCTV.
      */
     public function getAssignmentsProperty()
     {
@@ -123,27 +157,40 @@ class CctvAssignmentModal extends Component
 
             /**
              * ==================================================
-             * FILTER JENIS
+             * FILTER LOKASI
              * ==================================================
              *
-             * Jika jenis = all:
+             * Jika locationId = all:
              *
              *     Semua assignment CCTV.
              *
-             * Jika jenis = IP:
+             * Jika locationId tertentu:
              *
-             *     Hanya assignment dengan Jenis = IP.
+             *     Hanya CCTV pada lokasi tersebut.
              */
             ->when(
 
-                $this->jenis !== null &&
-                $this->jenis !== 'all',
+                $this->locationId !== null &&
+                $this->locationId !== 'all',
 
-                fn ($query) =>
-                    $query->where(
-                        'Jenis',
-                        $this->jenis
-                    )
+                function ($query) {
+
+                    $query
+
+                        ->whereHas(
+                            'asset',
+                            function ($assetQuery) {
+
+                                $assetQuery->where(
+                                    'IDLokasi',
+                                    $this->locationId
+                                );
+
+                            }
+                        );
+
+                }
+
             )
 
 
@@ -151,9 +198,6 @@ class CctvAssignmentModal extends Component
              * ==================================================
              * LOAD RELATIONSHIP
              * ==================================================
-             *
-             * Relationship digunakan hanya untuk
-             * menampilkan informasi asset pada modal.
              */
             ->with([
 

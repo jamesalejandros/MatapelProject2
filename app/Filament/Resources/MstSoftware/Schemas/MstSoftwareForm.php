@@ -59,7 +59,6 @@ class MstSoftwareForm
 
                 DatePicker::make('EndSupportDate')
                     ->label('End Support Date')
-                    ->default(now())
                     ->format('Y-m-d')
                     ->displayFormat('d M Y'),
 

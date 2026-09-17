@@ -1410,26 +1410,27 @@ class ItRequestsTable
                 */
 
                 TextColumn::make(
-                    'approval.approved_at'
-                )
+    'approval.approved_at'
+)
 
-                    ->label(
-                        'TANGGAL APPROVAL'
-                    )
+    ->label(
+        'TANGGAL APPROVAL'
+    )
 
-                    ->dateTime(
-                        'd/m/Y H:i'
-                    )
+    ->date(
+        'd/m/Y'
+    )
 
-                    ->placeholder('-')
+    ->placeholder('-')
 
-                    ->sortable()
+    ->sortable()
 
-                    ->width('190px')
+    ->width('150px')
 
-                    ->wrap()
+    ->wrap()
 
-                    ->lineClamp(5),
+    ->lineClamp(5),
+
 
                 /*
                 |--------------------------------------------------------------------------
@@ -1662,26 +1663,27 @@ class ItRequestsTable
                 */
 
                 TextColumn::make(
-                    'TanggalSerahTerima'
-                )
+    'TanggalSerahTerima'
+)
 
-                    ->label(
-                        'TANGGAL SERAH TERIMA'
-                    )
+    ->label(
+        'TANGGAL SERAH TERIMA'
+    )
 
-                    ->dateTime(
-                        'd/m/Y H:i'
-                    )
+    ->date(
+        'd/m/Y'
+    )
 
-                    ->placeholder('-')
+    ->placeholder('-')
 
-                    ->sortable()
+    ->sortable()
 
-                    ->width('190px')
+    ->width('150px')
 
-                    ->wrap()
+    ->wrap()
 
-                    ->lineClamp(5),
+    ->lineClamp(5),
+
 
                 /*
                 |--------------------------------------------------------------------------
@@ -1716,24 +1718,25 @@ class ItRequestsTable
                 */
 
                 TextColumn::make(
-                    'created_at'
-                )
+    'created_at'
+)
 
-                    ->label(
-                        'DIAJUKAN'
-                    )
+    ->label(
+        'DIAJUKAN'
+    )
 
-                    ->dateTime(
-                        'd/m/Y H:i'
-                    )
+    ->date(
+        'd/m/Y'
+    )
 
-                    ->sortable()
+    ->sortable()
 
-                    ->width('180px')
+    ->width('150px')
 
-                    ->wrap()
+    ->wrap()
 
-                    ->lineClamp(5),
+    ->lineClamp(5),
+
 
             ])
 

@@ -44,6 +44,7 @@ class TrxServiceAssetForm
                         'Maintenance' => 'Maintenance',
                         'Perbaikan' => 'Perbaikan',
                         'Upgrade' => 'Upgrade',
+                        'Setup dan Konfigurasi' => 'Setup dan Konfigurasi',
                     ])
                     ->required(),
 

@@ -137,7 +137,6 @@ class LicenseRelationManager extends RelationManager
 
                 DatePicker::make('ExpiredDate')
                     ->label('Expired Date')
-                    ->default(now())
                     ->format('Y-m-d')
                     ->displayFormat('d M Y'),
 

@@ -1,5 +1,4 @@
 <div>
-
 @if($show)
 
     <div
@@ -27,7 +26,6 @@
             "
         ></div>
 
-
         {{-- ====================================================== --}}
         {{-- MODAL                                                  --}}
         {{-- ====================================================== --}}
@@ -42,6 +40,8 @@
                 border-radius:18px;
                 overflow:hidden;
                 box-shadow:0 25px 50px rgba(0,0,0,.25);
+                display:flex;
+                flex-direction:column;
             "
             class="dark:bg-gray-900"
         >
@@ -63,10 +63,13 @@
                     justify-content:space-between;
                     align-items:center;
                     gap:20px;
+                    flex-shrink:0;
                 "
             >
 
                 <div>
+
+                    {{-- TITLE --}}
 
                     <div
                         style="
@@ -77,6 +80,7 @@
                         Detail CCTV
                     </div>
 
+                    {{-- LOCATION INFO --}}
 
                     <div
                         style="
@@ -86,9 +90,9 @@
                         "
                     >
 
-                        Jenis :
+                        Lokasi :
                         <b>
-                            {{ $this->jenisName }}
+                            {{ $this->locationName }}
                         </b>
 
                         &nbsp; | &nbsp;
@@ -104,7 +108,6 @@
 
                 </div>
 
-
                 {{-- ================================================== --}}
                 {{-- CLOSE BUTTON                                       --}}
                 {{-- ================================================== --}}
@@ -112,6 +115,7 @@
                 <button
                     type="button"
                     wire:click="close"
+                    aria-label="Tutup"
                     style="
                         background:rgba(255,255,255,.2);
                         border:none;
@@ -120,15 +124,18 @@
                         height:40px;
                         border-radius:50%;
                         font-size:22px;
+                        line-height:1;
                         cursor:pointer;
                         flex-shrink:0;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
                     "
                 >
                     ×
                 </button>
 
             </div>
-
 
             {{-- ================================================== --}}
             {{-- CONTENT                                             --}}
@@ -139,6 +146,7 @@
                     padding:25px;
                     overflow:auto;
                     max-height:68vh;
+                    flex:1;
                 "
             >
 
@@ -163,110 +171,131 @@
                             class="dark:bg-gray-800"
                         >
 
+                            {{-- NO --}}
+
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 No.
                             </th>
 
+                            {{-- NO ASSET --}}
 
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 No Asset
                             </th>
 
+                            {{-- NAMA ASSET --}}
 
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 Nama Asset
                             </th>
 
+                            {{-- LOKASI --}}
 
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 Lokasi
                             </th>
 
+                            {{-- JENIS CCTV --}}
 
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 Jenis CCTV
                             </th>
 
+                            {{-- CHANNEL --}}
 
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 Channel
                             </th>
 
+                            {{-- TANGGAL PASANG --}}
 
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 Tanggal Pasang
                             </th>
 
+                            {{-- TIPE --}}
 
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 Tipe
                             </th>
 
+                            {{-- KONDISI --}}
 
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 Kondisi
                             </th>
 
+                            {{-- KETERANGAN --}}
 
                             <th
                                 style="
                                     padding:12px;
                                     text-align:left;
                                     white-space:nowrap;
+                                    font-weight:700;
                                 "
                             >
                                 Keterangan
@@ -275,7 +304,6 @@
                         </tr>
 
                     </thead>
-
 
                     {{-- ================================================== --}}
                     {{-- TABLE BODY                                           --}}
@@ -292,7 +320,9 @@
                                 class="dark:border-gray-700"
                             >
 
-                                {{-- NO --}}
+                                {{-- ================================================== --}}
+                                {{-- NO                                                     --}}
+                                {{-- ================================================== --}}
 
                                 <td
                                     style="
@@ -303,8 +333,9 @@
                                     {{ $index + 1 }}
                                 </td>
 
-
-                                {{-- NO ASSET --}}
+                                {{-- ================================================== --}}
+                                {{-- NO ASSET                                                --}}
+                                {{-- ================================================== --}}
 
                                 <td
                                     style="
@@ -316,8 +347,9 @@
                                     {{ $assignment->NoAssetIT ?? '-' }}
                                 </td>
 
-
-                                {{-- NAMA ASSET --}}
+                                {{-- ================================================== --}}
+                                {{-- NAMA ASSET                                              --}}
+                                {{-- ================================================== --}}
 
                                 <td
                                     style="
@@ -328,8 +360,22 @@
                                     {{ $assignment->asset?->Nama ?? '-' }}
                                 </td>
 
+                                {{-- ================================================== --}}
+                                {{-- LOKASI                                                  --}}
+                                {{-- ================================================== --}}
 
-                                {{-- LOKASI --}}
+                                <td
+                                    style="
+                                        padding:12px;
+                                        white-space:nowrap;
+                                    "
+                                >
+                                    {{ $assignment->asset?->lokasi?->NamaLokasi ?? $this->locationName ?? '-' }}
+                                </td>
+
+                                {{-- ================================================== --}}
+                                {{-- JENIS CCTV                                              --}}
+                                {{-- ================================================== --}}
 
                                 <td
                                     style="
@@ -338,38 +384,38 @@
                                     "
                                 >
 
-                                    {{ $assignment->asset?->lokasi?->NamaLokasi ?? '-' }}
+                                    @if(
+                                        isset($assignment->Jenis) &&
+                                        trim((string) $assignment->Jenis) !== ''
+                                    )
+
+                                        <span
+                                            style="
+                                                display:inline-block;
+                                                padding:5px 9px;
+                                                border-radius:7px;
+                                                background:#dbeafe;
+                                                color:#1d4ed8;
+                                                font-size:12px;
+                                                font-weight:600;
+                                            "
+                                        >
+                                            {{ $assignment->Jenis }}
+                                        </span>
+
+                                    @else
+
+                                        <span style="color:#9ca3af;">
+                                            -
+                                        </span>
+
+                                    @endif
 
                                 </td>
 
-
-                                {{-- JENIS CCTV --}}
-
-                                <td
-                                    style="
-                                        padding:12px;
-                                        white-space:nowrap;
-                                    "
-                                >
-
-                                    <span
-                                        style="
-                                            display:inline-block;
-                                            padding:5px 9px;
-                                            border-radius:7px;
-                                            background:#dbeafe;
-                                            color:#1d4ed8;
-                                            font-size:12px;
-                                            font-weight:600;
-                                        "
-                                    >
-                                        {{ $assignment->Jenis ?? '-' }}
-                                    </span>
-
-                                </td>
-
-
-                                {{-- CHANNEL --}}
+                                {{-- ================================================== --}}
+                                {{-- CHANNEL                                                --}}
+                                {{-- ================================================== --}}
 
                                 <td
                                     style="
@@ -382,8 +428,9 @@
                                     {{ $assignment->Channel ?? '-' }}
                                 </td>
 
-
-                                {{-- TANGGAL PASANG --}}
+                                {{-- ================================================== --}}
+                                {{-- TANGGAL PASANG                                          --}}
+                                {{-- ================================================== --}}
 
                                 <td
                                     style="
@@ -392,16 +439,33 @@
                                     "
                                 >
 
-                                    {{
-                                        $assignment->TanggalPasang
-                                            ? $assignment->TanggalPasang->format('d-m-Y')
-                                            : '-'
-                                    }}
+                                    @if($assignment->TanggalPasang)
+
+                                        @php
+                                            try {
+                                                $tanggalPasang = \Carbon\Carbon::parse(
+                                                    $assignment->TanggalPasang
+                                                )->format('d-m-Y');
+                                            } catch (\Throwable $e) {
+                                                $tanggalPasang = $assignment->TanggalPasang;
+                                            }
+                                        @endphp
+
+                                        {{ $tanggalPasang }}
+
+                                    @else
+
+                                        <span style="color:#9ca3af;">
+                                            -
+                                        </span>
+
+                                    @endif
 
                                 </td>
 
-
-                                {{-- TIPE --}}
+                                {{-- ================================================== --}}
+                                {{-- TIPE                                                     --}}
+                                {{-- ================================================== --}}
 
                                 <td
                                     style="
@@ -410,7 +474,10 @@
                                     "
                                 >
 
-                                    @if($assignment->Tipe)
+                                    @if(
+                                        isset($assignment->Tipe) &&
+                                        trim((string) $assignment->Tipe) !== ''
+                                    )
 
                                         <span
                                             style="
@@ -436,8 +503,9 @@
 
                                 </td>
 
-
-                                {{-- KONDISI --}}
+                                {{-- ================================================== --}}
+                                {{-- KONDISI                                                  --}}
+                                {{-- ================================================== --}}
 
                                 <td
                                     style="
@@ -447,15 +515,22 @@
                                 >
 
                                     @php
+
                                         $kondisi = strtolower(
                                             trim(
-                                                (string) ($assignment->Kondisi ?? '')
+                                                (string) (
+                                                    $assignment->Kondisi ?? ''
+                                                )
                                             )
                                         );
+
                                     @endphp
 
-
                                     @if($kondisi !== '')
+
+                                        {{-- ========================================== --}}
+                                        {{-- BAIK / NORMAL / AKTIF                       --}}
+                                        {{-- ========================================== --}}
 
                                         @if(
                                             in_array(
@@ -465,7 +540,8 @@
                                                     'normal',
                                                     'aktif',
                                                     'good'
-                                                ]
+                                                ],
+                                                true
                                             )
                                         )
 
@@ -483,6 +559,10 @@
                                                 {{ $assignment->Kondisi }}
                                             </span>
 
+                                        {{-- ========================================== --}}
+                                        {{-- RUSAK / MATI                               --}}
+                                        {{-- ========================================== --}}
+
                                         @elseif(
                                             in_array(
                                                 $kondisi,
@@ -491,7 +571,8 @@
                                                     'mati',
                                                     'damage',
                                                     'damaged'
-                                                ]
+                                                ],
+                                                true
                                             )
                                         )
 
@@ -508,6 +589,10 @@
                                             >
                                                 {{ $assignment->Kondisi }}
                                             </span>
+
+                                        {{-- ========================================== --}}
+                                        {{-- KONDISI LAIN                               --}}
+                                        {{-- ========================================== --}}
 
                                         @else
 
@@ -537,13 +622,15 @@
 
                                 </td>
 
-
-                                {{-- KETERANGAN --}}
+                                {{-- ================================================== --}}
+                                {{-- KETERANGAN                                             --}}
+                                {{-- ================================================== --}}
 
                                 <td
                                     style="
                                         padding:12px;
                                         min-width:220px;
+                                        max-width:400px;
                                     "
                                 >
                                     {{ $assignment->Keterangan ?? '-' }}
@@ -552,6 +639,10 @@
                             </tr>
 
                         @empty
+
+                            {{-- ================================================== --}}
+                            {{-- EMPTY STATE                                             --}}
+                            {{-- ================================================== --}}
 
                             <tr>
 
@@ -580,7 +671,10 @@
                                         "
                                     >
                                         Tidak ditemukan assignment CCTV
-                                        untuk jenis yang dipilih.
+                                        pada lokasi
+                                        <b>
+                                            {{ $this->locationName }}
+                                        </b>.
                                     </div>
 
                                 </td>
@@ -595,7 +689,6 @@
 
             </div>
 
-
             {{-- ================================================== --}}
             {{-- FOOTER                                             --}}
             {{-- ================================================== --}}
@@ -605,6 +698,8 @@
                     padding:15px 25px;
                     background:#f9fafb;
                     text-align:right;
+                    flex-shrink:0;
+                    border-top:1px solid #e5e7eb;
                 "
                 class="dark:bg-gray-800"
             >

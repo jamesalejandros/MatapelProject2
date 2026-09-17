@@ -66,6 +66,7 @@ class ServiceRelationManager extends RelationManager
                         'Maintenance' => 'Maintenance',
                         'Perbaikan' => 'Perbaikan',
                         'Upgrade' => 'Upgrade',
+                        'Setup dan Konfigurasi' => 'Setup dan Konfigurasi',
                     ])
                     ->required(),
 
