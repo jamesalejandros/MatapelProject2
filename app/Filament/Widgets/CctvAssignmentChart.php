@@ -2,49 +2,39 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\MstLokasi;
 use App\Models\TrxCctvAssignment;
 use Filament\Support\RawJs;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Facades\DB;
 
 class CctvAssignmentChart extends ChartWidget
 {
-    protected ?string $heading = 'CCTV Berdasarkan Lokasi';
+    protected ?string $heading = 'CCTV Berdasarkan Jenis';
 
     /**
      * ==========================================================
-     * FILTER
+     * FILTER BERDASARKAN LOKASI
      * ==========================================================
      *
-     * Filter berdasarkan Lokasi CCTV.
+     * Filter:
      *
-     * Relasi:
+     *     Lokasi
      *
-     * trxcctvassignment.NoAssetIT
-     *     ↓
-     * mstasset.NoAssetIT
-     *     ↓
-     * mstasset.IDLokasi
-     *     ↓
-     * mstlokasi.IDLokasi
+     * Isi chart:
      *
-     * Default:
+     *     Jenis CCTV
      *
-     *     all = Semua Lokasi
+     * all = semua lokasi
      */
     public ?string $filter = 'all';
 
 
     /**
      * ==========================================================
-     * FILTER OPTIONS
+     * FILTER LOKASI
      * ==========================================================
      *
-     * Mengambil daftar lokasi dari:
-     *
-     *     mstlokasi
-     *
-     * yang memiliki CCTV pada trxcctvassignment.
+     * Lokasi diambil langsung dari mstlokasi.
      */
     protected function getFilters(): ?array
     {
@@ -55,67 +45,34 @@ class CctvAssignmentChart extends ChartWidget
         ];
 
 
-        /**
-         * ======================================================
-         * AMBIL LOKASI CCTV
-         * ======================================================
-         *
-         * Join:
-         *
-         * trxcctvassignment
-         *      → mstasset
-         *      → mstlokasi
-         */
-        $lokasiCctv = TrxCctvAssignment::query()
+        $locations = MstLokasi::query()
 
-            ->join(
-                'mstasset',
-                'mstasset.NoAssetIT',
-                '=',
-                'trxcctvassignment.NoAssetIT'
+            ->whereNotNull(
+                'NamaLokasi'
             )
-
-            ->join(
-                'mstlokasi',
-                'mstlokasi.IDLokasi',
-                '=',
-                'mstasset.IDLokasi'
-            )
-
-            ->whereNotNull('mstasset.IDLokasi')
-
-            ->whereNotNull('mstlokasi.NamaLokasi')
 
             ->where(
-                'mstlokasi.NamaLokasi',
+                'NamaLokasi',
                 '!=',
                 ''
             )
 
-            ->select(
-                'mstlokasi.IDLokasi',
-                'mstlokasi.NamaLokasi'
-            )
-
-            ->distinct()
-
             ->orderBy(
-                'mstlokasi.NamaLokasi'
+                'NamaLokasi'
             )
 
-            ->get();
+            ->get([
+                'IDLokasi',
+                'NamaLokasi',
+            ]);
 
 
-        /**
-         * ======================================================
-         * MASUKKAN LOKASI KE FILTER
-         * ======================================================
-         */
-        foreach ($lokasiCctv as $lokasi) {
+        foreach ($locations as $location) {
 
             $filters[
-                (string) $lokasi->IDLokasi
-            ] = (string) $lokasi->NamaLokasi;
+                (string) $location->IDLokasi
+            ] = (string) $location->NamaLokasi;
+
         }
 
 
@@ -128,19 +85,21 @@ class CctvAssignmentChart extends ChartWidget
      * DATA CHART
      * ==========================================================
      *
-     * Sumber:
-     *
-     *     trxcctvassignment
-     *     mstasset
-     *     mstlokasi
-     *
-     * Yang ditampilkan:
-     *
-     *     Jumlah CCTV berdasarkan Lokasi.
-     *
-     * Filter:
+     * FILTER:
      *
      *     Lokasi CCTV
+     *
+     * YANG DITAMPILKAN:
+     *
+     *     Jenis CCTV
+     *
+     * Relasi lokasi:
+     *
+     *     trxcctvassignment
+     *          ->
+     *     asset
+     *          ->
+     *     IDLokasi
      */
     protected function getData(): array
     {
@@ -148,46 +107,45 @@ class CctvAssignmentChart extends ChartWidget
          * ======================================================
          * QUERY ASSIGNMENT CCTV
          * ======================================================
-         *
-         * Relasi:
-         *
-         * trxcctvassignment.NoAssetIT
-         *     =
-         * mstasset.NoAssetIT
-         *
-         * mstasset.IDLokasi
-         *     =
-         * mstlokasi.IDLokasi
          */
         $query = TrxCctvAssignment::query()
 
-            ->join(
-                'mstasset',
-                'mstasset.NoAssetIT',
-                '=',
-                'trxcctvassignment.NoAssetIT'
-            )
+            /**
+             * ==================================================
+             * FILTER BERDASARKAN LOKASI
+             * ==================================================
+             */
+            ->whereHas(
+                'asset',
+                function ($assetQuery) {
 
-            ->join(
-                'mstlokasi',
-                'mstlokasi.IDLokasi',
-                '=',
-                'mstasset.IDLokasi'
+                    if (
+                        $this->filter !== null &&
+                        $this->filter !== '' &&
+                        $this->filter !== 'all'
+                    ) {
+
+                        $assetQuery->where(
+                            'IDLokasi',
+                            $this->filter
+                        );
+
+                    }
+
+                }
             )
 
             /**
-             * Lokasi wajib tersedia.
+             * ==================================================
+             * JENIS CCTV WAJIB TERSEDIA
+             * ==================================================
              */
             ->whereNotNull(
-                'mstasset.IDLokasi'
-            )
-
-            ->whereNotNull(
-                'mstlokasi.NamaLokasi'
+                'Jenis'
             )
 
             ->where(
-                'mstlokasi.NamaLokasi',
+                'Jenis',
                 '!=',
                 ''
             );
@@ -195,94 +153,43 @@ class CctvAssignmentChart extends ChartWidget
 
         /**
          * ======================================================
-         * APPLY FILTER LOKASI
+         * HITUNG JUMLAH CCTV PER JENIS
          * ======================================================
-         *
-         * Jika:
-         *
-         *     all
-         *
-         * maka semua lokasi ditampilkan.
-         *
-         * Jika:
-         *
-         *     ID lokasi tertentu
-         *
-         * maka hanya CCTV pada lokasi tersebut
-         * yang ditampilkan.
-         */
-        if (
-            $this->filter !== null &&
-            $this->filter !== '' &&
-            $this->filter !== 'all'
-        ) {
-
-            $query->where(
-                'mstlokasi.IDLokasi',
-                $this->filter
-            );
-        }
-
-
-        /**
-         * ======================================================
-         * HITUNG CCTV PER LOKASI
-         * ======================================================
-         *
-         * Setiap baris assignment dihitung sebagai satu CCTV.
          */
         $result = $query
 
-            ->select(
-                'mstlokasi.IDLokasi',
-                'mstlokasi.NamaLokasi'
-            )
-
             ->selectRaw(
-                'COUNT(*) as total'
+                'Jenis, COUNT(*) as total'
             )
 
             ->groupBy(
-                'mstlokasi.IDLokasi',
-                'mstlokasi.NamaLokasi'
+                'Jenis'
             )
 
             ->orderByDesc(
                 'total'
             )
 
-            ->get();
+            ->pluck(
+                'total',
+                'Jenis'
+            );
 
 
         /**
          * ======================================================
          * LABEL
          * ======================================================
+         *
+         * Label chart = Jenis CCTV.
          */
         $labels = $result
 
-            ->map(
-                fn ($row) =>
-                    (string) $row->NamaLokasi
-            )
-
-            ->toArray();
-
-
-        /**
-         * ======================================================
-         * LOCATION VALUES
-         * ======================================================
-         *
-         * ID lokasi berdasarkan index chart.
-         *
-         * Digunakan oleh JavaScript ketika pie chart diklik.
-         */
-        $locationValues = $result
+            ->keys()
 
             ->map(
-                fn ($row) =>
-                    (int) $row->IDLokasi
+                fn ($jenis) =>
+                    (string) $jenis
             )
 
             ->toArray();
@@ -295,9 +202,11 @@ class CctvAssignmentChart extends ChartWidget
          */
         $data = $result
 
+            ->values()
+
             ->map(
-                fn ($row) =>
-                    (int) $row->total
+                fn ($total) =>
+                    (int) $total
             )
 
             ->toArray();
@@ -310,8 +219,8 @@ class CctvAssignmentChart extends ChartWidget
          */
         $colors = [
 
-            '#2563EB',
             '#7C3AED',
+            '#2563EB',
             '#10B981',
             '#F59E0B',
             '#EF4444',
@@ -348,59 +257,45 @@ class CctvAssignmentChart extends ChartWidget
 
         /**
          * ======================================================
-         * NAMA LOKASI YANG SEDANG DIFILTER
-         * ======================================================
-         */
-        $selectedLocation = null;
-
-
-        if (
-            $this->filter !== null &&
-            $this->filter !== '' &&
-            $this->filter !== 'all'
-        ) {
-
-            $selectedLocation = DB::table('mstlokasi')
-
-                ->where(
-                    'IDLokasi',
-                    $this->filter
-                )
-
-                ->value(
-                    'NamaLokasi'
-                );
-        }
-
-
-        /**
-         * ======================================================
          * RETURN DATA
          * ======================================================
          */
         return [
 
             /**
-             * Custom property untuk JavaScript.
+             * ==================================================
+             * JENIS VALUES
+             * ==================================================
              *
-             * Nama lokasi berdasarkan index chart.
+             * Digunakan JavaScript ketika
+             * pie chart diklik.
              */
-            'locationValues' =>
-                $locationValues,
-
-
-            /**
-             * Nama lokasi berdasarkan index chart.
-             */
-            'locationNames' =>
+            'jenisValues' =>
                 $labels,
 
 
             /**
-             * Lokasi yang sedang difilter.
+             * ==================================================
+             * ID LOKASI YANG SEDANG DIFILTER
+             * ==================================================
              */
-            'selectedLocation' =>
-                $selectedLocation,
+            'locationId' =>
+                (
+                    $this->filter !== null &&
+                    $this->filter !== '' &&
+                    $this->filter !== 'all'
+                )
+                    ? (string) $this->filter
+                    : null,
+
+
+            /**
+             * ==================================================
+             * NAMA LOKASI YANG SEDANG DIFILTER
+             * ==================================================
+             */
+            'locationName' =>
+                $this->getSelectedLocationName(),
 
 
             'datasets' => [
@@ -409,8 +304,11 @@ class CctvAssignmentChart extends ChartWidget
 
                     'label' =>
                         $this->filter === 'all'
+
                             ? 'Jumlah CCTV'
-                            : 'Jumlah CCTV - ' . $selectedLocation,
+
+                            : 'Jumlah CCTV - ' .
+                              $this->getSelectedLocationName(),
 
                     'data' =>
                         $data,
@@ -439,6 +337,38 @@ class CctvAssignmentChart extends ChartWidget
                 $labels,
 
         ];
+    }
+
+
+    /**
+     * ==========================================================
+     * NAMA LOKASI TERPILIH
+     * ==========================================================
+     */
+    protected function getSelectedLocationName(): string
+    {
+        if (
+            $this->filter === null ||
+            $this->filter === '' ||
+            $this->filter === 'all'
+        ) {
+
+            return 'Semua Lokasi';
+        }
+
+
+        return MstLokasi::query()
+
+            ->where(
+                'IDLokasi',
+                $this->filter
+            )
+
+            ->value(
+                'NamaLokasi'
+            )
+
+            ?? '-';
     }
 
 
@@ -520,18 +450,27 @@ class CctvAssignmentChart extends ChartWidget
 
         /**
          * ======================================================
-         * LOKASI YANG DIKLIK
+         * JENIS CCTV YANG DIKLIK
          * ======================================================
          */
-        const locationId =
-            chart.data.locationValues[index];
+        const jenis =
+            chart.data.jenisValues[index];
+
+
+        /**
+         * ======================================================
+         * LOKASI DARI FILTER
+         * ======================================================
+         */
+        const location =
+            chart.data.locationId;
 
 
         const locationName =
-            chart.data.locationNames[index];
+            chart.data.locationName;
 
 
-        if (!locationId) {
+        if (!jenis) {
 
             return;
 
@@ -539,34 +478,28 @@ class CctvAssignmentChart extends ChartWidget
 
 
         console.log(
-            'CCTV LOCATION CLICK:',
-            locationId,
+            'CCTV JENIS CLICK:',
+            jenis,
+            'LOCATION:',
+            location,
             locationName
         );
 
 
         /**
          * ======================================================
-         * BUKA MODAL
+         * BUKA MODAL DETAIL
          * ======================================================
          *
-         * Mengirim:
-         *
-         *     locationId
-         *     locationName
-         *
-         * Tidak lagi mengirim:
-         *
-         *     jenis
-         *     tipe
-         *     kondisi
-         *     tahun
+         * location = lokasi dari Filter Lokasi
+         * jenis    = jenis CCTV dari pie chart
          */
         Livewire.dispatch(
             'open-cctv-assignment-detail-modal',
             {
-                locationId: locationId,
+                location: location,
                 locationName: locationName,
+                jenis: jenis,
             }
         );
 
