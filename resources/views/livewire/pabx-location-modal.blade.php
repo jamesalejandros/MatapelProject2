@@ -284,6 +284,60 @@
                         </th>
 
                         {{-- ================================================= --}}
+{{-- LOKASI                                            --}}
+{{-- ================================================= --}}
+
+<th
+    style="
+        padding:0;
+        text-align:left;
+        white-space:nowrap;
+    "
+>
+
+    <button
+        type="button"
+        wire:click="sortBy('location.NamaLokasi')"
+        style="
+            width:100%;
+            padding:12px;
+            border:none;
+            background:transparent;
+            text-align:left;
+            font-weight:700;
+            cursor:pointer;
+            color:inherit;
+        "
+    >
+        Lokasi
+
+        @if($sortField === 'location.NamaLokasi')
+
+            @if($sortDirection === 'asc')
+                <span style="margin-left:5px;">↑</span>
+            @else
+                <span style="margin-left:5px;">↓</span>
+            @endif
+
+        @else
+
+            <span
+                style="
+                    margin-left:5px;
+                    color:#9ca3af;
+                "
+            >
+                ↕
+            </span>
+
+        @endif
+
+    </button>
+
+</th>
+
+
+                        {{-- ================================================= --}}
                         {{-- JENIS PABX                                         --}}
                         {{-- ================================================= --}}
 
@@ -705,6 +759,20 @@
                             >
                                 {{ $assignment->asset?->Nama ?? '-' }}
                             </td>
+
+                            {{-- ================================================= --}}
+{{-- LOKASI                                            --}}
+{{-- ================================================= --}}
+
+<td
+    style="
+        padding:12px;
+        white-space:nowrap;
+    "
+>
+    {{ $assignment->asset?->lokasi?->NamaLokasi ?? '-' }}
+</td>
+
 
                             {{-- ================================================= --}}
                             {{-- JENIS PABX                                         --}}

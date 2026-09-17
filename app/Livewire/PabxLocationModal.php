@@ -270,6 +270,14 @@ class PabxLocationModal extends Component
                 'mstasset.NoAssetIT'
             )
 
+            ->leftJoin(
+    'mstlokasi',
+    'mstasset.IDLokasi',
+    '=',
+    'mstlokasi.IDLokasi'
+)
+
+
             /**
              * ==================================================
              * JOIN KARYAWAN
@@ -408,6 +416,10 @@ class PabxLocationModal extends Component
 
             'asset.Nama' =>
                 'mstasset.Nama',
+
+            'location.NamaLokasi' =>
+    'mstlokasi.NamaLokasi',
+
 
             /**
              * KARYAWAN DARI TRXPABXASSIGNMENT.NIK
