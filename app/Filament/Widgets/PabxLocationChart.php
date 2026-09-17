@@ -11,21 +11,12 @@ class PabxLocationChart extends ChartWidget
 {
     protected ?string $heading = 'PABX Berdasarkan Jenis';
 
-    /**
-     * ==========================================================
-     * FILTER BERDASARKAN LOKASI
-     * ==========================================================
-     *
-     * all = semua lokasi
-     */
     public ?string $filter = 'all';
 
     /**
      * ==========================================================
      * FILTER LOKASI
      * ==========================================================
-     *
-     * Lokasi diambil langsung dari mstlokasi.
      */
     protected function getFilters(): ?array
     {
@@ -43,7 +34,6 @@ class PabxLocationChart extends ChartWidget
             ]);
 
         foreach ($locations as $location) {
-
             $filters[
                 (string) $location->IDLokasi
             ] = $location->NamaLokasi;
@@ -57,81 +47,58 @@ class PabxLocationChart extends ChartWidget
      * DATA CHART
      * ==========================================================
      *
-     * FILTER:
-     *     Lokasi
-     *
-     * YANG DITAMPILKAN:
-     *     Jenis PABX
-     *
-     * Contoh:
-     *
-     * Filter Lokasi = Gedung A
-     *
-     * Chart:
-     *
-     * Panasonic = 10
-     * Avaya     = 5
-     * Cisco     = 2
-     *
-     * Sumber utama:
+     * Sumber PABX:
      *     trxpabxassignment
+     *
+     * Jenis:
+     *     trxpabxassignment.Jenis
      *
      * Lokasi:
-     *     trxpabxassignment
-     *          -> asset
-     *          -> IDLokasi
+     *     mstasset.IDLokasi
+     *
+     * Karyawan:
+     *     TIDAK digunakan pada chart.
      */
     protected function getData(): array
     {
-        /**
-         * ==========================================================
-         * QUERY ASSIGNMENT PABX
-         * ==========================================================
-         */
         $query = TrxPabxAssignment::query()
 
             /**
-             * Hanya assignment yang memiliki asset.
+             * ==================================================
+             * FILTER LOKASI
+             * ==================================================
+             *
+             * Lokasi asset tetap berasal dari mstasset.
              */
-            ->whereHas(
-                'asset',
+            ->when(
+                $this->filter !== null &&
+                $this->filter !== 'all',
+
                 function ($query) {
-
-                    /**
-                     * ==================================================
-                     * FILTER LOKASI
-                     * ==================================================
-                     */
-                    if (
-                        $this->filter !== null &&
-                        $this->filter !== 'all'
-                    ) {
-
-                        $query->where(
-                            'IDLokasi',
-                            $this->filter
-                        );
-                    }
+                    $query->whereHas(
+                        'asset',
+                        function ($assetQuery) {
+                            $assetQuery->where(
+                                'IDLokasi',
+                                $this->filter
+                            );
+                        }
+                    );
                 }
             )
 
             /**
-             * Jenis harus tersedia.
+             * ==================================================
+             * JENIS PABX
+             * ==================================================
              */
             ->whereNotNull('Jenis')
-
-            ->where(
-                'Jenis',
-                '!=',
-                ''
-            );
+            ->where('Jenis', '!=', '');
 
         /**
          * ==========================================================
          * HITUNG JUMLAH PABX PER JENIS
          * ==========================================================
-         *
-         * Setiap baris assignment dihitung sebagai satu PABX.
          */
         $result = $query
             ->selectRaw(
@@ -152,8 +119,7 @@ class PabxLocationChart extends ChartWidget
         $labels = $result
             ->keys()
             ->map(
-                fn ($jenis) =>
-                    (string) $jenis
+                fn ($jenis) => (string) $jenis
             )
             ->toArray();
 
@@ -165,14 +131,13 @@ class PabxLocationChart extends ChartWidget
         $data = $result
             ->values()
             ->map(
-                fn ($total) =>
-                    (int) $total
+                fn ($total) => (int) $total
             )
             ->toArray();
 
         /**
          * ==========================================================
-         * WARNA CHART
+         * WARNA
          * ==========================================================
          */
         $colors = [
@@ -209,74 +174,50 @@ class PabxLocationChart extends ChartWidget
 
         /**
          * ==========================================================
-         * RETURN DATA
+         * RETURN
          * ==========================================================
          */
         return [
-
-            /**
-             * Custom property untuk JavaScript.
-             *
-             * Karena chart sekarang berdasarkan JENIS,
-             * property ini menyimpan jenis yang sesuai
-             * dengan index label/data.
-             */
             'jenisValues' => $labels,
 
-            /**
-             * ID lokasi yang sedang difilter.
-             */
             'locationId' =>
                 $this->filter !== 'all'
                     ? $this->filter
                     : null,
 
-            /**
-             * Nama lokasi yang sedang difilter.
-             */
             'locationName' =>
                 $this->getSelectedLocationName(),
 
             'datasets' => [
-
                 [
-
                     'label' =>
                         $this->filter === 'all'
                             ? 'Jumlah PABX'
                             : 'Jumlah PABX - ' .
                               $this->getSelectedLocationName(),
 
-                    'data' =>
-                        $data,
+                    'data' => $data,
 
                     'backgroundColor' =>
                         $backgroundColors,
 
-                    'borderColor' =>
-                        '#FFFFFF',
+                    'borderColor' => '#FFFFFF',
 
-                    'borderWidth' =>
-                        2,
+                    'borderWidth' => 2,
 
-                    'borderRadius' =>
-                        6,
+                    'borderRadius' => 6,
 
-                    'hoverOffset' =>
-                        8,
-
+                    'hoverOffset' => 8,
                 ],
-
             ],
 
-            'labels' =>
-                $labels,
+            'labels' => $labels,
         ];
     }
 
     /**
      * ==========================================================
-     * NAMA LOKASI TERPILIH
+     * NAMA LOKASI
      * ==========================================================
      */
     protected function getSelectedLocationName(): string
@@ -298,7 +239,7 @@ class PabxLocationChart extends ChartWidget
 
     /**
      * ==========================================================
-     * CHART TYPE
+     * TYPE
      * ==========================================================
      */
     protected function getType(): string
@@ -308,7 +249,7 @@ class PabxLocationChart extends ChartWidget
 
     /**
      * ==========================================================
-     * CHART OPTIONS
+     * OPTIONS
      * ==========================================================
      */
     protected function getOptions(): RawJs
@@ -324,7 +265,6 @@ class PabxLocationChart extends ChartWidget
 
         legend: {
             display: true,
-
             position: 'right',
         },
 
@@ -361,16 +301,9 @@ class PabxLocationChart extends ChartWidget
         const index =
             elements[0].index;
 
-        /**
-         * Jenis PABX yang diklik.
-         */
         const jenis =
             chart.data.jenisValues[index];
 
-        /**
-         * Lokasi yang sedang dipilih
-         * melalui filter chart.
-         */
         const location =
             chart.data.locationId;
 
@@ -389,12 +322,6 @@ class PabxLocationChart extends ChartWidget
             locationName
         );
 
-        /**
-         * Buka modal:
-         *
-         * lokasi = filter lokasi
-         * jenis   = potongan chart yang diklik
-         */
         Livewire.dispatch(
             'open-pabx-location-detail-modal',
             {

@@ -15,8 +15,6 @@ class PabxLocationModal extends Component
      * ==========================================================
      * LOKASI
      * ==========================================================
-     *
-     * Lokasi berasal dari filter chart.
      */
     public ?string $location = null;
 
@@ -24,10 +22,24 @@ class PabxLocationModal extends Component
      * ==========================================================
      * JENIS PABX
      * ==========================================================
-     *
-     * Jenis berasal dari potongan chart yang diklik.
      */
     public ?string $jenis = 'all';
+
+    /**
+     * ==========================================================
+     * SORT
+     * ==========================================================
+     *
+     * Field default:
+     *     IDAssignment
+     *
+     * Arah default:
+     *     ASC
+     */
+    public string $sortField = 'IDAssignment';
+
+    public string $sortDirection = 'asc';
+
 
     /**
      * ==========================================================
@@ -50,8 +62,87 @@ class PabxLocationModal extends Component
                 ? (string) $jenis
                 : 'all';
 
+        /**
+         * Reset sorting setiap kali modal dibuka.
+         */
+        $this->sortField = 'IDAssignment';
+
+        $this->sortDirection = 'asc';
+
         $this->show = true;
     }
+
+
+    /**
+     * ==========================================================
+     * SORT BY
+     * ==========================================================
+     */
+    public function sortBy(string $field): void
+    {
+        $allowedFields = [
+            'IDAssignment',
+            'NoAssetIT',
+            'Jenis',
+            'NoExt',
+            'Pin',
+            'Keterangan',
+
+            /**
+             * Kolom dari tabel mstasset.
+             */
+            'asset.Nama',
+
+            /**
+             * Kolom dari tabel mstkaryawan.
+             *
+             * PENTING:
+             * Karyawan diambil dari:
+             *
+             * trxpabxassignment.NIK
+             *     ->
+             * mstkaryawan.NIK
+             */
+            'karyawan.Nama',
+
+            /**
+             * Kolom dari mstruangan.
+             */
+            'ruangan.NamaRuangan',
+
+            /**
+             * Kolom dari mstsambungan.
+             */
+            'sambungan.Rule',
+        ];
+
+        if (! in_array($field, $allowedFields, true)) {
+            return;
+        }
+
+        /**
+         * Kalau klik header yang sama,
+         * toggle ASC <-> DESC.
+         */
+        if ($this->sortField === $field) {
+
+            $this->sortDirection =
+                $this->sortDirection === 'asc'
+                    ? 'desc'
+                    : 'asc';
+
+            return;
+        }
+
+        /**
+         * Kalau klik header berbeda,
+         * mulai dari ASC.
+         */
+        $this->sortField = $field;
+
+        $this->sortDirection = 'asc';
+    }
+
 
     /**
      * ==========================================================
@@ -65,7 +156,15 @@ class PabxLocationModal extends Component
         $this->location = null;
 
         $this->jenis = 'all';
+
+        /**
+         * Reset sorting.
+         */
+        $this->sortField = 'IDAssignment';
+
+        $this->sortDirection = 'asc';
     }
+
 
     /**
      * ==========================================================
@@ -89,6 +188,7 @@ class PabxLocationModal extends Component
             ->value('NamaLokasi') ?? '-';
     }
 
+
     /**
      * ==========================================================
      * NAMA JENIS
@@ -106,75 +206,270 @@ class PabxLocationModal extends Component
         return $this->jenis;
     }
 
+
     /**
      * ==========================================================
      * DATA ASSIGNMENT PABX
      * ==========================================================
      *
-     * Sumber:
+     * SUMBER UTAMA:
      *
      *     trxpabxassignment
      *
-     * Filter:
      *
-     *     1. Lokasi asset
-     *     2. Jenis PABX
+     * RELATION:
      *
-     * Yang ditampilkan:
+     *     NoAssetIT
+     *         ->
+     *     mstasset.NoAssetIT
      *
-     *     Setiap assignment PABX.
+     *
+     *     NIK
+     *         ->
+     *     mstkaryawan.NIK
+     *
+     *
+     *     IDRuangan
+     *         ->
+     *     mstruangan.IDRuangan
+     *
+     *
+     *     IDSambungan
+     *         ->
+     *     mstsambungan.IDSambungan
+     *
+     *
+     * LOKASI:
+     *
+     *     mstasset.IDLokasi
+     *
+     *
+     * SORT:
+     *
+     *     Dilakukan langsung oleh database
+     *     menggunakan JOIN.
      */
     public function getAssignmentsProperty()
     {
-        return TrxPabxAssignment::query()
+        $query = TrxPabxAssignment::query()
 
             /**
              * ==================================================
-             * FILTER LOKASI
+             * JOIN ASSET
              * ==================================================
              *
-             * Lokasi berada di mstasset.
+             * Untuk:
+             *
+             * - Nama Asset
+             * - Lokasi
              */
-            ->whereHas(
-                'asset',
-                function ($query) {
-
-                    if (
-                        $this->location !== null &&
-                        $this->location !== 'all'
-                    ) {
-
-                        $query->where(
-                            'IDLokasi',
-                            $this->location
-                        );
-                    }
-                }
+            ->leftJoin(
+                'mstasset',
+                'trxpabxassignment.NoAssetIT',
+                '=',
+                'mstasset.NoAssetIT'
             )
 
             /**
              * ==================================================
-             * FILTER JENIS
+             * JOIN KARYAWAN
              * ==================================================
+             *
+             * PENTING:
+             *
+             * Karyawan diambil dari:
+             *
+             * trxpabxassignment.NIK
+             *     ->
+             * mstkaryawan.NIK
+             *
+             * BUKAN dari mstasset.NIK.
              */
-            ->when(
-                $this->jenis !== null &&
-                $this->jenis !== 'all',
-
-                fn ($query) =>
-                    $query->where(
-                        'Jenis',
-                        $this->jenis
-                    )
+            ->leftJoin(
+                'mstkaryawan',
+                'trxpabxassignment.NIK',
+                '=',
+                'mstkaryawan.NIK'
             )
 
             /**
              * ==================================================
-             * LOAD RELATIONSHIP
+             * JOIN RUANGAN
+             * ==================================================
+             */
+            ->leftJoin(
+                'mstruangan',
+                'trxpabxassignment.IDRuangan',
+                '=',
+                'mstruangan.IDRuangan'
+            )
+
+            /**
+             * ==================================================
+             * JOIN SAMBUNGAN
+             * ==================================================
+             */
+            ->leftJoin(
+                'mstsambungan',
+                'trxpabxassignment.IDSambungan',
+                '=',
+                'mstsambungan.IDSambungan'
+            )
+
+            /**
+             * ==================================================
+             * SELECT
              * ==================================================
              *
-             * Sambungan WAJIB di-load dari relationship.
+             * Karena menggunakan JOIN,
+             * kita harus menentukan tabel utama.
              */
+            ->select(
+                'trxpabxassignment.*'
+            );
+
+
+        /**
+         * ==========================================================
+         * FILTER LOKASI
+         * ==========================================================
+         *
+         * Lokasi berasal dari:
+         *
+         *     mstasset.IDLokasi
+         *
+         * BUKAN dari karyawan.
+         */
+        $query->when(
+            $this->location !== null &&
+            $this->location !== 'all',
+
+            function ($query) {
+
+                $query->where(
+                    'mstasset.IDLokasi',
+                    $this->location
+                );
+            }
+        );
+
+
+        /**
+         * ==========================================================
+         * FILTER JENIS
+         * ==========================================================
+         */
+        $query->when(
+            $this->jenis !== null &&
+            $this->jenis !== 'all',
+
+            function ($query) {
+
+                $query->where(
+                    'trxpabxassignment.Jenis',
+                    $this->jenis
+                );
+            }
+        );
+
+
+        /**
+         * ==========================================================
+         * MAPPING SORT FIELD
+         * ==========================================================
+         *
+         * Property Livewire:
+         *
+         *     asset.Nama
+         *
+         * diubah menjadi:
+         *
+         *     mstasset.Nama
+         */
+        $sortColumns = [
+
+            'IDAssignment' =>
+                'trxpabxassignment.IDAssignment',
+
+            'NoAssetIT' =>
+                'trxpabxassignment.NoAssetIT',
+
+            'Jenis' =>
+                'trxpabxassignment.Jenis',
+
+            'NoExt' =>
+                'trxpabxassignment.NoExt',
+
+            'Pin' =>
+                'trxpabxassignment.Pin',
+
+            'Keterangan' =>
+                'trxpabxassignment.Keterangan',
+
+            'asset.Nama' =>
+                'mstasset.Nama',
+
+            /**
+             * KARYAWAN DARI TRXPABXASSIGNMENT.NIK
+             */
+            'karyawan.Nama' =>
+                'mstkaryawan.Nama',
+
+            'ruangan.NamaRuangan' =>
+                'mstruangan.NamaRuangan',
+
+            'sambungan.Rule' =>
+                'mstsambungan.Rule',
+        ];
+
+
+        /**
+         * ==========================================================
+         * SORT DATABASE
+         * ==========================================================
+         */
+        $sortColumn =
+            $sortColumns[$this->sortField]
+            ?? 'trxpabxassignment.IDAssignment';
+
+
+        $sortDirection =
+            $this->sortDirection === 'desc'
+                ? 'desc'
+                : 'asc';
+
+
+        $query->orderBy(
+            $sortColumn,
+            $sortDirection
+        );
+
+
+        /**
+         * ==========================================================
+         * SECONDARY SORT
+         * ==========================================================
+         *
+         * Kalau ada nilai yang sama,
+         * tetap gunakan IDAssignment sebagai urutan kedua.
+         */
+        if ($sortColumn !== 'trxpabxassignment.IDAssignment') {
+
+            $query->orderBy(
+                'trxpabxassignment.IDAssignment',
+                'asc'
+            );
+        }
+
+
+        /**
+         * ==========================================================
+         * LOAD RELATIONSHIP
+         * ==========================================================
+         *
+         * Relationship tetap di-load untuk digunakan Blade.
+         */
+        return $query
             ->with([
 
                 /**
@@ -182,14 +477,26 @@ class PabxLocationModal extends Component
                  */
                 'asset',
 
+                /**
+                 * Perusahaan asset
+                 */
                 'asset.perusahaan',
 
+                /**
+                 * Lokasi asset
+                 */
                 'asset.lokasi',
 
-                'asset.karyawan',
-
                 /**
-                 * Karyawan assignment
+                 * ==================================================
+                 * KARYAWAN
+                 * ==================================================
+                 *
+                 * Ini menggunakan:
+                 *
+                 * trxpabxassignment.NIK
+                 * ->
+                 * mstkaryawan.NIK
                  */
                 'karyawan',
 
@@ -200,25 +507,13 @@ class PabxLocationModal extends Component
 
                 /**
                  * Sambungan
-                 *
-                 * TrxPabxAssignment
-                 *     -> MstSambungan
                  */
                 'sambungan',
 
             ])
-
-            /**
-             * ==================================================
-             * SORT
-             * ==================================================
-             */
-            ->orderBy(
-                'IDAssignment'
-            )
-
             ->get();
     }
+
 
     /**
      * ==========================================================
@@ -229,6 +524,7 @@ class PabxLocationModal extends Component
     {
         return $this->assignments->count();
     }
+
 
     /**
      * ==========================================================
