@@ -103,12 +103,13 @@ PAGE HEADER
         <div>
 
             <p class="text-xs font-medium text-slate-500">
-                Total Ditampilkan
-            </p>
+    Total yang harus di Approve!
+</p>
 
-            <p class="text-lg font-bold text-slate-900">
-                {{ $requests->total() }}
-            </p>
+<p class="text-lg font-bold text-slate-900">
+    {{ $totalPendingApproval }}
+</p>
+
 
         </div>
 

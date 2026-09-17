@@ -246,6 +246,34 @@ public function index(Request $request): View
     );
 
     /*
+|--------------------------------------------------------------------------
+| TOTAL REQUEST YANG HARUS DI-APPROVE
+|--------------------------------------------------------------------------
+|
+| Hanya menghitung approval milik Kepala Bagian yang sedang login
+| dengan status pending.
+|
+*/
+
+$totalPendingApproval = (clone $query)
+    ->whereHas(
+        'approval',
+        function ($query) use ($kepalaBagian) {
+            $query
+                ->where(
+                    'approver_id',
+                    $kepalaBagian->id
+                )
+                ->where(
+                    'status',
+                    ItRequestApproval::STATUS_PENDING
+                );
+        }
+    )
+    ->count();
+
+
+    /*
     |--------------------------------------------------------------------------
     | PAGINATION
     |--------------------------------------------------------------------------
@@ -262,9 +290,13 @@ public function index(Request $request): View
     */
 
     return view(
-        'kepala_bagian.it_requests.index',
-        compact('requests')
-    );
+    'kepala_bagian.it_requests.index',
+    compact(
+        'requests',
+        'totalPendingApproval'
+    )
+);
+
 }
 
 /*
