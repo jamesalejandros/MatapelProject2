@@ -188,4 +188,20 @@ class User extends Authenticatable
     {
         return $this->karyawan?->NIKKepalaBagian !== null;
     }
+
+    /*
+|--------------------------------------------------------------------------
+| IT REQUEST RELATED USER NOTES
+|--------------------------------------------------------------------------
+*/
+
+public function itRequestRelatedUserNotes(): HasMany
+{
+    return $this->hasMany(
+        ItRequestRelatedUserNote::class,
+        'user_id',
+        'id'
+    );
+}
+
 }

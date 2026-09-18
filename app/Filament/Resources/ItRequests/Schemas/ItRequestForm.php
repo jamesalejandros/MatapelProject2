@@ -580,6 +580,15 @@ class ItRequestForm
                                 function ($state, callable $set): void {
 
                                     if (
+                                        auth()->check()
+                                    ) {
+                                        $set(
+                                            'UserPenyelesaiID',
+                                            auth()->id()
+                                        );
+                                    }
+
+                                    if (
                                         $state === 'selesai'
                                     ) {
                                         $set(
@@ -696,6 +705,106 @@ class ItRequestForm
 
                     ])
                     ->columns(2),
+
+                    /*
+|--------------------------------------------------------------------------
+| CATATAN BAGIAN TERKAIT
+|--------------------------------------------------------------------------
+|
+| Read-only untuk Admin.
+| Menampilkan seluruh catatan dari user yang terkait dengan request.
+|
+*/
+
+Section::make(
+    'Catatan Bagian Terkait'
+)
+    ->schema([
+
+        Textarea::make(
+            'related_user_notes_display'
+        )
+            ->label(
+                'Catatan'
+            )
+            ->formatStateUsing(
+                function ($state, $record): string {
+
+                    if (!$record) {
+                        return '-';
+                    }
+
+                    $notes = $record
+                        ->relatedUserNotes()
+                        ->with([
+                            'user.karyawan.departemen',
+                        ])
+                        ->latest()
+                        ->get();
+
+                    if ($notes->isEmpty()) {
+                        return 'Belum ada catatan.';
+                    }
+
+                    return $notes
+                        ->map(
+                            function ($note): string {
+
+                                $user = $note->user;
+
+                                $nik =
+                                    $user?->NIK
+                                    ?? '-';
+
+                                $nama =
+                                    $user?->karyawan?->Nama
+                                    ?? $user?->name
+                                    ?? '-';
+
+                                $dept =
+                                    $user
+                                        ?->karyawan
+                                        ?->departemen
+                                        ?->NamaDept
+                                    ?? $user
+                                        ?->karyawan
+                                        ?->departemen
+                                        ?->NamaDepartemen
+                                    ?? '-';
+
+                                $tanggal =
+                                    $note->created_at
+                                        ?->format(
+                                            'd/m/Y H:i'
+                                        )
+                                    ?? '-';
+
+                                $catatan =
+                                    trim(
+                                        (string) $note->catatan
+                                    );
+
+                                return
+                                    "[{$tanggal}] "
+                                    . "{$nik} | {$nama} | {$dept}\n"
+                                    . ($catatan !== ''
+                                        ? $catatan
+                                        : '-');
+                            }
+                        )
+                        ->implode("\n\n--------------------\n\n");
+                }
+            )
+            ->rows(12)
+            ->disabled()
+            ->dehydrated(false)
+            ->columnSpanFull(),
+
+    ])
+    ->collapsible()
+    ->collapsed(false)
+    ->columnSpanFull(),
+
 
             ]);
     }

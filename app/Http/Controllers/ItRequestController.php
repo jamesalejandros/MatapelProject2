@@ -34,6 +34,14 @@ class ItRequestController extends Controller
                 'assets',
                 'relatedUsers.karyawan.departemen',
                 'approval.approver.karyawan',
+
+                /*
+    |--------------------------------------------------------------------------
+    | CATATAN USER TERKAIT
+    |--------------------------------------------------------------------------
+    */
+
+    'relatedUserNotes.user',
             ]);
 
         if (!$user->hasAnyRole([
@@ -324,82 +332,120 @@ class ItRequestController extends Controller
     }
 
     /*
+|--------------------------------------------------------------------------
+| SHOW
+|--------------------------------------------------------------------------
+*/
+
+public function show(
+    ItRequest $itRequest
+): View {
+
+    $user = auth()->user();
+
+    /*
     |--------------------------------------------------------------------------
-    | SHOW
+    | CEK AKSES
     |--------------------------------------------------------------------------
     */
 
-    public function show(
-        ItRequest $itRequest
-    ): View {
+    $allowed =
+        (int) $itRequest->UserPemohonID ===
+        (int) $user->id
 
-        $user = auth()->user();
+        ||
 
-        $allowed =
-            (int) $itRequest->UserPemohonID ===
-            (int) $user->id
-
-            ||
-
-            $itRequest
-                ->relatedUsers()
-                ->where(
-                    'users.id',
-                    $user->id
-                )
-                ->exists();
-
-        if (
-            !$allowed
-            &&
-            !$user->hasAnyRole([
-                'staff_it',
-                'super_admin',
-            ])
-        ) {
-            abort(403);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | CEK PEMOHON + STATUS UNTUK EDIT / DELETE
-        |--------------------------------------------------------------------------
-        */
-
-        $isPemohon =
-            (int) $itRequest->UserPemohonID ===
-            (int) $user->id;
-
-        $canModify =
-            $isPemohon &&
-            strtolower(
-                (string) $itRequest->Status
-            ) === 'diajukan';
-
-        /*
-        |--------------------------------------------------------------------------
-        | LOAD RELATIONS
-        |--------------------------------------------------------------------------
-        */
-
-        $itRequest->load([
-            'pemohon.karyawan.departemen',
-            'pemohon.karyawan.kepalaBagian.user',
-            'penyelesai.karyawan',
-            'jenisPermintaan',
-            'assets',
-            'relatedUsers.karyawan.departemen',
-            'approval.approver.karyawan',
-        ]);
-
-        return view(
-            'it_requests.show',
-            compact(
-                'itRequest',
-                'canModify'
+        $itRequest
+            ->relatedUsers()
+            ->where(
+                'users.id',
+                $user->id
             )
-        );
+            ->exists();
+
+    if (
+        !$allowed
+        &&
+        !$user->hasAnyRole([
+            'staff_it',
+            'super_admin',
+        ])
+    ) {
+        abort(403);
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CEK PEMOHON + STATUS UNTUK EDIT / DELETE
+    |--------------------------------------------------------------------------
+    */
+
+    $isPemohon =
+        (int) $itRequest->UserPemohonID ===
+        (int) $user->id;
+
+    $canModify =
+        $isPemohon &&
+        strtolower(
+            (string) $itRequest->Status
+        ) === 'diajukan';
+
+    /*
+    |--------------------------------------------------------------------------
+    | CEK USER TERKAIT UNTUK CATATAN
+    |--------------------------------------------------------------------------
+    |
+    | Hanya user yang terdaftar sebagai related user
+    | yang boleh menambahkan catatan.
+    |
+    */
+
+    $isRelatedUser =
+        $itRequest
+            ->relatedUsers()
+            ->where(
+                'users.id',
+                $user->id
+            )
+            ->exists();
+
+    $canAddRelatedUserNote =
+        $isRelatedUser;
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOAD RELATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    $itRequest->load([
+        'pemohon.karyawan.departemen',
+        'pemohon.karyawan.kepalaBagian.user',
+        'penyelesai.karyawan',
+        'jenisPermintaan',
+        'assets',
+        'relatedUsers.karyawan.departemen',
+        'approval.approver.karyawan',
+
+        /*
+        |--------------------------------------------------------------------------
+        | CATATAN USER TERKAIT
+        |--------------------------------------------------------------------------
+        */
+
+        'relatedUserNotes.user',
+    ]);
+
+    return view(
+        'it_requests.show',
+        compact(
+            'itRequest',
+            'canModify',
+            'canAddRelatedUserNote'
+        )
+    );
+}
+
 
     /*
     |--------------------------------------------------------------------------

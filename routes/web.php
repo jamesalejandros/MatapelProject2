@@ -4,6 +4,7 @@ use App\Http\Controllers\ItRequestController;
 use App\Http\Controllers\KepalaBagian\ItRequestApprovalController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ItRequestRelatedUserNoteController;
 
 /* |--------------------------------------------------------------------------
 | ROOT
@@ -59,37 +60,48 @@ Route::get('/dashboard', function () {
 | ke halaman permintaan IT Kepala Bagian. |
 */
 
-Route::prefix('kepala-bagian')->name('kepala-bagian.')->middleware('auth')->group(function () {
+Route::prefix('kepala-bagian')
+    ->name('kepala-bagian.')
+    ->middleware('auth')
+    ->group(function () {
 
-    /* |--------------------------------------------------------------------------
-    | DAFTAR PERMINTAAN IT
-    |-------------------------------------------------------------------------- */
+        /* |--------------------------------------------------------------------------
+        | DAFTAR PERMINTAAN IT
+        |-------------------------------------------------------------------------- */
 
-    Route::get('/permintaan-it', [ItRequestApprovalController::class, 'index',])
-        ->name('it-requests.index');
+        Route::get(
+            '/permintaan-it',
+            [ItRequestApprovalController::class, 'index']
+        )->name('it-requests.index');
 
-    /* |--------------------------------------------------------------------------
-    | DETAIL PERMINTAAN IT
-    |-------------------------------------------------------------------------- */
+        /* |--------------------------------------------------------------------------
+        | DETAIL PERMINTAAN IT
+        |-------------------------------------------------------------------------- */
 
-    Route::get('/permintaan-it/{itRequest}', [ItRequestApprovalController::class, 'show',])
-        ->name('it-requests.show');
+        Route::get(
+            '/permintaan-it/{itRequest}',
+            [ItRequestApprovalController::class, 'show']
+        )->name('it-requests.show');
 
-    /* |--------------------------------------------------------------------------
-    | APPROVE
-    |-------------------------------------------------------------------------- */
+        /* |--------------------------------------------------------------------------
+        | APPROVE
+        |-------------------------------------------------------------------------- */
 
-    Route::patch('/permintaan-it/{itRequest}/approve', [ItRequestApprovalController::class, 'approve',])
-        ->name('it-requests.approve');
+        Route::patch(
+            '/permintaan-it/{itRequest}/approve',
+            [ItRequestApprovalController::class, 'approve']
+        )->name('it-requests.approve');
 
-    /* |--------------------------------------------------------------------------
-    | REJECT
-    |-------------------------------------------------------------------------- */
+        /* |--------------------------------------------------------------------------
+        | REJECT
+        |-------------------------------------------------------------------------- */
 
-    Route::patch('/permintaan-it/{itRequest}/reject', [ItRequestApprovalController::class, 'reject',])
-        ->name('it-requests.reject');
+        Route::patch(
+            '/permintaan-it/{itRequest}/reject',
+            [ItRequestApprovalController::class, 'reject']
+        )->name('it-requests.reject');
 
-});
+    });
 
 /* |--------------------------------------------------------------------------
 | USER BIASA
@@ -105,57 +117,73 @@ Route::middleware('auth')->group(function () {
     | INDEX
     |-------------------------------------------------------------------------- */
 
-    Route::get('/permintaan-it', [ItRequestController::class, 'index',])
-        ->name('it-requests.index');
+    Route::get(
+        '/permintaan-it',
+        [ItRequestController::class, 'index']
+    )->name('it-requests.index');
 
     /* |--------------------------------------------------------------------------
     | CREATE
     |-------------------------------------------------------------------------- */
 
-    Route::get('/permintaan-it/create', [ItRequestController::class, 'create',])
-        ->name('it-requests.create');
+    Route::get(
+        '/permintaan-it/create',
+        [ItRequestController::class, 'create']
+    )->name('it-requests.create');
 
     /* |--------------------------------------------------------------------------
     | STORE
     |-------------------------------------------------------------------------- */
 
-    Route::post('/permintaan-it', [ItRequestController::class, 'store',])
-        ->name('it-requests.store');
+    Route::post(
+        '/permintaan-it',
+        [ItRequestController::class, 'store']
+    )->name('it-requests.store');
 
     /* |--------------------------------------------------------------------------
     | SHOW
     |-------------------------------------------------------------------------- */
 
-    Route::get('/permintaan-it/{itRequest}', [ItRequestController::class, 'show',])
-        ->name('it-requests.show');
+    Route::get(
+        '/permintaan-it/{itRequest}',
+        [ItRequestController::class, 'show']
+    )->name('it-requests.show');
 
     /* |--------------------------------------------------------------------------
     | EDIT
     |-------------------------------------------------------------------------- */
 
-    Route::get('/it-requests/{itRequest}/edit', [ItRequestController::class, 'edit',])
-        ->name('it-requests.edit');
+    Route::get(
+        '/permintaan-it/{itRequest}/edit',
+        [ItRequestController::class, 'edit']
+    )->name('it-requests.edit');
 
     /* |--------------------------------------------------------------------------
     | UPDATE
     |-------------------------------------------------------------------------- */
 
-    Route::put('/it-requests/{itRequest}', [ItRequestController::class, 'update',])
-        ->name('it-requests.update');
+    Route::put(
+        '/permintaan-it/{itRequest}',
+        [ItRequestController::class, 'update']
+    )->name('it-requests.update');
 
     /* |--------------------------------------------------------------------------
     | DELETE
     |-------------------------------------------------------------------------- */
 
-    Route::delete('/it-requests/{itRequest}', [ItRequestController::class, 'destroy',])
-        ->name('it-requests.destroy');
+    Route::delete(
+        '/permintaan-it/{itRequest}',
+        [ItRequestController::class, 'destroy']
+    )->name('it-requests.destroy');
 
     /* |--------------------------------------------------------------------------
     | SERAH TERIMA
     |-------------------------------------------------------------------------- */
 
-    Route::post('/it-requests/{itRequest}/serah-terima', [ItRequestController::class, 'serahTerima',])
-        ->name('it-requests.serah-terima');
+    Route::post(
+        '/permintaan-it/{itRequest}/serah-terima',
+        [ItRequestController::class, 'serahTerima']
+    )->name('it-requests.serah-terima');
 
     /* |--------------------------------------------------------------------------
     | LOGOUT
@@ -169,6 +197,24 @@ Route::middleware('auth')->group(function () {
         return redirect('/login');
     })->name('logout');
 
+    /* |--------------------------------------------------------------------------
+    | RELATED USER NOTES - INDEX
+    |-------------------------------------------------------------------------- */
+
+    Route::get(
+        '/permintaan-it/{itRequest}/related-user-notes',
+        [ItRequestRelatedUserNoteController::class, 'index']
+    )->name('it-requests.related-user-notes.index');
+
+    /* |--------------------------------------------------------------------------
+    | RELATED USER NOTES - STORE
+    |-------------------------------------------------------------------------- */
+
+    Route::post(
+        '/permintaan-it/{itRequest}/related-user-notes',
+        [ItRequestRelatedUserNoteController::class, 'store']
+    )->name('it-requests.related-user-notes.store');
+
 });
 
 /* |--------------------------------------------------------------------------
@@ -177,14 +223,20 @@ Route::middleware('auth')->group(function () {
 
 Route::middleware('auth')->group(function () {
 
-    Route::get('/profile', [ProfileController::class, 'edit',])
-        ->name('profile.edit');
+    Route::get(
+        '/profile',
+        [ProfileController::class, 'edit']
+    )->name('profile.edit');
 
-    Route::patch('/profile', [ProfileController::class, 'update',])
-        ->name('profile.update');
+    Route::patch(
+        '/profile',
+        [ProfileController::class, 'update']
+    )->name('profile.update');
 
-    Route::delete('/profile', [ProfileController::class, 'destroy',])
-        ->name('profile.destroy');
+    Route::delete(
+        '/profile',
+        [ProfileController::class, 'destroy']
+    )->name('profile.destroy');
 
 });
 

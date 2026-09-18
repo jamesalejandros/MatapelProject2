@@ -1311,97 +1311,97 @@ class ItRequestsTable
                 |
                 */
 
-                TextColumn::make(
-                    'approval.approver.name'
-                )
+                // TextColumn::make(
+                //     'approval.approver.name'
+                // )
 
-                    ->label(
-                        'APPROVER'
-                    )
+                //     ->label(
+                //         'APPROVER'
+                //     )
 
-                    ->formatStateUsing(
-                        function (
-                            $state,
-                            $record
-                        ) {
+                //     ->formatStateUsing(
+                //         function (
+                //             $state,
+                //             $record
+                //         ) {
 
-                            $approver =
-                                $record
-                                    ->approval
-                                    ?->approver;
+                //             $approver =
+                //                 $record
+                //                     ->approval
+                //                     ?->approver;
 
-                            if (! $approver) {
-                                return '-';
-                            }
+                //             if (! $approver) {
+                //                 return '-';
+                //             }
 
-                            $nama =
-                                $approver
-                                    ->karyawan
-                                    ?->Nama
-                                ??
-                                $approver
-                                    ->name
-                                ??
-                                '-';
+                //             $nama =
+                //                 $approver
+                //                     ->karyawan
+                //                     ?->Nama
+                //                 ??
+                //                 $approver
+                //                     ->name
+                //                 ??
+                //                 '-';
 
-                            $nik =
-                                $approver
-                                    ->NIK
-                                ??
-                                '-';
+                //             $nik =
+                //                 $approver
+                //                     ->NIK
+                //                 ??
+                //                 '-';
 
-                            return
-                                $nama
-                                . ' | NIK: '
-                                . $nik;
+                //             return
+                //                 $nama
+                //                 . ' | NIK: '
+                //                 . $nik;
 
-                        }
-                    )
+                //         }
+                //     )
 
-                    ->searchable(
-                        query: function (
-                            $query,
-                            string $search
-                        ): void {
+                //     ->searchable(
+                //         query: function (
+                //             $query,
+                //             string $search
+                //         ): void {
 
-                            $query->whereHas(
-                                'approval.approver',
-                                function ($query) use ($search) {
+                //             $query->whereHas(
+                //                 'approval.approver',
+                //                 function ($query) use ($search) {
 
-                                    $query->where(
-                                        function ($query) use ($search) {
+                //                     $query->where(
+                //                         function ($query) use ($search) {
 
-                                            $query
-                                                ->where(
-                                                    'users.name',
-                                                    'like',
-                                                    "%{$search}%"
-                                                )
-                                                ->orWhere(
-                                                    'users.NIK',
-                                                    'like',
-                                                    "%{$search}%"
-                                                )
-                                                ->orWhere(
-                                                    'users.email',
-                                                    'like',
-                                                    "%{$search}%"
-                                                );
+                //                             $query
+                //                                 ->where(
+                //                                     'users.name',
+                //                                     'like',
+                //                                     "%{$search}%"
+                //                                 )
+                //                                 ->orWhere(
+                //                                     'users.NIK',
+                //                                     'like',
+                //                                     "%{$search}%"
+                //                                 )
+                //                                 ->orWhere(
+                //                                     'users.email',
+                //                                     'like',
+                //                                     "%{$search}%"
+                //                                 );
 
-                                        }
-                                    );
+                //                         }
+                //                     );
 
-                                }
-                            );
+                //                 }
+                //             );
 
-                        }
-                    )
+                //         }
+                //     )
 
-                    ->width('240px')
+                //     ->width('240px')
 
-                    ->wrap()
+                //     ->wrap()
 
-                    ->lineClamp(5),
+                //     ->lineClamp(5),
 
                 /*
                 |--------------------------------------------------------------------------

@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class ItRequest extends Model
@@ -134,10 +135,29 @@ class ItRequest extends Model
 
     /*
     |--------------------------------------------------------------------------
+    | RELATED USER NOTES
+    |--------------------------------------------------------------------------
+    |
+    | Satu request dapat memiliki banyak catatan
+    | dari user-user yang terkait.
+    |
+    */
+
+    public function relatedUserNotes(): HasMany
+    {
+        return $this->hasMany(
+            ItRequestRelatedUserNote::class,
+            'it_request_id',
+            'IDRequest'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | APPROVAL
     |--------------------------------------------------------------------------
     |
-    | Satu request memiliki satu approval.
+    | Satu request memiliki satu approval Kepala Bagian.
     |
     */
 
