@@ -19,7 +19,7 @@ class ItRequestResource extends BaseResource
 
     protected static string $permissionPrefix = 'itrequest';
 
-    protected static ?string $navigationLabel = 'Permintaan IT';
+    protected static ?string $navigationLabel = 'Accept Permintaan IT';
 
     protected static string|BackedEnum|null $navigationIcon =
         'heroicon-o-clipboard-document-list';
