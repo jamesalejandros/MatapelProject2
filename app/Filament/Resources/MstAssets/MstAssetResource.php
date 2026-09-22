@@ -37,6 +37,7 @@ class MstAssetResource extends BaseResource
     protected static ?string $navigationLabel = 'Asset';
 
 
+    protected static ?int $navigationSort = 0;
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-computer-desktop';
 
 

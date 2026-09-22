@@ -25,6 +25,7 @@ class TrxServiceAssetResource extends BaseResource
     protected static string $permissionPrefix =
         'trxserviceasset';
 
+    protected static ?int $navigationSort = 6;
 
 
     protected static bool $shouldRegisterNavigation = true;
@@ -47,7 +48,6 @@ class TrxServiceAssetResource extends BaseResource
 
 
 
-    protected static ?int $navigationSort = 30;
 
 
 

@@ -52,26 +52,34 @@ class AdminPanelProvider extends PanelProvider
 
             ->sidebarCollapsibleOnDesktop()
 
+            /*
+            |--------------------------------------------------------------------------
+            | URUTAN NAVIGATION GROUP
+            |--------------------------------------------------------------------------
+            */
+
+            ->navigationGroups([
+                'Asset Management',
+
+                // Tambahkan group lain di sini
+                // sesuai urutan yang kamu inginkan.
+            ])
 
             ->discoverResources(
                 in: app_path('Filament/Resources'),
                 for: 'App\\Filament\\Resources',
             )
 
-
             ->discoverPages(
                 in: app_path('Filament/Pages'),
                 for: 'App\\Filament\\Pages',
             )
 
-
             ->pages([
                 Dashboard::class,
             ])
 
-
             ->widgets([])
-
 
             ->middleware([
 
@@ -111,13 +119,11 @@ class AdminPanelProvider extends PanelProvider
 
             ])
 
-
             ->authMiddleware([
 
                 Authenticate::class,
 
             ])
-
 
             ->maxContentWidth(
                 Width::Full

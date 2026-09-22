@@ -24,6 +24,7 @@ class TrxMutasiAssetResource extends BaseResource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Asset Management';
 
+    protected static ?int $navigationSort = 1;
 
     protected static ?string $navigationLabel = 'Mutasi Asset';
 

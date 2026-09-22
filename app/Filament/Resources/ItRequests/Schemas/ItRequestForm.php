@@ -18,6 +18,35 @@ class ItRequestForm
     public static function configure(
         Schema $schema
     ): Schema {
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEK APAKAH RECORD SUDAH SELESAI
+        |--------------------------------------------------------------------------
+        |
+        | Jika sudah selesai:
+        | - Semua field dikunci
+        | - Kecuali super_admin
+        |
+        */
+
+        $isCompletedAndLocked = function ($record): bool {
+
+            if (!$record) {
+                return false;
+            }
+
+            if (
+                auth()->check()
+                &&
+                auth()->user()->hasRole('super_admin')
+            ) {
+                return false;
+            }
+
+            return $record->Status === 'selesai';
+        };
+
         return $schema
             ->components([
 
@@ -206,6 +235,9 @@ class ItRequestForm
                             ->preload()
                             ->multiple()
                             ->nullable()
+                            ->disabled(
+                                $isCompletedAndLocked
+                            )
                             ->helperText(
                                 'Asset dapat dipilih lebih dari satu.'
                             )
@@ -529,15 +561,6 @@ class ItRequestForm
                         |--------------------------------------------------------------------------
                         | STATUS
                         |--------------------------------------------------------------------------
-                        |
-                        | ATURAN:
-                        |
-                        | approval pending/rejected
-                        | -> STATUS TIDAK BOLEH DIUBAH IT.
-                        |
-                        | approval approved
-                        | -> IT boleh memproses.
-                        |
                         */
 
                         Select::make(
@@ -566,12 +589,31 @@ class ItRequestForm
 
                             /*
                             |--------------------------------------------------------------------------
-                            | KUNCI STATUS JIKA BELUM APPROVED
+                            | KUNCI STATUS
                             |--------------------------------------------------------------------------
+                            |
+                            | Status tidak dapat diubah jika:
+                            |
+                            | 1. Approval belum approved
+                            | atau
+                            | 2. Request sudah selesai
+                            |
+                            | super_admin tetap dapat mengubah.
+                            |
                             */
 
                             ->disabled(
-                                function ($record): bool {
+                                function ($record) use (
+                                    $isCompletedAndLocked
+                                ): bool {
+
+                                    if (
+                                        $isCompletedAndLocked(
+                                            $record
+                                        )
+                                    ) {
+                                        return true;
+                                    }
 
                                     if (!$record) {
                                         return false;
@@ -588,10 +630,21 @@ class ItRequestForm
                             ->dehydrated()
 
                             ->helperText(
-                                function ($record): ?string {
+                                function ($record) use (
+                                    $isCompletedAndLocked
+                                ): ?string {
 
                                     if (!$record) {
                                         return null;
+                                    }
+
+                                    if (
+                                        $isCompletedAndLocked(
+                                            $record
+                                        )
+                                    ) {
+                                        return
+                                            'Request sudah selesai dan tidak dapat diedit lagi. Hanya super_admin yang dapat mengubahnya.';
                                     }
 
                                     $approvalStatus =
@@ -663,7 +716,10 @@ class ItRequestForm
                             ->label(
                                 'Rencana Selesai'
                             )
-                            ->nullable(),
+                            ->nullable()
+                            ->disabled(
+                                $isCompletedAndLocked
+                            ),
 
                         /*
                         |--------------------------------------------------------------------------
@@ -683,7 +739,10 @@ class ItRequestForm
                             ->displayFormat(
                                 'd M Y'
                             )
-                            ->nullable(),
+                            ->nullable()
+                            ->disabled(
+                                $isCompletedAndLocked
+                            ),
 
                         /*
                         |--------------------------------------------------------------------------
@@ -699,6 +758,9 @@ class ItRequestForm
                             )
                             ->rows(6)
                             ->nullable()
+                            ->disabled(
+                                $isCompletedAndLocked
+                            )
                             ->columnSpanFull(),
 
                         /*

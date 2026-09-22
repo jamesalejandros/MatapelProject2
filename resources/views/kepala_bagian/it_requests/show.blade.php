@@ -237,7 +237,7 @@ $isPending =
         ALERT SUCCESS
     ========================================================= --}}
 
-    @if (session('success'))
+    <!-- @if (session('success'))
 
         <div class="mb-5 flex items-start gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-800">
 
@@ -317,7 +317,7 @@ $isPending =
 
         </div>
 
-    @endif
+    @endif -->
 
     {{-- ========================================================
         VALIDATION ERRORS

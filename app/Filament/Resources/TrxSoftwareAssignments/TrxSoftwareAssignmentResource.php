@@ -41,6 +41,7 @@ class TrxSoftwareAssignmentResource extends BaseResource
         'trxsoftwareassignment';
 
 
+    protected static ?int $navigationSort = 5;
     /**
      * ==========================================================
      * NAVIGATION
@@ -71,8 +72,6 @@ class TrxSoftwareAssignmentResource extends BaseResource
         'Asset Management';
 
 
-    protected static ?int $navigationSort =
-        3;
 
 
     /**

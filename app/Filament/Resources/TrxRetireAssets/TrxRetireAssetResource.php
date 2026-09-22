@@ -24,6 +24,7 @@ class TrxRetireAssetResource extends BaseResource
 
     protected static string|\UnitEnum|null $navigationGroup = 'Asset Management';
 
+    protected static ?int $navigationSort = 2;
 
     protected static ?string $navigationLabel = 'Retire Asset';
 

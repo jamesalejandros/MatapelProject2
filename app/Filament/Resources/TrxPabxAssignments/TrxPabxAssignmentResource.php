@@ -28,6 +28,7 @@ class TrxPabxAssignmentResource extends BaseResource
 
     protected static ?string $navigationLabel = 'PABX Assignment';
 
+    protected static ?int $navigationSort = 4;
 
     protected static string|BackedEnum|null $navigationIcon =
         'heroicon-o-phone';

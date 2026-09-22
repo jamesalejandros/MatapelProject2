@@ -14,6 +14,40 @@ class EditItRequest extends EditRecord
 
     /*
     |--------------------------------------------------------------------------
+    | CEK SUPER ADMIN
+    |--------------------------------------------------------------------------
+    */
+
+    protected function isSuperAdmin(): bool
+    {
+        return
+            auth()->check()
+            &&
+            auth()->user()->hasRole(
+                'super_admin'
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CEK REQUEST SUDAH SELESAI
+    |--------------------------------------------------------------------------
+    */
+
+    protected function isCompletedAndLocked(): bool
+    {
+        if (
+            $this->isSuperAdmin()
+        ) {
+            return false;
+        }
+
+        return
+            $this->record?->Status === 'selesai';
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | HEADER ACTIONS
     |--------------------------------------------------------------------------
     */
@@ -24,11 +58,48 @@ class EditItRequest extends EditRecord
 
             DeleteAction::make()
 
+                /*
+                |--------------------------------------------------------------------------
+                | REQUEST SELESAI TIDAK BOLEH DIHAPUS
+                |--------------------------------------------------------------------------
+                |
+                | super_admin tetap boleh.
+                |
+                */
+
+                ->disabled(
+                    fn (): bool =>
+                        $this->isCompletedAndLocked()
+                )
+
                 ->visible(
                     fn ($record) =>
                         ItRequestResource::canDelete(
                             $record
                         )
+                )
+
+                ->before(
+                    function (): void {
+
+                        if (
+                            $this->isCompletedAndLocked()
+                        ) {
+
+                            Notification::make()
+                                ->danger()
+                                ->title(
+                                    'Request sudah selesai'
+                                )
+                                ->body(
+                                    'Request yang sudah selesai tidak dapat dihapus. Hanya super_admin yang dapat mengubah atau menghapus request ini.'
+                                )
+                                ->persistent()
+                                ->send();
+
+                            $this->halt();
+                        }
+                    }
                 ),
 
         ];
@@ -41,8 +112,8 @@ class EditItRequest extends EditRecord
     |
     | Ini adalah pengaman server-side.
     |
-    | Jangan hanya mengandalkan disabled() pada form,
-    | karena disabled pada UI bukan security boundary.
+    | Jika request sudah selesai dan bukan super_admin,
+    | proses save dihentikan sepenuhnya.
     |
     */
 
@@ -52,6 +123,36 @@ class EditItRequest extends EditRecord
 
         $record =
             $this->record;
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOCK REQUEST YANG SUDAH SELESAI
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $this->isCompletedAndLocked()
+        ) {
+
+            Notification::make()
+                ->danger()
+                ->title(
+                    'Request sudah selesai'
+                )
+                ->body(
+                    'Request yang sudah selesai tidak dapat diedit lagi. Hanya super_admin yang dapat mengubahnya.'
+                )
+                ->persistent()
+                ->send();
+
+            /*
+            |--------------------------------------------------------------------------
+            | HALT SAVE
+            |--------------------------------------------------------------------------
+            */
+
+            $this->halt();
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -129,7 +230,6 @@ class EditItRequest extends EditRecord
 
             $data['Status'] =
                 $oldStatus;
-
         }
 
         /*
@@ -168,7 +268,6 @@ class EditItRequest extends EditRecord
 
             $data['Status'] =
                 $oldStatus;
-
         }
 
         /*
@@ -220,7 +319,6 @@ class EditItRequest extends EditRecord
 
                 $data['UserPenyelesaiID'] =
                     auth()->id();
-
             }
 
             /*
@@ -236,9 +334,7 @@ class EditItRequest extends EditRecord
                 $data['TanggalSelesai'] =
                     $data['TanggalSelesai']
                     ?? now()->format('Y-m-d');
-
             }
-
         }
 
         return $data;

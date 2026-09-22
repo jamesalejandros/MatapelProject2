@@ -25,6 +25,7 @@ class TrxCctvAssignmentResource extends BaseResource
     protected static string $permissionPrefix =
         'trxcctvassignment';
 
+    protected static ?int $navigationSort = 3;
 
     protected static ?string $navigationLabel = 'CCTV Assignment';
 
