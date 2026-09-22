@@ -310,24 +310,6 @@ class ItRequestForm
                 )
                     ->schema([
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | KEPALA BAGIAN / APPROVER
-                        |--------------------------------------------------------------------------
-                        |
-                        | Struktur terbaru:
-                        |
-                        | ItRequest
-                        |   -> approval
-                        |       -> approver
-                        |           -> User
-                        |
-                        | Jadi TIDAK menggunakan:
-                        |
-                        | $record->approval->kepalaBagian
-                        |
-                        */
-
                         TextInput::make(
                             'approval_kepala_bagian'
                         )
@@ -547,6 +529,15 @@ class ItRequestForm
                         |--------------------------------------------------------------------------
                         | STATUS
                         |--------------------------------------------------------------------------
+                        |
+                        | ATURAN:
+                        |
+                        | approval pending/rejected
+                        | -> STATUS TIDAK BOLEH DIUBAH IT.
+                        |
+                        | approval approved
+                        | -> IT boleh memproses.
+                        |
                         */
 
                         Select::make(
@@ -568,14 +559,74 @@ class ItRequestForm
                                 'selesai' =>
                                     'Selesai',
 
-                                'ditolak' =>
-                                    'Ditolak',
-
                                 'dibatalkan' =>
                                     'Dibatalkan',
                             ])
                             ->required()
+
+                            /*
+                            |--------------------------------------------------------------------------
+                            | KUNCI STATUS JIKA BELUM APPROVED
+                            |--------------------------------------------------------------------------
+                            */
+
+                            ->disabled(
+                                function ($record): bool {
+
+                                    if (!$record) {
+                                        return false;
+                                    }
+
+                                    return
+                                        $record
+                                            ->approval
+                                            ?->status
+                                        !== 'approved';
+                                }
+                            )
+
+                            ->dehydrated()
+
+                            ->helperText(
+                                function ($record): ?string {
+
+                                    if (!$record) {
+                                        return null;
+                                    }
+
+                                    $approvalStatus =
+                                        $record
+                                            ->approval
+                                            ?->status;
+
+                                    if (
+                                        $approvalStatus === 'pending'
+                                    ) {
+                                        return
+                                            'Status belum dapat diubah karena masih menunggu persetujuan Kepala Bagian.';
+                                    }
+
+                                    if (
+                                        $approvalStatus === 'rejected'
+                                    ) {
+                                        return
+                                            'Request ditolak oleh Kepala Bagian dan tidak dapat diproses oleh IT.';
+                                    }
+
+                                    if (
+                                        $approvalStatus !== 'approved'
+                                    ) {
+                                        return
+                                            'Request belum mendapatkan persetujuan Kepala Bagian.';
+                                    }
+
+                                    return
+                                        'Request sudah disetujui dan dapat diproses oleh IT.';
+                                }
+                            )
+
                             ->live()
+
                             ->afterStateUpdated(
                                 function ($state, callable $set): void {
 
@@ -596,6 +647,7 @@ class ItRequestForm
                                             now()
                                         );
                                     }
+
                                 }
                             ),
 
@@ -614,19 +666,16 @@ class ItRequestForm
                             ->nullable(),
 
                         /*
-|--------------------------------------------------------------------------
-| TANGGAL SELESAI
-|--------------------------------------------------------------------------
-*/
+                        |--------------------------------------------------------------------------
+                        | TANGGAL SELESAI
+                        |--------------------------------------------------------------------------
+                        */
 
                         DatePicker::make(
                             'TanggalSelesai'
                         )
                             ->label(
                                 'Tanggal Selesai'
-                            )
-                            ->default(
-                                fn() => now()
                             )
                             ->format(
                                 'Y-m-d'
@@ -656,15 +705,6 @@ class ItRequestForm
                         |--------------------------------------------------------------------------
                         | SERAH TERIMA
                         |--------------------------------------------------------------------------
-                        |
-                        | Read-only.
-                        |
-                        | Nilai diambil langsung dari:
-                        |
-                        | it_requests.SerahTerima
-                        |
-                        | Tidak dikirim kembali ketika form disubmit.
-                        |
                         */
 
                         TextInput::make(
@@ -688,9 +728,6 @@ class ItRequestForm
                         |--------------------------------------------------------------------------
                         | TANGGAL SERAH TERIMA
                         |--------------------------------------------------------------------------
-                        |
-                        | Read-only.
-                        |
                         */
 
                         DateTimePicker::make(
@@ -706,105 +743,102 @@ class ItRequestForm
                     ])
                     ->columns(2),
 
-                    /*
-|--------------------------------------------------------------------------
-| CATATAN BAGIAN TERKAIT
-|--------------------------------------------------------------------------
-|
-| Read-only untuk Admin.
-| Menampilkan seluruh catatan dari user yang terkait dengan request.
-|
-*/
+                /*
+                |--------------------------------------------------------------------------
+                | CATATAN BAGIAN TERKAIT
+                |--------------------------------------------------------------------------
+                */
 
-Section::make(
-    'Catatan Bagian Terkait'
-)
-    ->schema([
+                Section::make(
+                    'Catatan Bagian Terkait'
+                )
+                    ->schema([
 
-        Textarea::make(
-            'related_user_notes_display'
-        )
-            ->label(
-                'Catatan'
-            )
-            ->formatStateUsing(
-                function ($state, $record): string {
-
-                    if (!$record) {
-                        return '-';
-                    }
-
-                    $notes = $record
-                        ->relatedUserNotes()
-                        ->with([
-                            'user.karyawan.departemen',
-                        ])
-                        ->latest()
-                        ->get();
-
-                    if ($notes->isEmpty()) {
-                        return 'Belum ada catatan.';
-                    }
-
-                    return $notes
-                        ->map(
-                            function ($note): string {
-
-                                $user = $note->user;
-
-                                $nik =
-                                    $user?->NIK
-                                    ?? '-';
-
-                                $nama =
-                                    $user?->karyawan?->Nama
-                                    ?? $user?->name
-                                    ?? '-';
-
-                                $dept =
-                                    $user
-                                        ?->karyawan
-                                        ?->departemen
-                                        ?->NamaDept
-                                    ?? $user
-                                        ?->karyawan
-                                        ?->departemen
-                                        ?->NamaDepartemen
-                                    ?? '-';
-
-                                $tanggal =
-                                    $note->created_at
-                                        ?->format(
-                                            'd/m/Y H:i'
-                                        )
-                                    ?? '-';
-
-                                $catatan =
-                                    trim(
-                                        (string) $note->catatan
-                                    );
-
-                                return
-                                    "[{$tanggal}] "
-                                    . "{$nik} | {$nama} | {$dept}\n"
-                                    . ($catatan !== ''
-                                        ? $catatan
-                                        : '-');
-                            }
+                        Textarea::make(
+                            'related_user_notes_display'
                         )
-                        ->implode("\n\n--------------------\n\n");
-                }
-            )
-            ->rows(12)
-            ->disabled()
-            ->dehydrated(false)
-            ->columnSpanFull(),
+                            ->label(
+                                'Catatan'
+                            )
+                            ->formatStateUsing(
+                                function ($state, $record): string {
 
-    ])
-    ->collapsible()
-    ->collapsed(false)
-    ->columnSpanFull(),
+                                    if (!$record) {
+                                        return '-';
+                                    }
 
+                                    $notes = $record
+                                        ->relatedUserNotes()
+                                        ->with([
+                                            'user.karyawan.departemen',
+                                        ])
+                                        ->latest()
+                                        ->get();
+
+                                    if ($notes->isEmpty()) {
+                                        return 'Belum ada catatan.';
+                                    }
+
+                                    return $notes
+                                        ->map(
+                                            function ($note): string {
+
+                                                $user = $note->user;
+
+                                                $nik =
+                                                    $user?->NIK
+                                                    ?? '-';
+
+                                                $nama =
+                                                    $user?->karyawan?->Nama
+                                                    ?? $user?->name
+                                                    ?? '-';
+
+                                                $dept =
+                                                    $user
+                                                        ?->karyawan
+                                                        ?->departemen
+                                                        ?->NamaDept
+                                                    ?? $user
+                                                        ?->karyawan
+                                                        ?->departemen
+                                                        ?->NamaDepartemen
+                                                    ?? '-';
+
+                                                $tanggal =
+                                                    $note->created_at
+                                                        ?->format(
+                                                            'd/m/Y H:i'
+                                                        )
+                                                    ?? '-';
+
+                                                $catatan =
+                                                    trim(
+                                                        (string) $note->catatan
+                                                    );
+
+                                                return
+                                                    "[{$tanggal}] "
+                                                    . "{$nik} | {$nama} | {$dept}\n"
+                                                    . ($catatan !== ''
+                                                        ? $catatan
+                                                        : '-');
+                                            }
+                                        )
+                                        ->implode(
+                                            "\n\n--------------------\n\n"
+                                        );
+                                }
+                            )
+                            ->rows(12)
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->columnSpanFull(),
+
+                    ])
+                    ->collapsible()
+                    ->collapsed(false)
+                    ->columnSpanFull(),
 
             ]);
     }

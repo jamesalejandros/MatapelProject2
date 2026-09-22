@@ -3,15 +3,18 @@
 namespace App\Filament\Resources\ItRequests\Pages;
 
 use App\Filament\Resources\ItRequests\ItRequestResource;
-
 use Filament\Resources\Pages\CreateRecord;
-
 
 class CreateItRequest extends CreateRecord
 {
     protected static string $resource =
         ItRequestResource::class;
 
+    /*
+    |--------------------------------------------------------------------------
+    | MUTATE DATA SEBELUM CREATE
+    |--------------------------------------------------------------------------
+    */
 
     protected function mutateFormDataBeforeCreate(
         array $data
@@ -22,13 +25,29 @@ class CreateItRequest extends CreateRecord
         | PEMOHON
         |--------------------------------------------------------------------------
         |
-        | Pemohon diambil dari user yang login.
+        | Selalu menggunakan user yang sedang login.
         |
         */
 
         $data['UserPemohonID'] =
             auth()->id();
 
+        /*
+        |--------------------------------------------------------------------------
+        | STATUS AWAL
+        |--------------------------------------------------------------------------
+        |
+        | Semua request baru wajib masuk sebagai:
+        |
+        | diajukan
+        |
+        | Approval Kepala Bagian nantinya yang menentukan
+        | apakah request boleh dilanjutkan.
+        |
+        */
+
+        $data['Status'] =
+            'diajukan';
 
         /*
         |--------------------------------------------------------------------------
@@ -39,16 +58,19 @@ class CreateItRequest extends CreateRecord
         $data['NoRequest'] =
             'TEMP-' . uniqid();
 
-
         return $data;
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | AFTER CREATE
+    |--------------------------------------------------------------------------
+    */
 
     protected function afterCreate(): void
     {
         $record =
             $this->record;
-
 
         /*
         |--------------------------------------------------------------------------
@@ -70,9 +92,13 @@ class CreateItRequest extends CreateRecord
                 ),
 
         ]);
-
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | REDIRECT
+    |--------------------------------------------------------------------------
+    */
 
     protected function getRedirectUrl(): string
     {

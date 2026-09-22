@@ -18,12 +18,12 @@ class ListItRequests extends ListRecords
     {
         return [
 
-            CreateAction::make()
+            // CreateAction::make()
 
-                ->visible(
-                    fn () =>
-                        ItRequestResource::canCreate()
-                ),
+            //     ->visible(
+            //         fn () =>
+            //             ItRequestResource::canCreate()
+            //     ),
 
         ];
     }

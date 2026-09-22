@@ -48,7 +48,7 @@
     VALIDATION ERROR
     ============================================================= --}}
 
-    @if ($errors->any())
+    <!-- @if ($errors->any())
 
         <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">
             <div class="flex items-start gap-3">
@@ -82,7 +82,7 @@
             </div>
 
         </div>
-    @endif
+    @endif -->
 
     <form method="POST" action="{{ route('it-requests.store') }}" class="space-y-6">
         @csrf
