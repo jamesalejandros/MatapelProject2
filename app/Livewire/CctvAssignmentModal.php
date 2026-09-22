@@ -15,11 +15,6 @@ class CctvAssignmentModal extends Component
      * ==========================================================
      * FILTER LOKASI
      * ==========================================================
-     *
-     * Nilai:
-     *
-     *     all
-     *     atau IDLokasi tertentu.
      */
     public ?string $location = 'all';
 
@@ -36,27 +31,69 @@ class CctvAssignmentModal extends Component
      * ==========================================================
      * FILTER JENIS CCTV
      * ==========================================================
-     *
-     * Jenis berasal dari potongan pie chart
-     * yang diklik.
      */
     public ?string $jenis = null;
 
 
     /**
      * ==========================================================
-     * BUKA MODAL
+     * SORT FIELD
      * ==========================================================
      *
-     * Event:
+     * Field default:
      *
-     *     open-cctv-assignment-detail-modal
+     *     IDAssignment
+     */
+    public string $sortField = 'IDAssignment';
+
+
+    /**
+     * ==========================================================
+     * SORT DIRECTION
+     * ==========================================================
      *
-     * Parameter:
+     * Nilai:
      *
-     *     location
-     *     locationName
-     *     jenis
+     *     asc
+     *     desc
+     */
+    public string $sortDirection = 'asc';
+
+
+    /**
+     * ==========================================================
+     * FIELD YANG BOLEH DI-SORT
+     * ==========================================================
+     *
+     * Digunakan sebagai whitelist agar hanya field
+     * yang memang disediakan oleh header yang dapat
+     * digunakan untuk sorting.
+     */
+    protected array $sortableFields = [
+
+        'IDAssignment',
+
+        'NoAssetIT',
+
+        'Jenis',
+
+        'Channel',
+
+        'TanggalPasang',
+
+        'Tipe',
+
+        'Kondisi',
+
+        'Keterangan',
+
+    ];
+
+
+    /**
+     * ==========================================================
+     * BUKA MODAL
+     * ==========================================================
      */
     #[On('open-cctv-assignment-detail-modal')]
     public function open(
@@ -86,7 +123,67 @@ class CctvAssignmentModal extends Component
                 : null;
 
 
+        /**
+         * ======================================================
+         * RESET SORT SAAT MODAL DIBUKA
+         * ======================================================
+         */
+        $this->sortField = 'IDAssignment';
+
+        $this->sortDirection = 'asc';
+
+
         $this->show = true;
+    }
+
+
+    /**
+     * ==========================================================
+     * SORT TABLE
+     * ==========================================================
+     *
+     * Klik header:
+     *
+     *     pertama  = ASC
+     *     kedua    = DESC
+     *     ketiga   = ASC
+     *
+     * Jika pindah ke kolom lain:
+     *
+     *     langsung ASC
+     */
+    public function sortBy(string $field): void
+    {
+        /**
+         * ======================================================
+         * VALIDASI FIELD
+         * ======================================================
+         */
+        if (!in_array($field, $this->sortableFields, true)) {
+
+            return;
+        }
+
+
+        /**
+         * ======================================================
+         * TOGGLE DIRECTION
+         * ======================================================
+         */
+        if ($this->sortField === $field) {
+
+            $this->sortDirection =
+                $this->sortDirection === 'asc'
+                    ? 'desc'
+                    : 'asc';
+
+        } else {
+
+            $this->sortField = $field;
+
+            $this->sortDirection = 'asc';
+
+        }
     }
 
 
@@ -104,6 +201,10 @@ class CctvAssignmentModal extends Component
         $this->locationName = 'Semua Lokasi';
 
         $this->jenis = null;
+
+        $this->sortField = 'IDAssignment';
+
+        $this->sortDirection = 'asc';
     }
 
 
@@ -132,19 +233,6 @@ class CctvAssignmentModal extends Component
      * ==========================================================
      * DATA ASSIGNMENT CCTV
      * ==========================================================
-     *
-     * Filter:
-     *
-     *     1. Lokasi
-     *     2. Jenis CCTV
-     *
-     * Relasi:
-     *
-     *     trxcctvassignment.NoAssetIT
-     *         ->
-     *     mstasset.NoAssetIT
-     *         ->
-     *     mstasset.IDLokasi
      */
     public function getAssignmentsProperty()
     {
@@ -184,8 +272,6 @@ class CctvAssignmentModal extends Component
              * ==================================================
              * FILTER JENIS CCTV
              * ==================================================
-             *
-             * Jenis berasal dari slice pie chart.
              */
             ->when(
 
@@ -228,7 +314,8 @@ class CctvAssignmentModal extends Component
              * ==================================================
              */
             ->orderBy(
-                'IDAssignment'
+                $this->sortField,
+                $this->sortDirection
             )
 
 

@@ -171,7 +171,9 @@
                             class="dark:bg-gray-800"
                         >
 
-                            {{-- NO --}}
+                            {{-- ================================================= --}}
+                            {{-- NO.                                                --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
@@ -184,20 +186,73 @@
                                 No.
                             </th>
 
-                            {{-- NO ASSET --}}
+
+                            {{-- ================================================= --}}
+                            {{-- NO ASSET                                           --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
-                                    padding:12px;
+                                    padding:0;
                                     text-align:left;
                                     white-space:nowrap;
-                                    font-weight:700;
                                 "
                             >
-                                No Asset
+
+                                <button
+                                    type="button"
+                                    wire:click="sortBy('NoAssetIT')"
+                                    style="
+                                        width:100%;
+                                        padding:12px;
+                                        border:none;
+                                        background:transparent;
+                                        text-align:left;
+                                        font-weight:700;
+                                        cursor:pointer;
+                                        color:inherit;
+                                    "
+                                >
+
+                                    No Asset
+
+                                    @if($sortField === 'NoAssetIT')
+
+                                        @if($sortDirection === 'asc')
+
+                                            <span style="margin-left:5px;">
+                                                ↑
+                                            </span>
+
+                                        @else
+
+                                            <span style="margin-left:5px;">
+                                                ↓
+                                            </span>
+
+                                        @endif
+
+                                    @else
+
+                                        <span
+                                            style="
+                                                margin-left:5px;
+                                                color:#9ca3af;
+                                            "
+                                        >
+                                            ↕
+                                        </span>
+
+                                    @endif
+
+                                </button>
+
                             </th>
 
-                            {{-- NAMA ASSET --}}
+
+                            {{-- ================================================= --}}
+                            {{-- NAMA ASSET                                         --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
@@ -210,7 +265,10 @@
                                 Nama Asset
                             </th>
 
-                            {{-- LOKASI --}}
+
+                            {{-- ================================================= --}}
+                            {{-- LOKASI                                             --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
@@ -223,87 +281,388 @@
                                 Lokasi
                             </th>
 
-                            {{-- JENIS CCTV --}}
+
+                            {{-- ================================================= --}}
+                            {{-- JENIS CCTV                                         --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
-                                    padding:12px;
+                                    padding:0;
                                     text-align:left;
                                     white-space:nowrap;
-                                    font-weight:700;
                                 "
                             >
-                                Jenis CCTV
+
+                                <button
+                                    type="button"
+                                    wire:click="sortBy('Jenis')"
+                                    style="
+                                        width:100%;
+                                        padding:12px;
+                                        border:none;
+                                        background:transparent;
+                                        text-align:left;
+                                        font-weight:700;
+                                        cursor:pointer;
+                                        color:inherit;
+                                    "
+                                >
+
+                                    Jenis CCTV
+
+                                    @if($sortField === 'Jenis')
+
+                                        @if($sortDirection === 'asc')
+
+                                            <span style="margin-left:5px;">
+                                                ↑
+                                            </span>
+
+                                        @else
+
+                                            <span style="margin-left:5px;">
+                                                ↓
+                                            </span>
+
+                                        @endif
+
+                                    @else
+
+                                        <span
+                                            style="
+                                                margin-left:5px;
+                                                color:#9ca3af;
+                                            "
+                                        >
+                                            ↕
+                                        </span>
+
+                                    @endif
+
+                                </button>
+
                             </th>
 
-                            {{-- CHANNEL --}}
+
+                            {{-- ================================================= --}}
+                            {{-- CHANNEL                                            --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
-                                    padding:12px;
+                                    padding:0;
                                     text-align:left;
                                     white-space:nowrap;
-                                    font-weight:700;
                                 "
                             >
-                                Channel
+
+                                <button
+                                    type="button"
+                                    wire:click="sortBy('Channel')"
+                                    style="
+                                        width:100%;
+                                        padding:12px;
+                                        border:none;
+                                        background:transparent;
+                                        text-align:left;
+                                        font-weight:700;
+                                        cursor:pointer;
+                                        color:inherit;
+                                    "
+                                >
+
+                                    Channel
+
+                                    @if($sortField === 'Channel')
+
+                                        @if($sortDirection === 'asc')
+
+                                            <span style="margin-left:5px;">
+                                                ↑
+                                            </span>
+
+                                        @else
+
+                                            <span style="margin-left:5px;">
+                                                ↓
+                                            </span>
+
+                                        @endif
+
+                                    @else
+
+                                        <span
+                                            style="
+                                                margin-left:5px;
+                                                color:#9ca3af;
+                                            "
+                                        >
+                                            ↕
+                                        </span>
+
+                                    @endif
+
+                                </button>
+
                             </th>
 
-                            {{-- TANGGAL PASANG --}}
+
+                            {{-- ================================================= --}}
+                            {{-- TANGGAL PASANG                                     --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
-                                    padding:12px;
+                                    padding:0;
                                     text-align:left;
                                     white-space:nowrap;
-                                    font-weight:700;
                                 "
                             >
-                                Tanggal Pasang
+
+                                <button
+                                    type="button"
+                                    wire:click="sortBy('TanggalPasang')"
+                                    style="
+                                        width:100%;
+                                        padding:12px;
+                                        border:none;
+                                        background:transparent;
+                                        text-align:left;
+                                        font-weight:700;
+                                        cursor:pointer;
+                                        color:inherit;
+                                    "
+                                >
+
+                                    Tanggal Pasang
+
+                                    @if($sortField === 'TanggalPasang')
+
+                                        @if($sortDirection === 'asc')
+
+                                            <span style="margin-left:5px;">
+                                                ↑
+                                            </span>
+
+                                        @else
+
+                                            <span style="margin-left:5px;">
+                                                ↓
+                                            </span>
+
+                                        @endif
+
+                                    @else
+
+                                        <span
+                                            style="
+                                                margin-left:5px;
+                                                color:#9ca3af;
+                                            "
+                                        >
+                                            ↕
+                                        </span>
+
+                                    @endif
+
+                                </button>
+
                             </th>
 
-                            {{-- TIPE --}}
+
+                            {{-- ================================================= --}}
+                            {{-- TIPE                                               --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
-                                    padding:12px;
+                                    padding:0;
                                     text-align:left;
                                     white-space:nowrap;
-                                    font-weight:700;
                                 "
                             >
-                                Tipe
+
+                                <button
+                                    type="button"
+                                    wire:click="sortBy('Tipe')"
+                                    style="
+                                        width:100%;
+                                        padding:12px;
+                                        border:none;
+                                        background:transparent;
+                                        text-align:left;
+                                        font-weight:700;
+                                        cursor:pointer;
+                                        color:inherit;
+                                    "
+                                >
+
+                                    Tipe
+
+                                    @if($sortField === 'Tipe')
+
+                                        @if($sortDirection === 'asc')
+
+                                            <span style="margin-left:5px;">
+                                                ↑
+                                            </span>
+
+                                        @else
+
+                                            <span style="margin-left:5px;">
+                                                ↓
+                                            </span>
+
+                                        @endif
+
+                                    @else
+
+                                        <span
+                                            style="
+                                                margin-left:5px;
+                                                color:#9ca3af;
+                                            "
+                                        >
+                                            ↕
+                                        </span>
+
+                                    @endif
+
+                                </button>
+
                             </th>
 
-                            {{-- KONDISI --}}
+
+                            {{-- ================================================= --}}
+                            {{-- KONDISI                                            --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
-                                    padding:12px;
+                                    padding:0;
                                     text-align:left;
                                     white-space:nowrap;
-                                    font-weight:700;
                                 "
                             >
-                                Kondisi
+
+                                <button
+                                    type="button"
+                                    wire:click="sortBy('Kondisi')"
+                                    style="
+                                        width:100%;
+                                        padding:12px;
+                                        border:none;
+                                        background:transparent;
+                                        text-align:left;
+                                        font-weight:700;
+                                        cursor:pointer;
+                                        color:inherit;
+                                    "
+                                >
+
+                                    Kondisi
+
+                                    @if($sortField === 'Kondisi')
+
+                                        @if($sortDirection === 'asc')
+
+                                            <span style="margin-left:5px;">
+                                                ↑
+                                            </span>
+
+                                        @else
+
+                                            <span style="margin-left:5px;">
+                                                ↓
+                                            </span>
+
+                                        @endif
+
+                                    @else
+
+                                        <span
+                                            style="
+                                                margin-left:5px;
+                                                color:#9ca3af;
+                                            "
+                                        >
+                                            ↕
+                                        </span>
+
+                                    @endif
+
+                                </button>
+
                             </th>
 
-                            {{-- KETERANGAN --}}
+
+                            {{-- ================================================= --}}
+                            {{-- KETERANGAN                                         --}}
+                            {{-- ================================================= --}}
 
                             <th
                                 style="
-                                    padding:12px;
+                                    padding:0;
                                     text-align:left;
                                     white-space:nowrap;
-                                    font-weight:700;
                                 "
                             >
-                                Keterangan
+
+                                <button
+                                    type="button"
+                                    wire:click="sortBy('Keterangan')"
+                                    style="
+                                        width:100%;
+                                        padding:12px;
+                                        border:none;
+                                        background:transparent;
+                                        text-align:left;
+                                        font-weight:700;
+                                        cursor:pointer;
+                                        color:inherit;
+                                    "
+                                >
+
+                                    Keterangan
+
+                                    @if($sortField === 'Keterangan')
+
+                                        @if($sortDirection === 'asc')
+
+                                            <span style="margin-left:5px;">
+                                                ↑
+                                            </span>
+
+                                        @else
+
+                                            <span style="margin-left:5px;">
+                                                ↓
+                                            </span>
+
+                                        @endif
+
+                                    @else
+
+                                        <span
+                                            style="
+                                                margin-left:5px;
+                                                color:#9ca3af;
+                                            "
+                                        >
+                                            ↕
+                                        </span>
+
+                                    @endif
+
+                                </button>
+
                             </th>
 
                         </tr>
 
                     </thead>
+
 
                     {{-- ================================================== --}}
                     {{-- TABLE BODY                                           --}}
@@ -333,6 +692,7 @@
                                     {{ $index + 1 }}
                                 </td>
 
+
                                 {{-- ================================================== --}}
                                 {{-- NO ASSET                                                --}}
                                 {{-- ================================================== --}}
@@ -347,6 +707,7 @@
                                     {{ $assignment->NoAssetIT ?? '-' }}
                                 </td>
 
+
                                 {{-- ================================================== --}}
                                 {{-- NAMA ASSET                                              --}}
                                 {{-- ================================================== --}}
@@ -360,6 +721,7 @@
                                     {{ $assignment->asset?->Nama ?? '-' }}
                                 </td>
 
+
                                 {{-- ================================================== --}}
                                 {{-- LOKASI                                                  --}}
                                 {{-- ================================================== --}}
@@ -372,6 +734,7 @@
                                 >
                                     {{ $assignment->asset?->lokasi?->NamaLokasi ?? $this->locationName ?? '-' }}
                                 </td>
+
 
                                 {{-- ================================================== --}}
                                 {{-- JENIS CCTV                                              --}}
@@ -413,6 +776,7 @@
 
                                 </td>
 
+
                                 {{-- ================================================== --}}
                                 {{-- CHANNEL                                                --}}
                                 {{-- ================================================== --}}
@@ -427,6 +791,7 @@
                                 >
                                     {{ $assignment->Channel ?? '-' }}
                                 </td>
+
 
                                 {{-- ================================================== --}}
                                 {{-- TANGGAL PASANG                                          --}}
@@ -462,6 +827,7 @@
                                     @endif
 
                                 </td>
+
 
                                 {{-- ================================================== --}}
                                 {{-- TIPE                                                     --}}
@@ -502,6 +868,7 @@
                                     @endif
 
                                 </td>
+
 
                                 {{-- ================================================== --}}
                                 {{-- KONDISI                                                  --}}
@@ -622,6 +989,7 @@
 
                                 </td>
 
+
                                 {{-- ================================================== --}}
                                 {{-- KETERANGAN                                             --}}
                                 {{-- ================================================== --}}
@@ -688,6 +1056,7 @@
                 </table>
 
             </div>
+
 
             {{-- ================================================== --}}
             {{-- FOOTER                                             --}}
