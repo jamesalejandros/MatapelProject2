@@ -42,6 +42,13 @@ class TrxIspDowntimesTable
                     ->sortable(),
 
                 TextColumn::make(
+                    'isp.ConnectionType'
+                )
+                    ->label('Connection Type')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make(
                     'isp.lokasi.NamaLokasi'
                 )
                     ->label('Lokasi')
@@ -142,6 +149,53 @@ class TrxIspDowntimesTable
                     )
                     ->searchable()
                     ->preload(),
+
+                SelectFilter::make('connection_type')
+                    ->label('Connection Type')
+                    ->options(
+                        fn () =>
+                            \App\Models\MstIsp::query()
+                                ->whereNotNull(
+                                    'ConnectionType'
+                                )
+                                ->where(
+                                    'ConnectionType',
+                                    '!=',
+                                    ''
+                                )
+                                ->distinct()
+                                ->orderBy(
+                                    'ConnectionType'
+                                )
+                                ->pluck(
+                                    'ConnectionType',
+                                    'ConnectionType'
+                                )
+                                ->toArray()
+                    )
+                    ->query(
+                        fn (
+                            $query,
+                            array $data
+                        ) =>
+                            $query->when(
+                                $data['value'] ?? null,
+                                fn (
+                                    $query,
+                                    $value
+                                ) =>
+                                    $query->whereHas(
+                                        'isp',
+                                        fn (
+                                            $ispQuery
+                                        ) =>
+                                            $ispQuery->where(
+                                                'ConnectionType',
+                                                $value
+                                            )
+                                    )
+                            )
+                    ),
 
                 SelectFilter::make('lokasi')
                     ->label('Lokasi')
