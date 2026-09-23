@@ -655,49 +655,81 @@ class ItRequestForm
                             */
 
                             ->options(
-                                function ($record): array {
+    function ($record): array {
 
-                                    if (
-                                        $record
-                                        && $record
-                                            ->approval
-                                                ?->status === 'approved'
-                                    ) {
-                                        return [
-                                            'diproses' =>
-                                                'Diproses',
+        if (
+            $record
+            && $record->approval?->status === 'approved'
+        ) {
 
-                                            'selesai' =>
-                                                'Selesai',
+            $options = [
+                'diproses' => 'Diproses',
+                'selesai' => 'Selesai',
+                'dibatalkan' => 'Dibatalkan',
+            ];
 
-                                            'dibatalkan' =>
-                                                'Dibatalkan',
-                                        ];
-                                    }
+            // Status tersimpan tetap harus ada agar label tidak hilang.
+            if ($record->Status === 'diajukan') {
+                $options = [
+                    'diajukan' => 'Diajukan',
+                    ...$options,
+                ];
+            }
 
-                                    return [
-                                        'diajukan' =>
-                                            'Diajukan',
+            if (
+                in_array(
+                    $record->Status,
+                    ['disetujui', 'ditolak'],
+                    true
+                )
+            ) {
+                $options = [
+                    $record->Status =>
+                        $record->Status === 'disetujui'
+                            ? 'Disetujui'
+                            : 'Ditolak',
+                    ...$options,
+                ];
+            }
 
-                                        'disetujui' =>
-                                            'Disetujui',
+            return $options;
+        }
 
-                                        'ditolak' =>
-                                            'Ditolak',
+        return [
+            'diajukan' => 'Diajukan',
+            'disetujui' => 'Disetujui',
+            'ditolak' => 'Ditolak',
+            'diproses' => 'Diproses',
+            'selesai' => 'Selesai',
+            'dibatalkan' => 'Dibatalkan',
+        ];
+    }
+)
 
-                                        'diproses' =>
-                                            'Diproses',
+->disableOptionWhen(
+    function ($value, $record): bool {
 
-                                        'selesai' =>
-                                            'Selesai',
+        if (
+            !$record
+            || $record->approval?->status !== 'approved'
+        ) {
+            return false;
+        }
 
-                                        'dibatalkan' =>
-                                            'Dibatalkan',
-                                    ];
-                                }
-                            )
+        return in_array(
+            $value,
+            [
+                'diajukan',
+                'disetujui',
+                'ditolak',
+            ],
+            true
+        );
+    }
+)
 
-                            ->required()
+->required()
+
 
                             /*
                             |--------------------------------------------------------------------------

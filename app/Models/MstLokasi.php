@@ -27,4 +27,14 @@ class MstLokasi extends Model
             'IDLokasi'
         );
     }
+
+    public function isps()
+{
+    return $this->hasMany(
+        MstIsp::class,
+        'IDLokasi',
+        'IDLokasi'
+    );
+}
+
 }

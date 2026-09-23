@@ -45,4 +45,14 @@ class MstVendor extends Model
         );
     }
 
+    public function isps()
+{
+    return $this->hasMany(
+        MstIsp::class,
+        'IDVendor',
+        'IDVendor'
+    );
+}
+
+
 }
