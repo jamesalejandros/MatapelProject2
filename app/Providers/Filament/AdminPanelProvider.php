@@ -59,11 +59,14 @@ class AdminPanelProvider extends PanelProvider
             */
 
             ->navigationGroups([
-                'Asset Management',
+    'Asset Management',
+    'IT',
+    'Network Management',
+    'Software Management',
+    'Master Data',
+    'Administration',
+])
 
-                // Tambahkan group lain di sini
-                // sesuai urutan yang kamu inginkan.
-            ])
 
             ->discoverResources(
                 in: app_path('Filament/Resources'),

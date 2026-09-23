@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\MstIsp\RelationManagers;
 
+use App\Filament\Forms\Components\CurrencyInput;
+
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -21,7 +23,6 @@ use Filament\Actions\DeleteBulkAction;
 
 use Filament\Resources\RelationManagers\RelationManager;
 
-
 class BandwidthRelationManager extends RelationManager
 {
     protected static string $relationship =
@@ -32,7 +33,6 @@ class BandwidthRelationManager extends RelationManager
 
     protected static string|\BackedEnum|null $icon =
         'heroicon-o-signal';
-
 
     public function form(Schema $schema): Schema
     {
@@ -61,20 +61,15 @@ class BandwidthRelationManager extends RelationManager
                     ->step(0.01)
                     ->suffix('Mbps'),
 
-                TextInput::make('Harga')
-                    ->label('Harga')
-                    ->numeric()
+                CurrencyInput::make('Harga')
                     ->required()
-                    ->minValue(0)
-                    ->step(0.01)
-                    ->prefix('Rp'),
+                    ->label('Harga'),
 
                 Select::make('Status')
                     ->label('Status')
                     ->options([
                         'ACTIVE' => 'Active',
                         'INACTIVE' => 'Inactive',
-                        'PENDING' => 'Pending',
                     ])
                     ->default('ACTIVE')
                     ->required()
@@ -87,7 +82,6 @@ class BandwidthRelationManager extends RelationManager
 
             ]);
     }
-
 
     public function table(Table $table): Table
     {
@@ -123,7 +117,6 @@ class BandwidthRelationManager extends RelationManager
                     ->color(fn (?string $state): string => match ($state) {
                         'ACTIVE' => 'success',
                         'INACTIVE' => 'gray',
-                        'PENDING' => 'warning',
                         default => 'gray',
                     }),
 
@@ -149,7 +142,6 @@ class BandwidthRelationManager extends RelationManager
                     ->options([
                         'ACTIVE' => 'Active',
                         'INACTIVE' => 'Inactive',
-                        'PENDING' => 'Pending',
                     ]),
 
             ])
