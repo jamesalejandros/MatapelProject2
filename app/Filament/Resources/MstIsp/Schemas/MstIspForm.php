@@ -14,7 +14,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
-
 class MstIspForm
 {
     public static function configure(Schema $schema): Schema
@@ -22,11 +21,23 @@ class MstIspForm
         return $schema
             ->components([
 
+                /*
+                |--------------------------------------------------------------------------
+                | INFORMASI ISP
+                |--------------------------------------------------------------------------
+                */
+
                 Section::make('Informasi ISP')
                     ->description(
                         'Informasi utama mengenai penyedia layanan internet.'
                     )
                     ->schema([
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | KODE ISP
+                        |--------------------------------------------------------------------------
+                        */
 
                         TextInput::make('ISPCode')
                             ->label('Kode ISP')
@@ -37,8 +48,13 @@ class MstIspForm
                                 column: 'ISPCode',
                                 ignoreRecord: true
                             )
-                            ->placeholder('Contoh: ISP-001')
-                            ->columnSpan(1),
+                            ->placeholder('Contoh: ISP-001'),
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | TIPE KONEKSI
+                        |--------------------------------------------------------------------------
+                        */
 
                         Select::make('ConnectionType')
                             ->label('Tipe Koneksi')
@@ -49,15 +65,25 @@ class MstIspForm
                             ->required()
                             ->native(false)
                             ->searchable()
-                            ->placeholder('Pilih tipe koneksi')
-                            ->columnSpan(1),
+                            ->placeholder('Pilih tipe koneksi'),
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | NAMA ISP / PAKET
+                        |--------------------------------------------------------------------------
+                        */
 
                         TextInput::make('NamaISP')
                             ->label('Nama Paket')
                             ->required()
                             ->maxLength(150)
-                            ->placeholder('Contoh: Paket Internet')
-                            ->columnSpan(1),
+                            ->placeholder('Contoh: Paket Internet'),
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | VENDOR
+                        |--------------------------------------------------------------------------
+                        */
 
                         Select::make('IDVendor')
                             ->label('Vendor')
@@ -68,8 +94,13 @@ class MstIspForm
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->placeholder('Pilih vendor')
-                            ->columnSpan(1),
+                            ->placeholder('Pilih vendor'),
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | LOKASI
+                        |--------------------------------------------------------------------------
+                        */
 
                         Select::make('IDLokasi')
                             ->label('Lokasi')
@@ -80,8 +111,13 @@ class MstIspForm
                             ->searchable()
                             ->preload()
                             ->required()
-                            ->placeholder('Pilih lokasi')
-                            ->columnSpan(1),
+                            ->placeholder('Pilih lokasi'),
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | MEDIA
+                        |--------------------------------------------------------------------------
+                        */
 
                         Select::make('MediaType')
                             ->label('Media')
@@ -91,12 +127,20 @@ class MstIspForm
                             ])
                             ->searchable()
                             ->native(false)
-                            ->placeholder('Pilih jenis media')
-                            ->columnSpan(1),
+                            ->placeholder('Pilih jenis media'),
 
                     ])
-                    ->columns(3),
+                    ->columns([
+                        'default' => 1,
+                        'md' => 2,
+                        'xl' => 2,
+                    ]),
 
+                /*
+                |--------------------------------------------------------------------------
+                | KONTRAK
+                |--------------------------------------------------------------------------
+                */
 
                 Section::make('Kontrak')
                     ->description(
@@ -104,10 +148,22 @@ class MstIspForm
                     )
                     ->schema([
 
+                        /*
+                        |--------------------------------------------------------------------------
+                        | MULAI KONTRAK
+                        |--------------------------------------------------------------------------
+                        */
+
                         DatePicker::make('ContractStart')
                             ->label('Mulai Kontrak')
                             ->displayFormat('d M Y')
                             ->format('Y-m-d'),
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | BERAKHIR KONTRAK
+                        |--------------------------------------------------------------------------
+                        */
 
                         DatePicker::make('ContractEnd')
                             ->label('Berakhir Kontrak')
@@ -115,12 +171,24 @@ class MstIspForm
                             ->format('Y-m-d')
                             ->afterOrEqual('ContractStart'),
 
+                        /*
+                        |--------------------------------------------------------------------------
+                        | PERIODE KONTRAK
+                        |--------------------------------------------------------------------------
+                        */
+
                         TextInput::make('ContractPeriodMonth')
                             ->label('Periode Kontrak')
                             ->numeric()
                             ->minValue(1)
                             ->suffix('bulan')
                             ->placeholder('Contoh: 12'),
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | SLA
+                        |--------------------------------------------------------------------------
+                        */
 
                         TextInput::make('SLA')
                             ->label('SLA')
@@ -132,8 +200,17 @@ class MstIspForm
                             ->placeholder('Contoh: 99.90'),
 
                     ])
-                    ->columns(4),
+                    ->columns([
+                        'default' => 1,
+                        'md' => 2,
+                        'xl' => 2,
+                    ]),
 
+                /*
+                |--------------------------------------------------------------------------
+                | STATUS ISP
+                |--------------------------------------------------------------------------
+                */
 
                 Section::make('Status ISP')
                     ->schema([
@@ -146,19 +223,25 @@ class MstIspForm
                     ])
                     ->columns(1),
 
+                /*
+                |--------------------------------------------------------------------------
+                | KETERANGAN
+                |--------------------------------------------------------------------------
+                */
 
                 Section::make('Keterangan')
                     ->schema([
 
                         Textarea::make('Keterangan')
                             ->label('Keterangan')
-                            ->rows(4)
+                            ->rows(5)
                             ->placeholder(
                                 'Masukkan keterangan tambahan...'
                             )
                             ->columnSpanFull(),
 
-                    ]),
+                    ])
+                    ->columnSpanFull(),
 
             ]);
     }
