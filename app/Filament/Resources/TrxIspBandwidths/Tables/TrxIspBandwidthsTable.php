@@ -37,6 +37,11 @@ class TrxIspBandwidthsTable
                     ->searchable()
                     ->sortable(),
 
+                TextColumn::make('isp.MediaType')
+                    ->label('Media Type')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('isp.lokasi.NamaLokasi')
                     ->label('Lokasi')
                     ->searchable()
@@ -105,7 +110,9 @@ class TrxIspBandwidthsTable
                     ->options(
                         fn () =>
                             \App\Models\MstIsp::query()
-                                ->whereNotNull('ConnectionType')
+                                ->whereNotNull(
+                                    'ConnectionType'
+                                )
                                 ->where(
                                     'ConnectionType',
                                     '!=',
@@ -128,12 +135,64 @@ class TrxIspBandwidthsTable
                         ) =>
                             $query->when(
                                 $data['value'] ?? null,
-                                fn ($query, $value) =>
+                                fn (
+                                    $query,
+                                    $value
+                                ) =>
                                     $query->whereHas(
                                         'isp',
-                                        fn ($ispQuery) =>
+                                        fn (
+                                            $ispQuery
+                                        ) =>
                                             $ispQuery->where(
                                                 'ConnectionType',
+                                                $value
+                                            )
+                                    )
+                            )
+                    ),
+
+                SelectFilter::make('media_type')
+                    ->label('Media Type')
+                    ->options(
+                        fn () =>
+                            \App\Models\MstIsp::query()
+                                ->whereNotNull(
+                                    'MediaType'
+                                )
+                                ->where(
+                                    'MediaType',
+                                    '!=',
+                                    ''
+                                )
+                                ->distinct()
+                                ->orderBy(
+                                    'MediaType'
+                                )
+                                ->pluck(
+                                    'MediaType',
+                                    'MediaType'
+                                )
+                                ->toArray()
+                    )
+                    ->query(
+                        fn (
+                            $query,
+                            array $data
+                        ) =>
+                            $query->when(
+                                $data['value'] ?? null,
+                                fn (
+                                    $query,
+                                    $value
+                                ) =>
+                                    $query->whereHas(
+                                        'isp',
+                                        fn (
+                                            $ispQuery
+                                        ) =>
+                                            $ispQuery->where(
+                                                'MediaType',
                                                 $value
                                             )
                                     )
