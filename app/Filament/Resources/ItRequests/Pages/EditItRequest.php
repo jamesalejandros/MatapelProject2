@@ -16,6 +16,15 @@ class EditItRequest extends EditRecord
     |--------------------------------------------------------------------------
     | CEK SUPER ADMIN
     |--------------------------------------------------------------------------
+    |
+    | HANYA super_admin yang boleh bypass lock.
+    |
+    | Permission seperti:
+    | - itrequest.update
+    | - itrequest.view
+    |
+    | TIDAK membuat user bebas dari business-rule lock.
+    |
     */
 
     protected function isSuperAdmin(): bool
@@ -32,10 +41,25 @@ class EditItRequest extends EditRecord
     |--------------------------------------------------------------------------
     | CEK REQUEST SUDAH SELESAI
     |--------------------------------------------------------------------------
+    |
+    | Jika sudah selesai:
+    |
+    | - User biasa       => LOCK
+    | - Staff IT         => LOCK
+    | - Kepala Bagian    => LOCK
+    | - User permission  => LOCK
+    | - super_admin      => BOLEH BYPASS
+    |
     */
 
     protected function isCompletedAndLocked(): bool
     {
+        /*
+        |--------------------------------------------------------------------------
+        | HANYA SUPER ADMIN BOLEH BYPASS
+        |--------------------------------------------------------------------------
+        */
+
         if (
             $this->isSuperAdmin()
         ) {
@@ -52,13 +76,23 @@ class EditItRequest extends EditRecord
     |--------------------------------------------------------------------------
     |
     | Jika approval sudah rejected:
-    | - Staff IT tidak boleh mengedit request
-    | - super_admin tetap boleh
+    |
+    | - User biasa       => LOCK
+    | - Staff IT         => LOCK
+    | - Kepala Bagian    => LOCK
+    | - User permission  => LOCK
+    | - super_admin      => BOLEH BYPASS
     |
     */
 
     protected function isRejectedAndLocked(): bool
     {
+        /*
+        |--------------------------------------------------------------------------
+        | HANYA SUPER ADMIN BOLEH BYPASS
+        |--------------------------------------------------------------------------
+        */
+
         if (
             $this->isSuperAdmin()
         ) {
@@ -81,6 +115,9 @@ class EditItRequest extends EditRecord
     | 1. Sudah selesai
     | ATAU
     | 2. Approval ditolak
+    |
+    | Permission tidak mempengaruhi lock.
+    | Hanya super_admin yang dapat bypass.
     |
     */
 
@@ -109,7 +146,7 @@ class EditItRequest extends EditRecord
                 | REQUEST TERKUNCI TIDAK BOLEH DIHAPUS
                 |--------------------------------------------------------------------------
                 |
-                | super_admin tetap boleh.
+                | Hanya super_admin yang dapat bypass lock.
                 |
                 */
 
@@ -117,6 +154,16 @@ class EditItRequest extends EditRecord
                     fn (): bool =>
                         $this->isRequestLocked()
                 )
+
+                /*
+                |--------------------------------------------------------------------------
+                | PERMISSION DELETE TETAP DIHORMATI
+                |--------------------------------------------------------------------------
+                |
+                | Permission menentukan apakah tombol delete boleh muncul.
+                | Tetapi permission TIDAK membypass business-rule lock.
+                |
+                */
 
                 ->visible(
                     fn ($record) =>
@@ -168,7 +215,7 @@ class EditItRequest extends EditRecord
                                     'Request telah ditolak'
                                 )
                                 ->body(
-                                    'Request yang telah ditolak oleh Kepala Bagian tidak dapat dihapus atau diedit oleh Staff IT. Hanya super_admin yang dapat mengubah atau menghapus request ini.'
+                                    'Request yang telah ditolak oleh Kepala Bagian tidak dapat dihapus atau diedit. Hanya super_admin yang dapat mengubah atau menghapus request ini.'
                                 )
                                 ->persistent()
                                 ->send();
@@ -186,10 +233,16 @@ class EditItRequest extends EditRecord
     | VALIDASI SEBELUM SAVE
     |--------------------------------------------------------------------------
     |
-    | Ini adalah pengaman server-side.
+    | Server-side protection.
     |
-    | Jika request sudah selesai atau approval sudah rejected,
-    | Staff IT tidak dapat melakukan perubahan apa pun.
+    | Walaupun user mempunyai:
+    |
+    | itrequest.update
+    |
+    | user tetap TIDAK dapat menyimpan perubahan jika request
+    | berada dalam kondisi yang terkunci.
+    |
+    | KECUALI super_admin.
     |
     */
 
@@ -229,10 +282,10 @@ class EditItRequest extends EditRecord
         | APPROVAL SUDAH DITOLAK
         |--------------------------------------------------------------------------
         |
-        | Ini dibuat sebagai LOCK PENUH.
+        | LOCK PENUH.
         |
-        | Jadi bukan hanya Status yang tidak boleh diubah.
-        | Field lain juga tidak boleh disimpan oleh Staff IT.
+        | User yang memiliki permission itrequest.update sekalipun
+        | tetap tidak dapat menyimpan perubahan.
         |
         */
 
@@ -246,7 +299,7 @@ class EditItRequest extends EditRecord
                     'Request telah ditolak'
                 )
                 ->body(
-                    'Request yang telah ditolak oleh Kepala Bagian tidak dapat diedit lagi oleh Staff IT. Hanya super_admin yang dapat mengubahnya.'
+                    'Request yang telah ditolak oleh Kepala Bagian tidak dapat diedit lagi. Hanya super_admin yang dapat mengubahnya.'
                 )
                 ->persistent()
                 ->send();
@@ -290,7 +343,16 @@ class EditItRequest extends EditRecord
         |--------------------------------------------------------------------------
         |
         | Kalau approval masih pending / belum ada,
-        | Admin/Staff IT tidak boleh mengubah status.
+        | status tidak boleh diubah.
+        |
+        | Ini berlaku untuk:
+        |
+        | - Staff IT
+        | - Kepala Bagian
+        | - User dengan permission
+        | - User biasa
+        |
+        | super_admin tetap mengikuti bypass khusus di atas.
         |
         */
 
@@ -333,8 +395,7 @@ class EditItRequest extends EditRecord
         |
         | Pengaman tambahan.
         |
-        | Normalnya blok ini sudah tidak akan tercapai karena
-        | isRejectedAndLocked() di atas sudah menghentikan save.
+        | Normalnya sudah dihentikan oleh isRejectedAndLocked().
         |
         */
 
@@ -348,7 +409,7 @@ class EditItRequest extends EditRecord
                     'Request ditolak'
                 )
                 ->body(
-                    'Request yang ditolak Kepala Bagian tidak dapat diproses atau diedit oleh Staff IT.'
+                    'Request yang ditolak Kepala Bagian tidak dapat diproses atau diedit.'
                 )
                 ->persistent()
                 ->send();
@@ -361,18 +422,11 @@ class EditItRequest extends EditRecord
         | APPROVAL APPROVED
         |--------------------------------------------------------------------------
         |
-        | Kalau approved, Admin/Staff IT hanya boleh memilih:
+        | Setelah approved, status hanya boleh:
         |
         | - diproses
         | - selesai
         | - dibatalkan
-        |
-        | Status:
-        | - diajukan
-        | - disetujui
-        | - ditolak
-        |
-        | tidak boleh dipilih lagi.
         |
         */
 
@@ -434,7 +488,15 @@ class EditItRequest extends EditRecord
         | CEGAH STATUS TIDAK VALID SETELAH APPROVED
         |--------------------------------------------------------------------------
         |
-        | Ini penting sebagai pengaman server-side.
+        | Setelah approval approved:
+        |
+        | Hanya:
+        |
+        | - diproses
+        | - selesai
+        | - dibatalkan
+        |
+        | yang diperbolehkan.
         |
         */
 

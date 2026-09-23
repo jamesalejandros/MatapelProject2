@@ -286,6 +286,10 @@ class EditUserManagement extends EditRecord
                 $data['permissions_trx']
                 ?? []
             ),
+            ...(
+        $data['permissions_itrequest']
+        ?? []
+    ),
 
         ]);
 
@@ -316,7 +320,9 @@ class EditUserManagement extends EditRecord
 
             $data['permissions_trx'],
 
-            $data['kepala_bagian_id']
+            $data['permissions_itrequest'],
+
+            $data['kepala_bagian_id'],
 
         );
 

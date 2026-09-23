@@ -503,19 +503,24 @@ class UserManagementForm
                     */
 
                     Section::make(
-                        'Transaksi'
-                    )
-                        ->description(
-                            'Hak akses untuk menjalankan dan mengelola transaksi sistem.'
-                        )
-                        ->schema([
+    'Transaksi'
+)
+    ->description(
+        'Hak akses untuk menjalankan dan mengelola transaksi sistem.'
+    )
+    ->schema([
 
-                            self::permissionList(
-                                'trx'
-                            ),
+        self::permissionList(
+            'trx'
+        ),
 
-                        ])
-                        ->columnSpanFull(),
+        self::permissionList(
+            'itrequest'
+        ),
+
+    ])
+    ->columnSpanFull(),
+
 
                 ])
                 ->columnSpanFull(),

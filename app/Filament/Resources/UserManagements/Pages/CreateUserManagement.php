@@ -145,6 +145,10 @@ class CreateUserManagement extends CreateRecord
                 $data['permissions_trx']
                 ?? []
             ),
+            ...(
+        $data['permissions_itrequest']
+        ?? []
+    ),
 
         ]);
 
@@ -180,6 +184,9 @@ class CreateUserManagement extends CreateRecord
             $data['permissions_mst'],
 
             $data['permissions_trx'],
+            $data['permissions_itrequest'],
+
+    $data['kepala_bagian_id'],
 
             /*
             |--------------------------------------------------------------------------

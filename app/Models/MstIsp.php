@@ -21,6 +21,7 @@ class MstIsp extends Model
 
     protected $fillable = [
         'ISPCode',
+        'ConnectionType',
         'NamaISP',
         'IDVendor',
         'IDLokasi',
@@ -30,7 +31,6 @@ class MstIsp extends Model
         'ContractPeriodMonth',
         'SLA',
         'Keterangan',
-        'Status',
         'IsActive',
     ];
 

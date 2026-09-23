@@ -40,12 +40,24 @@ class MstIspForm
                             ->placeholder('Contoh: ISP-001')
                             ->columnSpan(1),
 
+                        Select::make('ConnectionType')
+                            ->label('Tipe Koneksi')
+                            ->options([
+                                'PRIMARY' => 'Primary',
+                                'BACKUP' => 'Backup',
+                            ])
+                            ->required()
+                            ->native(false)
+                            ->searchable()
+                            ->placeholder('Pilih tipe koneksi')
+                            ->columnSpan(1),
+
                         TextInput::make('NamaISP')
-                            ->label('Nama ISP')
+                            ->label('Nama Paket')
                             ->required()
                             ->maxLength(150)
-                            ->placeholder('Contoh: PT Telkom Indonesia')
-                            ->columnSpan(2),
+                            ->placeholder('Contoh: Paket Internet')
+                            ->columnSpan(1),
 
                         Select::make('IDVendor')
                             ->label('Vendor')
@@ -93,16 +105,15 @@ class MstIspForm
                     ->schema([
 
                         DatePicker::make('ContractStart')
-    ->label('Mulai Kontrak')
-    ->displayFormat('d M Y')
-    ->format('Y-m-d'),
+                            ->label('Mulai Kontrak')
+                            ->displayFormat('d M Y')
+                            ->format('Y-m-d'),
 
-DatePicker::make('ContractEnd')
-    ->label('Berakhir Kontrak')
-    ->displayFormat('d M Y')
-    ->format('Y-m-d')
-    ->afterOrEqual('ContractStart'),
-
+                        DatePicker::make('ContractEnd')
+                            ->label('Berakhir Kontrak')
+                            ->displayFormat('d M Y')
+                            ->format('Y-m-d')
+                            ->afterOrEqual('ContractStart'),
 
                         TextInput::make('ContractPeriodMonth')
                             ->label('Periode Kontrak')
@@ -124,20 +135,8 @@ DatePicker::make('ContractEnd')
                     ->columns(4),
 
 
-                Section::make('Status')
+                Section::make('Status ISP')
                     ->schema([
-
-                        Select::make('Status')
-                            ->label('Status')
-                            ->options([
-                                'ACTIVE' => 'Active',
-                                'INACTIVE' => 'Inactive',
-                                'PENDING' => 'Pending',
-                                'EXPIRED' => 'Expired',
-                            ])
-                            ->default('ACTIVE')
-                            ->required()
-                            ->native(false),
 
                         Toggle::make('IsActive')
                             ->label('ISP Aktif')
@@ -145,7 +144,7 @@ DatePicker::make('ContractEnd')
                             ->inline(false),
 
                     ])
-                    ->columns(2),
+                    ->columns(1),
 
 
                 Section::make('Keterangan')

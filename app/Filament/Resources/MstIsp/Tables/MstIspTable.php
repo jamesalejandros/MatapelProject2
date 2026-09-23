@@ -28,8 +28,26 @@ class MstIspTable
                     ->copyable()
                     ->weight('bold'),
 
+                TextColumn::make('ConnectionType')
+                    ->label('Tipe Koneksi')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'PRIMARY' => 'success',
+                        'BACKUP' => 'warning',
+                        default => 'gray',
+                    })
+                    ->formatStateUsing(
+                        fn (?string $state): string => match ($state) {
+                            'PRIMARY' => 'Primary',
+                            'BACKUP' => 'Backup',
+                            default => '-',
+                        }
+                    )
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('NamaISP')
-                    ->label('Nama ISP')
+                    ->label('Nama Paket')
                     ->searchable()
                     ->sortable(),
 
@@ -69,18 +87,6 @@ class MstIspTable
                     ->suffix('%')
                     ->sortable(),
 
-                TextColumn::make('Status')
-                    ->label('Status')
-                    ->badge()
-                    ->color(fn (?string $state): string => match ($state) {
-                        'ACTIVE' => 'success',
-                        'INACTIVE' => 'gray',
-                        'PENDING' => 'warning',
-                        'EXPIRED' => 'danger',
-                        default => 'gray',
-                    })
-                    ->sortable(),
-
                 IconColumn::make('IsActive')
                     ->label('Aktif')
                     ->boolean()
@@ -90,25 +96,27 @@ class MstIspTable
                     ->label('Dibuat')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(
+                        isToggledHiddenByDefault: true
+                    ),
 
                 TextColumn::make('updated_at')
                     ->label('Diperbarui')
                     ->dateTime('d/m/Y H:i')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(
+                        isToggledHiddenByDefault: true
+                    ),
 
             ])
 
             ->filters([
 
-                SelectFilter::make('Status')
-                    ->label('Status')
+                SelectFilter::make('ConnectionType')
+                    ->label('Tipe Koneksi')
                     ->options([
-                        'ACTIVE' => 'Active',
-                        'INACTIVE' => 'Inactive',
-                        'PENDING' => 'Pending',
-                        'EXPIRED' => 'Expired',
+                        'PRIMARY' => 'Primary',
+                        'BACKUP' => 'Backup',
                     ]),
 
                 SelectFilter::make('MediaType')
@@ -143,6 +151,5 @@ class MstIspTable
             ])
 
             ->defaultSort('NamaISP');
-
     }
 }
