@@ -3,11 +3,30 @@ SIDEBAR
 ------------------------------------------------------------
 Sidebar utama aplikasi Permintaan IT.
 
+FITUR:
+- Mobile sidebar menggunakan `sidebarOpen`
+- Desktop sidebar dapat collapse / expand
+- Expanded  : w-72
+- Collapsed : w-20
+- State collapse disimpan di localStorage
+- Semua menu tetap berfungsi saat collapsed
+- Icon tetap tampil saat collapsed
+- Text menu disembunyikan saat collapsed
+- Tooltip menggunakan attribute `title`
+
 PENTING:
-- Alpine state `sidebarOpen` berasal dari layout utama.
-- Jangan tambahkan x-data lagi di file sidebar ini.
-- Layout utama memiliki:
-    <div x-data="{ sidebarOpen: false }">
+- Alpine state berasal dari layout utama.
+- JANGAN tambahkan x-data di file sidebar ini.
+
+Layout utama harus memiliki:
+
+<div
+    x-data="{
+        sidebarOpen: false,
+        sidebarCollapsed:
+            localStorage.getItem('sidebarCollapsed') === 'true'
+    }"
+>
 
 Logika menu:
 - Semua user:
@@ -17,11 +36,6 @@ Logika menu:
     * Approve Request IT
 - super_admin / staff_it / user dengan permission:
     * Admin Dashboard
-
-Alpine.js digunakan untuk:
-- Toggle sidebar mobile
-- Overlay mobile
-- Menutup sidebar
 ============================================================= --}}
 
 @php
@@ -45,9 +59,6 @@ Alpine.js digunakan untuk:
 
 {{-- ========================================================
 MOBILE OVERLAY
---------------------------------------------------------
-State sidebarOpen berasal dari parent layout.
-Jangan tambahkan x-data di sini.
 ========================================================= --}}
 
 <div
@@ -71,10 +82,12 @@ Jangan tambahkan x-data di sini.
 SIDEBAR
 ========================================================= --}}
 
-<aside
+<aside x-cloak
     :class="{
         'translate-x-0': sidebarOpen,
-        '-translate-x-full': !sidebarOpen
+        '-translate-x-full': !sidebarOpen,
+        'lg:w-20': sidebarCollapsed,
+        'lg:w-72': !sidebarCollapsed
     }"
     class="
         fixed
@@ -89,7 +102,7 @@ SIDEBAR
         border-slate-200
         bg-white
         shadow-xl
-        transition-transform
+        transition-all
         duration-300
         ease-in-out
         lg:translate-x-0
@@ -97,120 +110,64 @@ SIDEBAR
     "
 >
 
-    {{-- ====================================================
-    SIDEBAR HEADER
-    ===================================================== --}}
 
-    <div
+    {{-- ====================================================
+SIDEBAR HEADER
+===================================================== --}}
+
+<div
+    class="
+        relative
+        flex
+        h-16
+        shrink-0
+        items-center
+        border-b
+        border-slate-200
+        px-3
+        transition-all
+        duration-300
+    "
+>
+
+    {{-- =================================================
+    BRAND
+    ================================================== --}}
+
+    <a
+        href="{{ route('it-requests.index') }}"
+        @click="sidebarOpen = false"
         class="
             flex
-            h-16
-            shrink-0
+            min-w-0
             items-center
-            justify-between
-            border-b
-            border-slate-200
-            px-5
+            gap-3
+            transition-opacity
+            hover:opacity-80
         "
+        :class="
+            sidebarCollapsed
+                ? 'mx-auto justify-center'
+                : 'pr-10'
+        "
+        title="Permintaan IT"
     >
 
-        {{-- BRAND --}}
+        {{-- LOGO --}}
 
-        <a
-            href="{{ route('it-requests.index') }}"
-            @click="sidebarOpen = false"
+        <div
             class="
                 flex
-                items-center
-                gap-3
-                transition-opacity
-                hover:opacity-80
-            "
-        >
-
-            {{-- LOGO --}}
-
-            <div
-                class="
-                    flex
-                    h-10
-                    w-10
-                    shrink-0
-                    items-center
-                    justify-center
-                    rounded-xl
-                    bg-blue-600
-                    text-white
-                    shadow-sm
-                "
-            >
-
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                >
-                    <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        d="M9 3h6m-7 4h8m-9 4h10m-9 4h8m-6 4h4"
-                    />
-                </svg>
-
-            </div>
-
-
-            {{-- BRAND TEXT --}}
-
-            <div>
-
-                <p
-                    class="
-                        text-sm
-                        font-bold
-                        leading-tight
-                        text-slate-900
-                    "
-                >
-                    Permintaan IT
-                </p>
-
-                <p class="text-xs text-slate-500">
-                    IT Service Request
-                </p>
-
-            </div>
-
-        </a>
-
-
-        {{-- =================================================
-        MOBILE CLOSE BUTTON
-        ================================================== --}}
-
-        <button
-            type="button"
-            @click="sidebarOpen = false"
-            class="
-                flex
-                h-9
-                w-9
+                h-10
+                w-10
+                shrink-0
                 items-center
                 justify-center
-                rounded-lg
-                text-slate-500
-                transition
-                hover:bg-slate-100
-                hover:text-slate-800
-                focus:outline-none
-                focus:ring-2
-                focus:ring-blue-500
-                lg:hidden
+                rounded-xl
+                bg-blue-600
+                text-white
+                shadow-sm
             "
-            aria-label="Tutup sidebar"
         >
 
             <svg
@@ -224,20 +181,191 @@ SIDEBAR
                 <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
-                    d="M6 18L18 6M6 6l12 12"
+                    d="M9 3h6m-7 4h8m-9 4h10m-9 4h8m-6 4h4"
                 />
             </svg>
 
-        </button>
+        </div>
 
-    </div>
+
+        {{-- BRAND TEXT --}}
+
+        <div
+            x-show="!sidebarCollapsed"
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-x-2"
+            x-transition:enter-end="opacity-100 translate-x-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-x-0"
+            x-transition:leave-end="opacity-0 -translate-x-2"
+            class="min-w-0"
+        >
+
+            <p
+                class="
+                    truncate
+                    text-sm
+                    font-bold
+                    leading-tight
+                    text-slate-900
+                "
+            >
+                Permintaan IT
+            </p>
+
+            <p
+                class="
+                    truncate
+                    text-xs
+                    text-slate-500
+                "
+            >
+                IT Service Request
+            </p>
+
+        </div>
+
+    </a>
+
+
+    {{-- =================================================
+    DESKTOP COLLAPSE BUTTON
+    ================================================== --}}
+
+    <button
+        type="button"
+        @click="
+            sidebarCollapsed = !sidebarCollapsed;
+
+            localStorage.setItem(
+                'sidebarCollapsed',
+                sidebarCollapsed
+            );
+        "
+        class="
+            absolute
+            right-2
+            top-1/2
+            hidden
+            h-8
+            w-8
+            -translate-y-1/2
+            items-center
+            justify-center
+            rounded-lg
+            text-slate-500
+            transition
+            hover:bg-slate-100
+            hover:text-slate-800
+            focus:outline-none
+            focus:ring-2
+            focus:ring-blue-500
+            lg:flex
+        "
+        :aria-label="
+            sidebarCollapsed
+                ? 'Perbesar sidebar'
+                : 'Kecilkan sidebar'
+        "
+        :title="
+            sidebarCollapsed
+                ? 'Perbesar sidebar'
+                : 'Kecilkan sidebar'
+        "
+    >
+
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="
+                h-5
+                w-5
+                transition-transform
+                duration-300
+            "
+            :class="
+                sidebarCollapsed
+                    ? 'rotate-180'
+                    : ''
+            "
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 19l-7-7 7-7"
+            />
+        </svg>
+
+    </button>
+
+
+    {{-- =================================================
+    MOBILE CLOSE BUTTON
+    ================================================== --}}
+
+    <button
+        type="button"
+        @click="sidebarOpen = false"
+        class="
+            absolute
+            right-3
+            top-1/2
+            flex
+            h-9
+            w-9
+            -translate-y-1/2
+            items-center
+            justify-center
+            rounded-lg
+            text-slate-500
+            transition
+            hover:bg-slate-100
+            hover:text-slate-800
+            focus:outline-none
+            focus:ring-2
+            focus:ring-blue-500
+            lg:hidden
+        "
+        aria-label="Tutup sidebar"
+    >
+
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+            />
+        </svg>
+
+    </button>
+
+</div>
+
 
 
     {{-- ====================================================
     USER SUMMARY
     ===================================================== --}}
 
-    <div class="border-b border-slate-200 p-4">
+    <div
+        class="
+            border-b
+            border-slate-200
+            p-3
+            transition-all
+            duration-300
+        "
+    >
 
         <div
             class="
@@ -247,6 +375,18 @@ SIDEBAR
                 rounded-xl
                 bg-slate-50
                 p-3
+                transition-all
+                duration-300
+            "
+            :class="
+                sidebarCollapsed
+                    ? 'justify-center'
+                    : ''
+            "
+            :title="
+                sidebarCollapsed
+                    ? '{{ auth()->user()->karyawan?->Nama ?? auth()->user()->name }}'
+                    : ''
             "
         >
 
@@ -285,7 +425,16 @@ SIDEBAR
 
             {{-- USER INFO --}}
 
-            <div class="min-w-0">
+            <div
+                x-show="!sidebarCollapsed"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 -translate-x-2"
+                x-transition:enter-end="opacity-100 translate-x-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-x-0"
+                x-transition:leave-end="opacity-0 -translate-x-2"
+                class="min-w-0"
+            >
 
                 <p
                     class="
@@ -335,7 +484,11 @@ SIDEBAR
 
         <div class="mb-6">
 
+            {{-- SECTION TITLE --}}
+
             <p
+                x-show="!sidebarCollapsed"
+                x-transition
                 class="
                     mb-2
                     px-3
@@ -373,7 +526,15 @@ SIDEBAR
                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }}
                 "
+                :class="
+                    sidebarCollapsed
+                        ? 'justify-center px-0'
+                        : ''
+                "
+                title="Permintaan IT"
             >
+
+                {{-- ICON --}}
 
                 <span
                     class="
@@ -409,7 +570,14 @@ SIDEBAR
 
                 </span>
 
-                <span>
+
+                {{-- TEXT --}}
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition
+                    class="min-w-0 truncate"
+                >
                     Permintaan IT
                 </span>
 
@@ -440,7 +608,15 @@ SIDEBAR
                         : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }}
                 "
+                :class="
+                    sidebarCollapsed
+                        ? 'justify-center px-0'
+                        : ''
+                "
+                title="Buat Request"
             >
+
+                {{-- ICON --}}
 
                 <span
                     class="
@@ -476,8 +652,15 @@ SIDEBAR
 
                 </span>
 
-                <span>
-                    Buat Request
+
+                {{-- TEXT --}}
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition
+                    class="min-w-0 truncate"
+                >
+                    Buat Permintaan
                 </span>
 
             </a>
@@ -499,7 +682,11 @@ SIDEBAR
 
             <div class="mb-6">
 
+                {{-- SECTION TITLE --}}
+
                 <p
+                    x-show="!sidebarCollapsed"
+                    x-transition
                     class="
                         mb-2
                         px-3
@@ -537,6 +724,12 @@ SIDEBAR
                             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                         }}
                     "
+                    :class="
+                        sidebarCollapsed
+                            ? 'justify-center px-0'
+                            : ''
+                    "
+                    title="Approve Request IT"
                 >
 
                     {{-- ICON --}}
@@ -578,7 +771,11 @@ SIDEBAR
 
                     {{-- TEXT --}}
 
-                    <span class="flex-1">
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition
+                        class="min-w-0 flex-1 truncate"
+                    >
                         Approve Request IT
                     </span>
 
@@ -592,6 +789,7 @@ SIDEBAR
                                 inline-flex
                                 min-w-5
                                 h-5
+                                shrink-0
                                 items-center
                                 justify-center
                                 rounded-full
@@ -604,6 +802,11 @@ SIDEBAR
                                 shadow-sm
                                 ring-2
                                 ring-white
+                            "
+                            :class="
+                                sidebarCollapsed
+                                    ? 'absolute ml-7 mt-[-20px]'
+                                    : ''
                             "
                             title="{{ $totalPendingApproval }} permintaan menunggu persetujuan"
                         >
@@ -643,7 +846,11 @@ SIDEBAR
 
             <div class="mb-6">
 
+                {{-- SECTION TITLE --}}
+
                 <p
+                    x-show="!sidebarCollapsed"
+                    x-transition
                     class="
                         mb-2
                         px-3
@@ -681,7 +888,15 @@ SIDEBAR
                             : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                         }}
                     "
+                    :class="
+                        sidebarCollapsed
+                            ? 'justify-center px-0'
+                            : ''
+                    "
+                    title="Admin Dashboard"
                 >
+
+                    {{-- ICON --}}
 
                     <span
                         class="
@@ -717,7 +932,14 @@ SIDEBAR
 
                     </span>
 
-                    <span>
+
+                    {{-- TEXT --}}
+
+                    <span
+                        x-show="!sidebarCollapsed"
+                        x-transition
+                        class="min-w-0 truncate"
+                    >
                         Admin Dashboard
                     </span>
 
@@ -767,7 +989,15 @@ SIDEBAR
                     hover:bg-slate-100
                     hover:text-slate-900
                 "
+                :class="
+                    sidebarCollapsed
+                        ? 'justify-center px-0'
+                        : ''
+                "
+                title="Profile"
             >
+
+                {{-- ICON --}}
 
                 <span
                     class="
@@ -803,7 +1033,14 @@ SIDEBAR
 
                 </span>
 
-                <span>
+
+                {{-- TEXT --}}
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition
+                    class="min-w-0 truncate"
+                >
                     Profile
                 </span>
 
@@ -847,7 +1084,15 @@ SIDEBAR
                     focus:ring-red-500
                     focus:ring-offset-1
                 "
+                :class="
+                    sidebarCollapsed
+                        ? 'justify-center px-0'
+                        : ''
+                "
+                title="Logout"
             >
+
+                {{-- ICON --}}
 
                 <span
                     class="
@@ -883,7 +1128,14 @@ SIDEBAR
 
                 </span>
 
-                <span>
+
+                {{-- TEXT --}}
+
+                <span
+                    x-show="!sidebarCollapsed"
+                    x-transition
+                    class="min-w-0 truncate"
+                >
                     Logout
                 </span>
 
@@ -897,6 +1149,8 @@ SIDEBAR
         ================================================== --}}
 
         <div
+            x-show="!sidebarCollapsed"
+            x-transition
             class="
                 mt-3
                 border-t
@@ -906,11 +1160,23 @@ SIDEBAR
             "
         >
 
-            <p class="text-[11px] font-medium text-slate-400">
+            <p
+                class="
+                    text-[11px]
+                    font-medium
+                    text-slate-400
+                "
+            >
                 IT Asset Management
             </p>
 
-            <p class="mt-0.5 text-[10px] text-slate-400">
+            <p
+                class="
+                    mt-0.5
+                    text-[10px]
+                    text-slate-400
+                "
+            >
                 IT Service Request
             </p>
 

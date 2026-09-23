@@ -48,6 +48,52 @@ class EditItRequest extends EditRecord
 
     /*
     |--------------------------------------------------------------------------
+    | CEK APPROVAL DITOLAK
+    |--------------------------------------------------------------------------
+    |
+    | Jika approval sudah rejected:
+    | - Staff IT tidak boleh mengedit request
+    | - super_admin tetap boleh
+    |
+    */
+
+    protected function isRejectedAndLocked(): bool
+    {
+        if (
+            $this->isSuperAdmin()
+        ) {
+            return false;
+        }
+
+        return
+            $this->record
+                ?->approval
+                ?->status === 'rejected';
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | CEK REQUEST TERKUNCI
+    |--------------------------------------------------------------------------
+    |
+    | Request terkunci jika:
+    |
+    | 1. Sudah selesai
+    | ATAU
+    | 2. Approval ditolak
+    |
+    */
+
+    protected function isRequestLocked(): bool
+    {
+        return
+            $this->isCompletedAndLocked()
+            ||
+            $this->isRejectedAndLocked();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | HEADER ACTIONS
     |--------------------------------------------------------------------------
     */
@@ -60,7 +106,7 @@ class EditItRequest extends EditRecord
 
                 /*
                 |--------------------------------------------------------------------------
-                | REQUEST SELESAI TIDAK BOLEH DIHAPUS
+                | REQUEST TERKUNCI TIDAK BOLEH DIHAPUS
                 |--------------------------------------------------------------------------
                 |
                 | super_admin tetap boleh.
@@ -69,7 +115,7 @@ class EditItRequest extends EditRecord
 
                 ->disabled(
                     fn (): bool =>
-                        $this->isCompletedAndLocked()
+                        $this->isRequestLocked()
                 )
 
                 ->visible(
@@ -82,6 +128,12 @@ class EditItRequest extends EditRecord
                 ->before(
                     function (): void {
 
+                        /*
+                        |--------------------------------------------------------------------------
+                        | REQUEST SUDAH SELESAI
+                        |--------------------------------------------------------------------------
+                        */
+
                         if (
                             $this->isCompletedAndLocked()
                         ) {
@@ -93,6 +145,30 @@ class EditItRequest extends EditRecord
                                 )
                                 ->body(
                                     'Request yang sudah selesai tidak dapat dihapus. Hanya super_admin yang dapat mengubah atau menghapus request ini.'
+                                )
+                                ->persistent()
+                                ->send();
+
+                            $this->halt();
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | APPROVAL DITOLAK
+                        |--------------------------------------------------------------------------
+                        */
+
+                        if (
+                            $this->isRejectedAndLocked()
+                        ) {
+
+                            Notification::make()
+                                ->danger()
+                                ->title(
+                                    'Request telah ditolak'
+                                )
+                                ->body(
+                                    'Request yang telah ditolak oleh Kepala Bagian tidak dapat dihapus atau diedit oleh Staff IT. Hanya super_admin yang dapat mengubah atau menghapus request ini.'
                                 )
                                 ->persistent()
                                 ->send();
@@ -112,8 +188,8 @@ class EditItRequest extends EditRecord
     |
     | Ini adalah pengaman server-side.
     |
-    | Jika request sudah selesai dan bukan super_admin,
-    | proses save dihentikan sepenuhnya.
+    | Jika request sudah selesai atau approval sudah rejected,
+    | Staff IT tidak dapat melakukan perubahan apa pun.
     |
     */
 
@@ -126,7 +202,7 @@ class EditItRequest extends EditRecord
 
         /*
         |--------------------------------------------------------------------------
-        | LOCK REQUEST YANG SUDAH SELESAI
+        | REQUEST SUDAH SELESAI
         |--------------------------------------------------------------------------
         */
 
@@ -145,11 +221,35 @@ class EditItRequest extends EditRecord
                 ->persistent()
                 ->send();
 
-            /*
-            |--------------------------------------------------------------------------
-            | HALT SAVE
-            |--------------------------------------------------------------------------
-            */
+            $this->halt();
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | APPROVAL SUDAH DITOLAK
+        |--------------------------------------------------------------------------
+        |
+        | Ini dibuat sebagai LOCK PENUH.
+        |
+        | Jadi bukan hanya Status yang tidak boleh diubah.
+        | Field lain juga tidak boleh disimpan oleh Staff IT.
+        |
+        */
+
+        if (
+            $this->isRejectedAndLocked()
+        ) {
+
+            Notification::make()
+                ->danger()
+                ->title(
+                    'Request telah ditolak'
+                )
+                ->body(
+                    'Request yang telah ditolak oleh Kepala Bagian tidak dapat diedit lagi oleh Staff IT. Hanya super_admin yang dapat mengubahnya.'
+                )
+                ->persistent()
+                ->send();
 
             $this->halt();
         }
@@ -222,12 +322,6 @@ class EditItRequest extends EditRecord
                 ->persistent()
                 ->send();
 
-            /*
-            |--------------------------------------------------------------------------
-            | KEMBALIKAN STATUS LAMA
-            |--------------------------------------------------------------------------
-            */
-
             $data['Status'] =
                 $oldStatus;
         }
@@ -237,22 +331,15 @@ class EditItRequest extends EditRecord
         | APPROVAL REJECTED
         |--------------------------------------------------------------------------
         |
-        | Jika sudah ditolak, jangan izinkan IT mengubah
-        | status menjadi diproses/selesai.
+        | Pengaman tambahan.
+        |
+        | Normalnya blok ini sudah tidak akan tercapai karena
+        | isRejectedAndLocked() di atas sudah menghentikan save.
         |
         */
 
         if (
             $approvalStatus === 'rejected'
-            &&
-            in_array(
-                $newStatus,
-                [
-                    'diproses',
-                    'selesai',
-                ],
-                true
-            )
         ) {
 
             Notification::make()
@@ -261,13 +348,12 @@ class EditItRequest extends EditRecord
                     'Request ditolak'
                 )
                 ->body(
-                    'Request yang ditolak Kepala Bagian tidak dapat diproses oleh IT.'
+                    'Request yang ditolak Kepala Bagian tidak dapat diproses atau diedit oleh Staff IT.'
                 )
                 ->persistent()
                 ->send();
 
-            $data['Status'] =
-                $oldStatus;
+            $this->halt();
         }
 
         /*
@@ -275,7 +361,18 @@ class EditItRequest extends EditRecord
         | APPROVAL APPROVED
         |--------------------------------------------------------------------------
         |
-        | Kalau approved, Admin/Staff IT boleh memproses.
+        | Kalau approved, Admin/Staff IT hanya boleh memilih:
+        |
+        | - diproses
+        | - selesai
+        | - dibatalkan
+        |
+        | Status:
+        | - diajukan
+        | - disetujui
+        | - ditolak
+        |
+        | tidak boleh dipilih lagi.
         |
         */
 
@@ -285,7 +382,6 @@ class EditItRequest extends EditRecord
             in_array(
                 $newStatus,
                 [
-                    'disetujui',
                     'diproses',
                     'selesai',
                     'dibatalkan',
@@ -298,10 +394,6 @@ class EditItRequest extends EditRecord
             |--------------------------------------------------------------------------
             | PENYELESAI
             |--------------------------------------------------------------------------
-            |
-            | Jika status berubah untuk diproses/selesai,
-            | otomatis isi user yang sedang login.
-            |
             */
 
             if (
@@ -335,6 +427,46 @@ class EditItRequest extends EditRecord
                     $data['TanggalSelesai']
                     ?? now()->format('Y-m-d');
             }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEGAH STATUS TIDAK VALID SETELAH APPROVED
+        |--------------------------------------------------------------------------
+        |
+        | Ini penting sebagai pengaman server-side.
+        |
+        */
+
+        if (
+            $approvalStatus === 'approved'
+            &&
+            $newStatus !== $oldStatus
+            &&
+            !in_array(
+                $newStatus,
+                [
+                    'diproses',
+                    'selesai',
+                    'dibatalkan',
+                ],
+                true
+            )
+        ) {
+
+            Notification::make()
+                ->danger()
+                ->title(
+                    'Status tidak dapat dipilih'
+                )
+                ->body(
+                    'Setelah disetujui Kepala Bagian, status hanya dapat diubah menjadi Diproses, Selesai, atau Dibatalkan.'
+                )
+                ->persistent()
+                ->send();
+
+            $data['Status'] =
+                $oldStatus;
         }
 
         return $data;

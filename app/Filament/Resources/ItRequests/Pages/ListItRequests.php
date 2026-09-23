@@ -6,6 +6,7 @@ use App\Filament\Resources\ItRequests\ItRequestResource;
 
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
+use App\Filament\Resources\ItRequests\Widgets\ItRequestStats;
 
 
 class ListItRequests extends ListRecords
@@ -27,4 +28,12 @@ class ListItRequests extends ListRecords
 
         ];
     }
+
+    protected function getHeaderWidgets(): array
+{
+    return [
+        ItRequestStats::class,
+    ];
+}
+
 }

@@ -10,6 +10,7 @@ use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Filament\Tables\Enums\FiltersLayout;
 
 class ItRequestsTable
 {
@@ -1900,6 +1901,9 @@ class ItRequestsTable
                         'diajukan' =>
                             'Diajukan',
 
+                        'disetujui' =>
+                            'Disetujui',
+
                         'diproses' =>
                             'Diproses',
 
@@ -2030,6 +2034,65 @@ class ItRequestsTable
 
                         }
                     ),
+
+                    /*
+|--------------------------------------------------------------------------
+| FILTER OVERDUE / LEWAT RENCANA SELESAI
+|--------------------------------------------------------------------------
+*/
+
+SelectFilter::make('overdue')
+
+    ->label(
+        'Rencana Selesai'
+    )
+
+    ->options([
+
+        '1' =>
+            'Lewat Rencana Selesai',
+
+    ])
+
+    ->query(
+        function (
+            $query,
+            array $data
+        ) {
+
+            $value =
+                $data['value']
+                ?? null;
+
+            if (
+                $value !== '1'
+            ) {
+                return;
+            }
+
+            $query
+                ->whereNotNull(
+                    'it_requests.RencanaSelesai'
+                )
+
+                ->whereDate(
+                    'it_requests.RencanaSelesai',
+                    '<',
+                    now()
+                )
+
+                ->whereNotIn(
+                    'it_requests.Status',
+                    [
+                        'selesai',
+                        'ditolak',
+                        'dibatalkan',
+                    ]
+                );
+
+        }
+    ),
+
 
             ])
 

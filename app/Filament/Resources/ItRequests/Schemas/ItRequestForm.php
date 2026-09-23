@@ -21,7 +21,24 @@ class ItRequestForm
 
         /*
         |--------------------------------------------------------------------------
-        | CEK APAKAH RECORD SUDAH SELESAI
+        | CEK SUPER ADMIN
+        |--------------------------------------------------------------------------
+        |
+        | super_admin tidak terkena lock selesai / rejected.
+        |
+        */
+
+        $isSuperAdmin = function (): bool {
+
+            return
+                auth()->check()
+                &&
+                auth()->user()->hasRole('super_admin');
+        };
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEK REQUEST SUDAH SELESAI
         |--------------------------------------------------------------------------
         |
         | Jika sudah selesai:
@@ -30,21 +47,66 @@ class ItRequestForm
         |
         */
 
-        $isCompletedAndLocked = function ($record): bool {
+        $isCompletedAndLocked = function ($record) use ($isSuperAdmin): bool {
 
             if (!$record) {
                 return false;
             }
 
-            if (
-                auth()->check()
-                &&
-                auth()->user()->hasRole('super_admin')
-            ) {
+            if ($isSuperAdmin()) {
                 return false;
             }
 
             return $record->Status === 'selesai';
+        };
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEK APPROVAL DITOLAK
+        |--------------------------------------------------------------------------
+        |
+        | Jika approval sudah rejected:
+        | - Semua field dikunci
+        | - Staff IT tidak dapat mengubah request
+        | - Kecuali super_admin
+        |
+        */
+
+        $isRejectedAndLocked = function ($record) use ($isSuperAdmin): bool {
+
+            if (!$record) {
+                return false;
+            }
+
+            if ($isSuperAdmin()) {
+                return false;
+            }
+
+            return
+                $record
+                    ->approval
+                        ?->status === 'rejected';
+        };
+
+        /*
+        |--------------------------------------------------------------------------
+        | CEK REQUEST SUDAH TERKUNCI
+        |--------------------------------------------------------------------------
+        |
+        | Request terkunci jika:
+        |
+        | 1. Sudah selesai
+        | ATAU
+        | 2. Approval ditolak
+        |
+        */
+
+        $isRequestLocked = function ($record) use ($isCompletedAndLocked, $isRejectedAndLocked): bool {
+
+            return
+                $isCompletedAndLocked($record)
+                ||
+                $isRejectedAndLocked($record);
         };
 
         return $schema
@@ -236,7 +298,7 @@ class ItRequestForm
                             ->multiple()
                             ->nullable()
                             ->disabled(
-                                $isCompletedAndLocked
+                                $isRequestLocked
                             )
                             ->helperText(
                                 'Asset dapat dipilih lebih dari satu.'
@@ -569,22 +631,72 @@ class ItRequestForm
                             ->label(
                                 'Status'
                             )
-                            ->options([
-                                'diajukan' =>
-                                    'Diajukan',
 
-                                'disetujui' =>
-                                    'Disetujui',
+                            /*
+                            |--------------------------------------------------------------------------
+                            | OPTIONS STATUS DINAMIS
+                            |--------------------------------------------------------------------------
+                            |
+                            | Jika approval belum approved:
+                            |
+                            | - Diajukan
+                            | - Disetujui
+                            | - Ditolak
+                            | - Diproses
+                            | - Selesai
+                            | - Dibatalkan
+                            |
+                            | Jika approval sudah approved:
+                            |
+                            | - Diproses
+                            | - Selesai
+                            | - Dibatalkan
+                            |
+                            */
 
-                                'diproses' =>
-                                    'Diproses',
+                            ->options(
+                                function ($record): array {
 
-                                'selesai' =>
-                                    'Selesai',
+                                    if (
+                                        $record
+                                        && $record
+                                            ->approval
+                                                ?->status === 'approved'
+                                    ) {
+                                        return [
+                                            'diproses' =>
+                                                'Diproses',
 
-                                'dibatalkan' =>
-                                    'Dibatalkan',
-                            ])
+                                            'selesai' =>
+                                                'Selesai',
+
+                                            'dibatalkan' =>
+                                                'Dibatalkan',
+                                        ];
+                                    }
+
+                                    return [
+                                        'diajukan' =>
+                                            'Diajukan',
+
+                                        'disetujui' =>
+                                            'Disetujui',
+
+                                        'ditolak' =>
+                                            'Ditolak',
+
+                                        'diproses' =>
+                                            'Diproses',
+
+                                        'selesai' =>
+                                            'Selesai',
+
+                                        'dibatalkan' =>
+                                            'Dibatalkan',
+                                    ];
+                                }
+                            )
+
                             ->required()
 
                             /*
@@ -594,21 +706,27 @@ class ItRequestForm
                             |
                             | Status tidak dapat diubah jika:
                             |
-                            | 1. Approval belum approved
-                            | atau
-                            | 2. Request sudah selesai
+                            | 1. Request sudah selesai
+                            | 2. Approval ditolak
+                            | 3. Approval belum approved
                             |
                             | super_admin tetap dapat mengubah.
                             |
                             */
 
                             ->disabled(
-                                function ($record) use (
-                                    $isCompletedAndLocked
-                                ): bool {
+                                function ($record) use ($isCompletedAndLocked, $isRejectedAndLocked): bool {
 
                                     if (
                                         $isCompletedAndLocked(
+                                            $record
+                                        )
+                                    ) {
+                                        return true;
+                                    }
+
+                                    if (
+                                        $isRejectedAndLocked(
                                             $record
                                         )
                                     ) {
@@ -622,7 +740,7 @@ class ItRequestForm
                                     return
                                         $record
                                             ->approval
-                                            ?->status
+                                                ?->status
                                         !== 'approved';
                                 }
                             )
@@ -630,9 +748,7 @@ class ItRequestForm
                             ->dehydrated()
 
                             ->helperText(
-                                function ($record) use (
-                                    $isCompletedAndLocked
-                                ): ?string {
+                                function ($record) use ($isCompletedAndLocked, $isRejectedAndLocked): ?string {
 
                                     if (!$record) {
                                         return null;
@@ -650,20 +766,20 @@ class ItRequestForm
                                     $approvalStatus =
                                         $record
                                             ->approval
-                                            ?->status;
+                                                ?->status;
+
+                                    if (
+                                        $approvalStatus === 'rejected'
+                                    ) {
+                                        return
+                                            'Request telah ditolak oleh Kepala Bagian dan tidak dapat diedit lagi oleh Staff IT. Hanya super_admin yang dapat mengubahnya.';
+                                    }
 
                                     if (
                                         $approvalStatus === 'pending'
                                     ) {
                                         return
                                             'Status belum dapat diubah karena masih menunggu persetujuan Kepala Bagian.';
-                                    }
-
-                                    if (
-                                        $approvalStatus === 'rejected'
-                                    ) {
-                                        return
-                                            'Request ditolak oleh Kepala Bagian dan tidak dapat diproses oleh IT.';
                                     }
 
                                     if (
@@ -718,7 +834,7 @@ class ItRequestForm
                             )
                             ->nullable()
                             ->disabled(
-                                $isCompletedAndLocked
+                                $isRequestLocked
                             ),
 
                         /*
@@ -741,7 +857,7 @@ class ItRequestForm
                             )
                             ->nullable()
                             ->disabled(
-                                $isCompletedAndLocked
+                                $isRequestLocked
                             ),
 
                         /*
@@ -759,7 +875,7 @@ class ItRequestForm
                             ->rows(6)
                             ->nullable()
                             ->disabled(
-                                $isCompletedAndLocked
+                                $isRequestLocked
                             )
                             ->columnSpanFull(),
 
@@ -860,16 +976,16 @@ class ItRequestForm
                                                     $user
                                                         ?->karyawan
                                                         ?->departemen
-                                                        ?->NamaDept
+                                                            ?->NamaDept
                                                     ?? $user
                                                         ?->karyawan
                                                         ?->departemen
-                                                        ?->NamaDepartemen
+                                                            ?->NamaDepartemen
                                                     ?? '-';
 
                                                 $tanggal =
                                                     $note->created_at
-                                                        ?->format(
+                                                            ?->format(
                                                             'd/m/Y H:i'
                                                         )
                                                     ?? '-';

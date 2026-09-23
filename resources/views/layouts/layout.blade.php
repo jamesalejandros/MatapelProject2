@@ -36,7 +36,19 @@ Alpine state diletakkan di wrapper utama agar:
 berada dalam scope yang sama.
 ============================================================= --}}
 
-<div x-data="{ sidebarOpen: false }" class="min-h-screen" >
+<div
+    x-data="{
+        sidebarOpen: false,
+        sidebarCollapsed: false
+    }"
+    x-init="
+        sidebarCollapsed =
+            localStorage.getItem('sidebarCollapsed') === 'true'
+    "
+    class="min-h-screen"
+>
+
+
 {{-- ========================================================
     SIDEBAR
     --------------------------------------------------------
@@ -69,9 +81,13 @@ berada dalam scope yang sama.
 <div
     class="
         min-h-screen
-        lg:ml-72
+        transition-[margin]
+        duration-300
+        ease-in-out
     "
+    :class="sidebarCollapsed ? 'lg:ml-20' : 'lg:ml-72'"
 >
+
 
 
     {{-- ====================================================
